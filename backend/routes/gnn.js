@@ -120,6 +120,63 @@ function normalizeText(value) {
   return String(value || '').trim().toLowerCase();
 }
 
+function normalizeNodeKey(value) {
+  return normalizeText(value).replace(/[^a-z0-9]/g, '');
+}
+
+function resolveGraphNodeId(requestedNodeId, requestedNodeName = '') {
+  const graphNodes = gnnService.getGraphNodes();
+  if (!requestedNodeId && !requestedNodeName) return null;
+
+  const byId = new Map(graphNodes.map((node) => [String(node.id), node.id]));
+  if (requestedNodeId && byId.has(requestedNodeId)) {
+    return requestedNodeId;
+  }
+
+  const normalizedRequestedId = normalizeNodeKey(requestedNodeId);
+  const normalizedRequestedName = normalizeNodeKey(requestedNodeName);
+  const requestedType = normalizeText(String(requestedNodeId || '').split('-')[0]);
+
+  const exactNameMatch = graphNodes.find((node) =>
+    normalizeText(node.name) === normalizeText(requestedNodeName)
+  );
+  if (exactNameMatch) return exactNameMatch.id;
+
+  const normalizedMatch = graphNodes.find((node) => {
+    const nodeIdKey = normalizeNodeKey(node.id);
+    const nodeNameKey = normalizeNodeKey(node.name);
+    return (
+      (normalizedRequestedId && (nodeIdKey === normalizedRequestedId || nodeNameKey === normalizedRequestedId))
+      || (normalizedRequestedName && (nodeIdKey === normalizedRequestedName || nodeNameKey === normalizedRequestedName))
+    );
+  });
+  if (normalizedMatch) return normalizedMatch.id;
+
+  const fuzzyMatch = graphNodes.find((node) => {
+    const nodeIdKey = normalizeNodeKey(node.id);
+    const nodeNameKey = normalizeNodeKey(node.name);
+    return (
+      (normalizedRequestedId && (nodeIdKey.includes(normalizedRequestedId) || normalizedRequestedId.includes(nodeIdKey)))
+      || (normalizedRequestedName && (nodeNameKey.includes(normalizedRequestedName) || normalizedRequestedName.includes(nodeNameKey)))
+    );
+  });
+  if (fuzzyMatch) return fuzzyMatch.id;
+
+  if (requestedType) {
+    const sameType = graphNodes.filter((node) => normalizeText(node.type) === requestedType);
+    if (sameType.length > 0) {
+      const mainLike = sameType.find((node) => {
+        const name = normalizeText(node.name);
+        const id = normalizeText(node.id);
+        return name.includes('main') || id.includes('main');
+      });
+      return (mainLike || sameType[0]).id;
+    }
+  }
+
+  return null;
+}
+
 function buildGuidedAffectedNode(node, options = {}) {
   const score = Math.round(clamp(Number(options.severityScore ?? options.probability ?? 70) / 100, 0, 1) * 100);
   const probability = Math.round(clamp(Number(options.probability ?? score) / 100, 0, 1) * 10000) / 100;
@@ -467,11 +524,7 @@ async function predictImpactWithModelOrFallback(nodeId, failureType = 'failure',
 
     // Fallback to local JS GNN engine so impact analysis remains available
     // even when the external Python model service is sleeping/unhealthy.
-    const fallbackImpact = gnnService.predictFailureImpact(
-      nodeId,
-      failureType,
-      normalizeSeverity(severity),
-    );
+    const fallbackImpact = gnnService.predictFailureImpact(nodeId, failureType, normalizeSeverity(severity));
 
     return {
       impact: fallbackImpact,
@@ -599,6 +652,10 @@ router.post('/predict-structured', async (req, res) => {
       );
       resolvedNodeId = match?.id;
     }
+
+    // Final node resolution against the current backend graph to avoid
+    // ID drift between frontend demo IDs and dynamically stitched graph IDs.
+    resolvedNodeId = resolveGraphNodeId(resolvedNodeId, node_name);
 
     if (!resolvedNodeId) {
       return res.status(400).json({
