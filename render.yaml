@@ -44,7 +44,7 @@ services:
       - key: ADMIN_NAME
         value: Administrator
       - key: PYTHON_GNN_API_URL
-        value: https://ruralens-gnn-api.onrender.com
+        value: https://ruralens-gnn-api-mfss.onrender.com
 
   # ─── Frontend Static Site (React/Vite) ──────────────────────────────────────
   - type: web
@@ -55,7 +55,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: https://ruralens-backend.onrender.com
+        value: https://ruralens-backend-314u.onrender.com
     headers:
       - path: /*
         name: Cache-Control

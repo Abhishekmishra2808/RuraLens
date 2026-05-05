@@ -1,8 +1,8 @@
 // API Configuration
 // Automatically detects environment and uses appropriate backend URL
 
-// Production backend URL (deployed on Render)
-const PRODUCTION_API_URL = 'https://ruralens-backend.onrender.com';
+// Production fallback backend URL (used only if VITE_API_URL is missing at build time)
+const PRODUCTION_API_URL = 'https://ruralens-backend-314u.onrender.com';
 
 // Local development - use localhost
 const LOCAL_DEV_HOST = 'localhost';
@@ -37,8 +37,9 @@ const getApiUrl = () => {
     return PRODUCTION_API_URL;
   }
   
-  // Production web - use production backend
-  return import.meta.env.VITE_API_URL || PRODUCTION_API_URL;
+  // Production web - prefer Vite env, fall back to known Render backend
+  const envApiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '');
+  return envApiUrl || PRODUCTION_API_URL;
 };
 
 const getWsUrl = () => {
@@ -53,7 +54,7 @@ const getWsUrl = () => {
   }
   
   // Production web
-  const apiUrl = import.meta.env.VITE_API_URL || PRODUCTION_API_URL;
+  const apiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '') || PRODUCTION_API_URL;
   return apiUrl.replace('https://', 'wss://').replace('http://', 'ws://');
 };
 
