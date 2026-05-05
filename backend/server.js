@@ -29,7 +29,31 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+// Allowed origins: Render frontend + any localhost for local dev
+const allowedOrigins = [
+  process.env.FRONTEND_URL,                        // e.g. https://ruralens-frontend-b9p7.onrender.com
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:4173',
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error(`CORS policy: origin ${origin} not allowed`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+// Handle OPTIONS preflight for all routes
+app.options('*', cors());
+
 app.use(express.json());
 
 // Serve uploaded images
