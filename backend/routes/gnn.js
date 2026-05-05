@@ -2,7 +2,7 @@ import express from 'express';
 import gnnService from '../utils/gnnImpactService.js';
 
 const router = express.Router();
-const DEFAULT_RENDER_GNN_API_URL = 'https://ruralens-gnn-api.onrender.com';
+const DEFAULT_RENDER_GNN_API_URL = 'https://ruralens-gnn-api-mfss.onrender.com';
 const PYTHON_GNN_API_URL = process.env.PYTHON_GNN_API_URL || (
   process.env.NODE_ENV === 'production'
     ? DEFAULT_RENDER_GNN_API_URL
@@ -462,7 +462,22 @@ async function predictImpactWithModelOrFallback(nodeId, failureType = 'failure',
       modelError: null,
     };
   } catch (error) {
-    throw new Error(`Python model inference unavailable: ${error.message}`);
+    const modelError = `Python model inference unavailable: ${error.message}`;
+    console.warn(`[GNN] ${modelError}`);
+
+    // Fallback to local JS GNN engine so impact analysis remains available
+    // even when the external Python model service is sleeping/unhealthy.
+    const fallbackImpact = gnnService.predictFailureImpact(
+      nodeId,
+      failureType,
+      normalizeSeverity(severity),
+    );
+
+    return {
+      impact: fallbackImpact,
+      modelSource: 'js-fallback',
+      modelError,
+    };
   }
 }
 
