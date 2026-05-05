@@ -407,8 +407,14 @@ export default function Map3D() {
       
       const data = await response.json();
 
-      if (data.modelSource && data.modelSource !== 'python-model') {
+      if (data.modelSource && !['python-model', 'js-fallback'].includes(data.modelSource)) {
         throw new Error(`Unexpected model source: ${data.modelSource}`);
+      }
+
+      if (data.modelSource === 'js-fallback') {
+        console.warn('[Map3D] Python model unavailable, using JS fallback inference.', {
+          modelError: data.modelError || null,
+        });
       }
       
       if (data.success) {
