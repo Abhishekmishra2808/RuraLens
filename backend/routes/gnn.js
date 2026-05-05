@@ -177,6 +177,34 @@ function resolveGraphNodeId(requestedNodeId, requestedNodeName = '') {
   return null;
 }
 
+function chooseFallbackNodeId(requestedNodeId = '', requestedNodeName = '') {
+  const graphNodes = gnnService.getGraphNodes();
+  if (!graphNodes.length) return null;
+
+  const hint = normalizeText(`${requestedNodeId} ${requestedNodeName}`);
+  const inferredType = hint.split(/[\s-_]+/).find(Boolean);
+
+  if (inferredType) {
+    const sameTypeNodes = graphNodes.filter((node) => normalizeText(node.type) === inferredType);
+    if (sameTypeNodes.length > 0) {
+      const mainLike = sameTypeNodes.find((node) => {
+        const id = normalizeText(node.id);
+        const name = normalizeText(node.name);
+        return id.includes('main') || name.includes('main');
+      });
+      return (mainLike || sameTypeNodes[0]).id;
+    }
+  }
+
+  const mainLikeAny = graphNodes.find((node) => {
+    const id = normalizeText(node.id);
+    const name = normalizeText(node.name);
+    return id.includes('main') || name.includes('main');
+  });
+
+  return (mainLikeAny || graphNodes[0]).id;
+}
+
 function buildGuidedAffectedNode(node, options = {}) {
   const score = Math.round(clamp(Number(options.severityScore ?? options.probability ?? 70) / 100, 0, 1) * 100);
   const probability = Math.round(clamp(Number(options.probability ?? score) / 100, 0, 1) * 10000) / 100;
@@ -658,8 +686,15 @@ router.post('/predict-structured', async (req, res) => {
     resolvedNodeId = resolveGraphNodeId(resolvedNodeId, node_name);
 
     if (!resolvedNodeId) {
+      resolvedNodeId = chooseFallbackNodeId(nodeId, node_name);
+      console.warn(
+        `[GNN] Unable to resolve requested node "${nodeId || node_name}". Falling back to "${resolvedNodeId}".`
+      );
+    }
+
+    if (!resolvedNodeId) {
       return res.status(400).json({
-        error: 'nodeId or node_name is required and must match an initialized graph node.',
+        error: 'No nodes available in initialized graph to run prediction.',
       });
     }
 
