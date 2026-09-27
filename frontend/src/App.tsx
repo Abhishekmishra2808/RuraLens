@@ -3,6 +3,8 @@ import { Capacitor } from '@capacitor/core';
 import { useVillageStore } from './store/villageStore';
 import { demoVillageData } from './data/demoVillageData';
 import LandingPage from './components/Landing/LandingPage';
+import DocsPage from './components/Docs/DocsPage';
+import { DOC_SECTIONS } from './components/Docs/docsContent';
 import LoginPage from './components/Auth/LoginPageNew';
 import TopNav from './components/Layout/TopNav';
 import Sidebar from './components/Sidebar/Sidebar';
@@ -25,12 +27,36 @@ import MobileLoginPage from './components/Auth/MobileLoginPage';
 import MobileDashboard from './components/Dashboard/MobileDashboard';
 import { useLanguage } from './i18n/LanguageContext';
 
+function parseDocsHash(hash: string): string | null {
+  const match = hash.match(/^#\/docs(?:\/([\w-]+))?\/?$/);
+  if (!match) return null;
+  const requested = match[1];
+  return DOC_SECTIONS.some((section) => section.id === requested) ? requested! : DOC_SECTIONS[0].id;
+}
+
 function App() {
   const { activeView, sidebarCollapsed, infoPanelOpen, isAuthenticated, userRole, fetchSchemes, waterTanks, setVillageData } = useVillageStore();
   const { lang, t } = useLanguage();
   const [showLanding, setShowLanding] = useState(true);
+  const [docsSection, setDocsSection] = useState<string | null>(() => parseDocsHash(window.location.hash));
   const isMobile = Capacitor.isNativePlatform();
   const hi = lang === 'hi';
+
+  useEffect(() => {
+    const onHashChange = () => setDocsSection(parseDocsHash(window.location.hash));
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  const openDocs = (sectionId: string) => {
+    window.location.hash = `#/docs/${sectionId}`;
+  };
+
+  const closeDocs = () => {
+    window.history.pushState(null, '', window.location.pathname + window.location.search);
+    setDocsSection(null);
+    window.scrollTo(0, 0);
+  };
 
   // Load demo data on startup if no data loaded
   useEffect(() => {
@@ -57,12 +83,28 @@ function App() {
     };
   }, [isAuthenticated, fetchSchemes]);
 
+  if (docsSection) {
+    return (
+      <DocsPage
+        section={docsSection}
+        onBack={() => {
+          closeDocs();
+          setShowLanding(true);
+        }}
+        onGetStarted={() => {
+          closeDocs();
+          setShowLanding(false);
+        }}
+      />
+    );
+  }
+
   // Show landing page first
   if (showLanding && !isAuthenticated) {
     if (isMobile) {
       return <MobileLandingPage onGetStarted={() => setShowLanding(false)} />;
     }
-    return <LandingPage onGetStarted={() => setShowLanding(false)} />;
+    return <LandingPage onGetStarted={() => setShowLanding(false)} onOpenDocs={openDocs} />;
   }
 
   // Show login page if not authenticated

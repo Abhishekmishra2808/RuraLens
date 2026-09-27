@@ -296,3 +296,21 @@ textarea[class*="bg-slate"] {
 .hero-section [class*="border-white/20"] {
   border-color: rgba(255, 255, 255, 0.2) !important;
 }
+
+html.docs-mode,
+html.docs-mode body {
+  background-color: #0a0a0a;
+  color-scheme: dark;
+}
+
+html.docs-mode ::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+html.docs-mode ::-webkit-scrollbar-thumb {
+  background: #404040;
+}
+
+html.docs-mode ::-webkit-scrollbar-thumb:hover {
+  background: #525252;
+}
