@@ -9,8 +9,8 @@ from pydantic import BaseModel
 from typing import List, Optional
 import numpy as np
 import uvicorn
-from model import ImpactPredictor
 import os
+from threading import Lock
 
 
 app = FastAPI(title="Infrastructure GNN API", version="1.0.0")
@@ -24,9 +24,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global model instance
+# Global model instance (lazy-loaded on first inference request)
 predictor = None
+predictor_lock = Lock()
 MODEL_PATH = os.getenv("MODEL_PATH", "models/gnn_model.pt")
+
+
+def ensure_predictor():
+    """Lazily load predictor to reduce cold-start health check failures."""
+    global predictor
+    if predictor is not None:
+        return predictor
+
+    with predictor_lock:
+        if predictor is not None:
+            return predictor
+
+        # Lazy import keeps startup fast for Render health checks.
+        from model import ImpactPredictor
+
+        if os.path.exists(MODEL_PATH):
+            print(f"Loading trained model from {MODEL_PATH}...")
+            predictor = ImpactPredictor(model_path=MODEL_PATH)
+            print(f"✓ Model loaded successfully on {predictor.device}")
+        else:
+            print(f"⚠ No trained model found at {MODEL_PATH}")
+            print("  Using untrained model. Run train.py first for better predictions.")
+            predictor = ImpactPredictor()
+
+    return predictor
 
 
 class NodeFeature(BaseModel):
@@ -71,17 +97,8 @@ class PredictionResponse(BaseModel):
 
 @app.on_event("startup")
 async def load_model():
-    """Load the trained model on startup"""
-    global predictor
-    
-    if os.path.exists(MODEL_PATH):
-        print(f"Loading trained model from {MODEL_PATH}...")
-        predictor = ImpactPredictor(model_path=MODEL_PATH)
-        print(f"✓ Model loaded successfully on {predictor.device}")
-    else:
-        print(f"⚠ No trained model found at {MODEL_PATH}")
-        print("  Using untrained model. Run train.py first for better predictions.")
-        predictor = ImpactPredictor()
+    """Startup hook intentionally keeps model lazy for faster health readiness."""
+    print("GNN API startup complete. Predictor will load lazily on first /predict request.")
 
 
 @app.get("/")
@@ -127,8 +144,7 @@ async def predict_impact(request: PredictionRequest):
         "failure_node_id": "tank-1"  // optional
     }
     """
-    if predictor is None:
-        raise HTTPException(status_code=500, detail="Model not loaded")
+    local_predictor = ensure_predictor()
     
     try:
         # Extract node features
@@ -179,7 +195,7 @@ async def predict_impact(request: PredictionRequest):
             edge_weights = None
         
         # Run prediction
-        predictions = predictor.predict(node_features, edge_index, edge_weights)
+        predictions = local_predictor.predict(node_features, edge_index, edge_weights)
         
         # Format response
         impact_predictions = []
@@ -204,7 +220,7 @@ async def predict_impact(request: PredictionRequest):
         return PredictionResponse(
             predictions=impact_predictions,
             model_trained=os.path.exists(MODEL_PATH),
-            device=str(predictor.device)
+            device=str(local_predictor.device)
         )
     
     except Exception as e:
