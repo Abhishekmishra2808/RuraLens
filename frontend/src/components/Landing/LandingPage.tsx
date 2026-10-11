@@ -1,6 +1,7 @@
 import { useLanguage } from '../../i18n/LanguageContext';
 import FadeIn from './FadeIn';
 import AnimatedHeading from './AnimatedHeading';
+import { RandomLetterSwap } from '@/components/ui/random-letter-swap';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -35,13 +36,13 @@ export default function LandingPage({ onGetStarted, onOpenDocs }: LandingPagePro
       />
 
       <div className="relative z-30 px-6 pt-6 md:px-12 lg:px-16">
-        <nav className="liquid-glass flex items-center justify-between rounded-xl px-4 py-2">
+        <nav className="liquid-glass hero-nav flex items-center justify-between rounded-xl px-4 py-2">
           <div className="flex items-center gap-2">
             <img src="/ruralens-logo.png" alt="" className="h-8 w-8 object-contain" />
             <span className="text-2xl font-semibold tracking-tight">{t('appBrand', 'RuraLens')}</span>
           </div>
 
-          <div className="hidden items-center gap-8 text-sm lg:flex">
+          <div className="hidden items-center gap-8 lg:flex">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.sectionId}
@@ -50,9 +51,13 @@ export default function LandingPage({ onGetStarted, onOpenDocs }: LandingPagePro
                   event.preventDefault();
                   onOpenDocs(link.sectionId);
                 }}
-                className="transition-colors hover:text-gray-300"
+                className="rounded-md text-sm font-medium text-[#ffffffcc] transition-colors hover:text-[#ffffff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#ffffff99]"
               >
-                {link.label[lang]}
+                <RandomLetterSwap
+                  label={link.label[lang]}
+                  staggerDuration={0.025}
+                  transition={{ duration: 0.6, type: 'spring' }}
+                />
               </a>
             ))}
           </div>
