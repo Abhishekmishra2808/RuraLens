@@ -1,6 +1,8 @@
 import { Home, Settings, ChevronLeft, ChevronRight, Map, Briefcase, Shield, CloudSun, Phone } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useAppStore } from '../../store/appStore';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { SPRING, SPRING_SNAPPY } from '@/lib/motion';
 
 const menuItems = [
   { id: 'dashboard', icon: Home, labelKey: 'dashboard', label: 'Dashboard' },
@@ -31,29 +33,35 @@ export default function Sidebar() {
 
   return (
     <>
-      {!sidebarCollapsed && (
-        <div
-          className="fixed inset-0 bottom-0 top-16 z-20 bg-zinc-900/20 md:hidden"
-          onClick={toggleSidebar}
-          aria-label="Close sidebar"
-        />
-      )}
+      <AnimatePresence>
+        {!sidebarCollapsed && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={SPRING}
+            className="fixed inset-0 bottom-0 top-16 z-20 bg-zinc-900/20 md:hidden"
+            onClick={toggleSidebar}
+            aria-label="Close sidebar"
+          />
+        )}
+      </AnimatePresence>
 
       <aside
-        className={`fixed bottom-0 left-0 z-30 border-r border-zinc-200 bg-white transition-transform duration-300 ${
+        className={`transition-fluid fixed bottom-0 left-0 z-30 border-r border-zinc-200 bg-white ${
           sidebarCollapsed ? '-translate-x-full md:w-16 md:translate-x-0' : 'w-60 translate-x-0'
         }`}
         style={{ top: 'calc(64px + env(safe-area-inset-top, 0px))' }}
       >
         <button
           onClick={toggleSidebar}
-          className="absolute -right-3 top-5 z-50 hidden h-6 w-6 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 shadow-sm hover:text-zinc-900 md:flex"
+          className="absolute -right-3 top-5 z-50 hidden h-6 w-6 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 shadow-sm transition-colors hover:text-zinc-900 md:flex"
           aria-label="Toggle sidebar"
         >
           {sidebarCollapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
         </button>
 
-        <nav className="h-full space-y-0.5 overflow-y-auto p-2">
+        <nav className="h-full space-y-0.5 overflow-y-auto overflow-x-hidden p-2">
           {items.map((item) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;
@@ -64,14 +72,20 @@ export default function Sidebar() {
                 onClick={() => handleMenuClick(item.id)}
                 aria-current={isActive ? 'page' : undefined}
                 title={sidebarCollapsed ? label : undefined}
-                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                  isActive
-                    ? 'bg-brand-50 font-medium text-brand-700'
-                    : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900'
+                className={`relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                  isActive ? 'font-medium text-brand-700' : 'text-zinc-600 hover:bg-zinc-900/[0.04] hover:text-zinc-900'
                 }`}
               >
-                <Icon size={18} className="shrink-0" />
-                {!sidebarCollapsed && <span className="flex-1 whitespace-nowrap text-left">{label}</span>}
+                {isActive && (
+                  <motion.span
+                    layoutId="sidebar-active"
+                    transition={SPRING_SNAPPY}
+                    className="absolute inset-0 rounded-lg bg-brand-50"
+                    aria-hidden
+                  />
+                )}
+                <Icon size={18} className="relative shrink-0" />
+                {!sidebarCollapsed && <span className="relative flex-1 whitespace-nowrap text-left">{label}</span>}
               </button>
             );
           })}

@@ -1,7 +1,9 @@
 /**
  * Small presentational primitives for the twin panel (light theme, zinc + brand).
  */
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { useId, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { motion } from 'framer-motion';
+import { SPRING_SNAPPY } from '@/lib/motion';
 import { ASSET_TYPE_META } from './twinVisuals';
 import type { DataProvenance, TwinAssetType } from '../../types/twin';
 
@@ -117,22 +119,34 @@ export function Segmented<T extends string>({
   onChange: (value: T) => void;
   label: string;
 }) {
+  const thumbId = useId();
   return (
     <div role="radiogroup" aria-label={label} className="flex rounded-lg bg-zinc-100 p-0.5">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          role="radio"
-          aria-checked={value === o.value}
-          disabled={o.disabled}
-          onClick={() => onChange(o.value)}
-          className={`flex-1 rounded-md px-2 py-1 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-            value === o.value ? 'bg-white font-medium text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
-          }`}
-        >
-          {o.label}
-        </button>
-      ))}
+      {options.map((o) => {
+        const selected = value === o.value;
+        return (
+          <button
+            key={o.value}
+            role="radio"
+            aria-checked={selected}
+            disabled={o.disabled}
+            onClick={() => onChange(o.value)}
+            className={`relative flex-1 rounded-md px-2 py-1 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+              selected ? 'font-medium text-zinc-900' : 'text-zinc-500 hover:text-zinc-800'
+            }`}
+          >
+            {selected && (
+              <motion.span
+                layoutId={thumbId}
+                transition={SPRING_SNAPPY}
+                className="absolute inset-0 rounded-md bg-white shadow-sm"
+                aria-hidden
+              />
+            )}
+            <span className="relative">{o.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }

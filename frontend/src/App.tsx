@@ -25,6 +25,8 @@ import MobileLandingPage from './components/Landing/MobileLandingPage';
 import MobileLoginPage from './components/Auth/MobileLoginPage';
 import MobileDashboard from './components/Dashboard/MobileDashboard';
 import { useLanguage } from './i18n/LanguageContext';
+import { MotionConfig, motion } from 'framer-motion';
+import { usePressFeedback } from './lib/usePressFeedback';
 
 function parseDocsHash(hash: string): string | null {
   const match = hash.match(/^#\/docs(?:\/([\w-]+))?\/?$/);
@@ -40,6 +42,7 @@ function App() {
   const [docsSection, setDocsSection] = useState<string | null>(() => parseDocsHash(window.location.hash));
   const isMobile = Capacitor.isNativePlatform();
   const hi = lang === 'hi';
+  usePressFeedback(isAuthenticated);
 
   useEffect(() => {
     const onHashChange = () => setDocsSection(parseDocsHash(window.location.hash));
@@ -208,31 +211,38 @@ function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-[var(--rl-canvas)] text-zinc-900">
-      <TopNav />
+    <MotionConfig reducedMotion="user">
+      <div className="flex h-screen w-screen flex-col overflow-hidden bg-[var(--rl-canvas)] text-zinc-900">
+        <TopNav />
 
-      <div className="flex flex-1 overflow-hidden" style={{ marginTop: '64px' }}>
-        <Sidebar />
-        
-        <main className={`flex-1 flex transition-all duration-300 ${
-          sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
-        } ml-0`}>
-          {/* Central Canvas */}
-          <div className={`flex-1 relative transition-all duration-300 ${
-            infoPanelOpen ? 'lg:w-3/4' : 'w-full'
-          }`}>
-            {renderView()}
-          </div>
-          
-          {/* Info Panel */}
-          {infoPanelOpen && (
-            <div className="hidden lg:block w-1/4 min-w-[300px] max-w-[400px]">
-              <InfoPanel />
+        <div className="flex flex-1 overflow-hidden" style={{ marginTop: '64px' }}>
+          <Sidebar />
+
+          <main className={`transition-fluid ml-0 flex flex-1 ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-60'}`}>
+            {/* Central Canvas */}
+            <div className={`transition-fluid relative flex-1 ${infoPanelOpen ? 'lg:w-3/4' : 'w-full'}`}>
+              {/* Opacity only: a transform here would become the containing block for `position: fixed` dialogs inside views. */}
+              <motion.div
+                key={userRole === 'field_worker' ? 'field-worker' : activeView}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="h-full w-full"
+              >
+                {renderView()}
+              </motion.div>
             </div>
-          )}
-        </main>
+
+            {/* Info Panel */}
+            {infoPanelOpen && (
+              <div className="hidden w-1/4 min-w-[300px] max-w-[400px] lg:block">
+                <InfoPanel />
+              </div>
+            )}
+          </main>
+        </div>
       </div>
-    </div>
+    </MotionConfig>
   );
 }
 

@@ -97,6 +97,32 @@ body {
     @apply text-lg leading-relaxed text-zinc-500;
   }
 
+  /*
+   * Translucent material (Apple HIG) for floating chrome such as the top bar.
+   * backdrop-filter does not blur through a translucent ancestor, so anything raised inside a
+   * `material` (menus, popovers) uses the opaque `surface-raised` instead.
+   */
+  .material {
+    background-color: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  .surface-raised {
+    background-color: #fff;
+    box-shadow:
+      0 0 0 1px rgba(24, 24, 27, 0.06),
+      0 12px 32px -8px rgba(24, 24, 27, 0.18),
+      0 2px 6px rgba(24, 24, 27, 0.06);
+  }
+
+  /* Layout changes driven by CSS (sidebar width, content offset). Same curve as EASE_FLUID in lib/motion.ts. */
+  .transition-fluid {
+    transition-property: transform, width, margin, padding, opacity;
+    transition-duration: 380ms;
+    transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
   /* Landing page glass (dark hero). In the components layer so utilities can override `border`. */
   .liquid-glass {
     background: rgba(0, 0, 0, 0.4);
@@ -358,4 +384,38 @@ html.docs-mode ::-webkit-scrollbar-thumb:hover {
 @keyframes twin-progress {
   from { transform: translateX(-100%); }
   to { transform: translateX(300%); }
+}
+
+/*
+ * Signed-in app typography: tracking tightens as headings grow, body stays at 0.
+ * Zero specificity, so any `tracking-*` utility still wins.
+ */
+:where(body.dashboard-mode) :where(h1) { letter-spacing: -0.022em; }
+:where(body.dashboard-mode) :where(h2) { letter-spacing: -0.017em; }
+:where(body.dashboard-mode) :where(h3) { letter-spacing: -0.011em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .transition-fluid { transition-duration: 0s; }
+  .animate-float,
+  .animate-bounce,
+  .animate-ping { animation: none !important; }
+  html { scroll-behavior: auto !important; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .material {
+    background-color: #fff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .material {
+    background-color: #fff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-color: #52525b;
+  }
+  .surface-raised { box-shadow: 0 0 0 1px #52525b; }
 }

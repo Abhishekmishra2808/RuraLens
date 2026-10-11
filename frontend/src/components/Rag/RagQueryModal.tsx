@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { X, Send, Loader2, MapPin, Clock, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, Clock, FileText, Loader2, MapPin, Activity, MessageSquareWarning, ScrollText } from 'lucide-react';
 import useRagQuery, { Citation } from '../../hooks/useRagQuery';
 import { format } from 'date-fns';
+import { Modal } from '@/components/ui/modal';
+import { Button } from '@/components/ui/button';
 
 const MAX_VISIBLE_SOURCES = 2;
+const MAX_LENGTH = 500;
 
 interface RagQueryModalProps {
   isOpen: boolean;
@@ -12,12 +15,19 @@ interface RagQueryModalProps {
   onHighlightCitation?: (citation: Citation) => void;
 }
 
-export default function RagQueryModal({ 
-  isOpen, 
-  onClose, 
-  schemeId = null,
-  onHighlightCitation
-}: RagQueryModalProps) {
+const CITATION_ICONS: Record<string, typeof FileText> = {
+  'vendor-report': ScrollText,
+  'government-scheme': FileText,
+  'citizen-report': MessageSquareWarning,
+  'sensor-event': Activity,
+};
+
+function citationTypeLabel(type: string) {
+  const label = type.replace(/-/g, ' ');
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+export default function RagQueryModal({ isOpen, onClose, schemeId = null, onHighlightCitation }: RagQueryModalProps) {
   const [question, setQuestion] = useState('');
   const [limitToScheme, setLimitToScheme] = useState(!!schemeId);
   const { loading, error, data, runQuery, reset } = useRagQuery();
@@ -29,8 +39,8 @@ export default function RagQueryModal({
     await runQuery({
       question: question.trim(),
       scheme_id: limitToScheme && schemeId ? schemeId : null,
-      bbox: null, // Could be added later for map-based queries
-      max_citations: 5
+      bbox: null,
+      max_citations: 5,
     });
   };
 
@@ -40,224 +50,143 @@ export default function RagQueryModal({
     onClose();
   };
 
-  const getCitationIcon = (type: string) => {
-    switch (type) {
-      case 'vendor-report':
-        return <FileText size={16} className="text-blue-400" />;
-      case 'government-scheme':
-        return <FileText size={16} className="text-purple-400" />;
-      case 'citizen-report':
-        return <AlertCircle size={16} className="text-orange-400" />;
-      case 'sensor-event':
-        return <CheckCircle size={16} className="text-green-400" />;
-      default:
-        return <FileText size={16} className="text-slate-400" />;
-    }
-  };
-
-  const getCitationTypeLabel = (type: string) => {
-    return type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-  };
-
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10 bg-gradient-to-r from-purple-900/50 to-blue-900/50 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center border border-white/10">
-              <Send size={20} className="text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-white">Ask a Question</h2>
-              <p className="text-slate-300 text-sm">Get AI-powered insights from schemes, reports & sensors</p>
-            </div>
-          </div>
-          <button
-            onClick={handleClose}
-            className="text-slate-400 hover:text-white transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
+    <Modal
+      title="Ask a question"
+      description="Answers cite the schemes, reports and sensor events they draw on."
+      onClose={handleClose}
+      size="lg"
+    >
+      <div className="space-y-5 p-5 md:p-6">
+        {!data && (
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <label htmlFor="rag-question" className="sr-only">
+              Your question
+            </label>
+            <textarea
+              id="rag-question"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void handleSubmit(e);
+              }}
+              placeholder="Why is Jal Jeevan Mission delayed? Which water schemes have open citizen reports?"
+              rows={4}
+              maxLength={MAX_LENGTH}
+              disabled={loading}
+              autoFocus
+              className="w-full resize-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-[15px] leading-relaxed text-zinc-900 placeholder:text-zinc-400 transition-colors focus:border-zinc-400 focus:bg-white focus:outline-none disabled:opacity-60"
+            />
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
-          {/* Question Input Form */}
-          {!data && (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Your Question
-                </label>
-                <textarea
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  placeholder="e.g., Why is Scheme S-123 delayed? What are the main issues with water supply?"
-                  rows={4}
-                  className="w-full px-4 py-3 rounded-lg bg-slate-800/50 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent resize-none"
-                  maxLength={500}
+            {schemeId && (
+              <label className="flex items-center gap-2 text-sm text-zinc-600">
+                <input
+                  type="checkbox"
+                  checked={limitToScheme}
+                  onChange={(e) => setLimitToScheme(e.target.checked)}
                   disabled={loading}
+                  className="h-4 w-4 rounded border-zinc-300 accent-zinc-900"
                 />
-                <p className="text-xs text-slate-500 mt-1">
-                  {question.length}/500 characters
-                </p>
-              </div>
+                Only this scheme
+              </label>
+            )}
 
-              {schemeId && (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="limitToScheme"
-                    checked={limitToScheme}
-                    onChange={(e) => setLimitToScheme(e.target.checked)}
-                    className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 bg-slate-800 border-white/10"
-                    disabled={loading}
-                  />
-                  <label htmlFor="limitToScheme" className="text-sm text-slate-300">
-                    Limit search to current scheme only
-                  </label>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading || !question.trim()}
-                className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Send size={18} />
-                    Ask Question
-                  </>
-                )}
-              </button>
-            </form>
-          )}
-
-          {/* Error Display */}
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle size={20} className="text-red-400 mt-0.5" />
-                <div className="flex-1">
-                  <h4 className="font-semibold text-red-400 mb-1">Error</h4>
-                  <p className="text-red-300 text-sm">{error}</p>
-                </div>
-              </div>
-              <button
-                onClick={reset}
-                className="mt-3 text-sm text-red-400 hover:text-red-300 font-medium"
-              >
-                Try Again
-              </button>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs tabular-nums text-zinc-400">
+                {question.length}/{MAX_LENGTH}
+              </span>
+              <Button type="submit" disabled={loading || !question.trim()} className="gap-2">
+                {loading && <Loader2 size={16} className="animate-spin" />}
+                {loading ? 'Searching' : 'Ask'}
+              </Button>
             </div>
-          )}
+          </form>
+        )}
 
-          {/* Answer Display */}
-          {data && (
-            <div className="space-y-6">
-              {/* Question Asked */}
-              <div className="bg-slate-800/50 border border-white/10 rounded-lg p-4">
-                <p className="text-sm text-slate-400 mb-1">Question:</p>
-                <p className="text-white font-medium">{question}</p>
-                {data.cached && (
-                  <span className="inline-block mt-2 text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded border border-blue-500/30">
-                    Cached result
-                  </span>
-                )}
-              </div>
+        {error && (
+          <div role="alert" className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
+            <AlertCircle size={18} className="mt-0.5 shrink-0 text-red-600" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-red-800">Could not get an answer</p>
+              <p className="mt-0.5 text-sm text-red-700">{error}</p>
+            </div>
+            <button onClick={reset} className="text-sm font-medium text-red-700 hover:text-red-900">
+              Try again
+            </button>
+          </div>
+        )}
 
-              {/* Answer */}
-              <div className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 border border-purple-500/20 rounded-lg p-6">
-                <h3 className="font-bold text-white mb-3 flex items-center gap-2">
-                  <CheckCircle size={20} className="text-green-400" />
-                  Answer
-                </h3>
-                <p className="text-slate-200 leading-relaxed whitespace-pre-wrap">{data.answer}</p>
-              </div>
+        {data && (
+          <div className="space-y-6">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Question</p>
+              <p className="mt-1 text-[15px] font-medium text-zinc-900">{question}</p>
+              {data.cached && <p className="mt-1 text-xs text-zinc-500">Served from cache</p>}
+            </div>
 
-              {/* Citations */}
-              {data.citations && data.citations.length > 0 && (
-                <div>
-                  <h3 className="font-bold text-white mb-3">
-                    Sources ({Math.min(data.citations.length, MAX_VISIBLE_SOURCES)})
-                  </h3>
-                  <div className="space-y-3">
-                    {data.citations.slice(0, MAX_VISIBLE_SOURCES).map((citation, idx) => (
-                      <div
-                        key={idx}
-                        className="bg-slate-800/50 border border-white/10 rounded-lg p-4 hover:bg-slate-800 transition-all"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            {getCitationIcon(citation.type)}
-                            <span className="text-sm font-semibold text-white">
-                              {getCitationTypeLabel(citation.type)}
-                            </span>
-                            <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">
-                              Score: {(citation.score * 100).toFixed(0)}%
-                            </span>
-                          </div>
-                        </div>
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Answer</p>
+              <p className="mt-1 whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-800">{data.answer}</p>
+            </div>
 
-                        <p className="text-sm text-slate-300 mb-3 italic">
-                          "{citation.snippet}"
-                        </p>
-
-                        <div className="flex items-center gap-4 text-xs text-slate-500">
-                          <span className="flex items-center gap-1">
-                            <FileText size={12} />
-                            {citation.doc_id}
+            {data.citations && data.citations.length > 0 && (
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+                  Sources · {Math.min(data.citations.length, MAX_VISIBLE_SOURCES)}
+                </p>
+                <ul className="mt-2 divide-y divide-zinc-200 rounded-xl border border-zinc-200">
+                  {data.citations.slice(0, MAX_VISIBLE_SOURCES).map((citation, idx) => {
+                    const Icon = CITATION_ICONS[citation.type] ?? FileText;
+                    return (
+                      <li key={idx} className="space-y-2 p-4">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Icon size={15} className="shrink-0 text-zinc-500" />
+                          <span className="font-medium text-zinc-900">{citationTypeLabel(citation.type)}</span>
+                          <span className="ml-auto text-xs tabular-nums text-zinc-500">
+                            {(citation.score * 100).toFixed(0)}% match
                           </span>
+                        </div>
+                        <p className="border-l-2 border-zinc-200 pl-3 text-sm leading-relaxed text-zinc-600">
+                          {citation.snippet}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-500">
+                          <span className="font-mono">{citation.doc_id}</span>
                           {citation.timestamp && (
                             <span className="flex items-center gap-1">
                               <Clock size={12} />
                               {format(new Date(citation.timestamp), 'MMM dd, yyyy')}
                             </span>
                           )}
-                        </div>
-
-                        <div className="flex gap-2 mt-3">
                           {citation.geo && onHighlightCitation && (
                             <button
                               onClick={() => onHighlightCitation(citation)}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-blue-500/10 text-blue-400 text-sm rounded-lg hover:bg-blue-500/20 transition-colors border border-blue-500/20"
+                              className="flex items-center gap-1 font-medium text-zinc-700 hover:text-zinc-900"
                             >
-                              <MapPin size={14} />
-                              Show on Map
+                              <MapPin size={12} />
+                              Show on map
                             </button>
                           )}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Trace ID (for debugging) */}
-              <div className="text-xs text-slate-600 text-center">
-                Trace ID: {data.trace_id}
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
+            )}
 
-              {/* Ask Another Question */}
-              <button
-                onClick={reset}
-                className="w-full py-2 bg-slate-800 text-slate-300 font-medium rounded-lg hover:bg-slate-700 transition-all border border-white/10"
-              >
-                Ask Another Question
-              </button>
+            <div className="flex items-center justify-between gap-3">
+              <span className="truncate font-mono text-[11px] text-zinc-400" title="Trace ID">
+                {data.trace_id}
+              </span>
+              <Button variant="outline" onClick={reset}>
+                Ask another
+              </Button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-    </div>
+    </Modal>
   );
 }

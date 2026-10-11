@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { SPRING_SNAPPY } from '@/lib/motion';
 import { Layers, LocateFixed, Map as MapIcon, MapPin, Minus, Plus, Sparkles, Zap, type LucideIcon } from 'lucide-react';
 import { useTwinStore, type PanelTab } from '../../store/twinStore';
 import { TWIN_CITIES } from '../../data/twinCities';
@@ -139,7 +141,13 @@ export default function TwinPanel({ onOpenClassic }: { onOpenClassic: () => void
               <Icon size={14} />
               {label}
               {id === 'simulate' && running && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />}
-              {active && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-zinc-900" />}
+              {active && (
+                <motion.span
+                  layoutId="twin-tab-indicator"
+                  transition={SPRING_SNAPPY}
+                  className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-zinc-900"
+                />
+              )}
             </button>
           );
         })}
