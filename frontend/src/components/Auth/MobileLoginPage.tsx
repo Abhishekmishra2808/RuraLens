@@ -33,7 +33,7 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
         ? { email, password, name, role: selectedRole }
         : { email, password };
 
-      console.log('🔐 Attempting login:', { endpoint: `${API_URL}${endpoint}`, email });
+      console.log('Attempting login:', { endpoint: `${API_URL}${endpoint}`, email });
 
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
@@ -41,10 +41,10 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
         body: JSON.stringify(body)
       });
 
-      console.log('📡 Response status:', response.status);
+      console.log('Response status:', response.status);
 
       const text = await response.text();
-      console.log('📄 Response text:', text);
+      console.log('Response text:', text);
       
       const data = text ? JSON.parse(text) : {};
 
@@ -56,10 +56,10 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
       localStorage.setItem('user', JSON.stringify(data.user));
       login(data.user.role, data.user.name);
 
-      console.log('✅ Login successful');
+      console.log('Login successful');
 
     } catch (err: any) {
-      console.error('❌ Login error:', err);
+      console.error('Login error:', err);
       setError(err.message || 'An error occurred');
     } finally {
       setLoading(false);
@@ -75,7 +75,7 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
     setLoading(true);
 
     try {
-      console.log('🚀 Quick login:', { url: `${API_URL}/api/auth/login`, email: demoEmail });
+      console.log('Quick login:', { url: `${API_URL}/api/auth/login`, email: demoEmail });
 
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
@@ -83,10 +83,10 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
         body: JSON.stringify({ email: demoEmail, password: demoPassword })
       });
 
-      console.log('📡 Quick login response:', response.status);
+      console.log('Quick login response:', response.status);
 
       const text = await response.text();
-      console.log('📄 Quick login response text:', text);
+      console.log('Quick login response text:', text);
       
       const data = text ? JSON.parse(text) : {};
 
@@ -98,10 +98,10 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
       localStorage.setItem('user', JSON.stringify(data.user));
       login(data.user.role, data.user.name);
 
-      console.log('✅ Quick login successful');
+      console.log('Quick login successful');
 
     } catch (err: any) {
-      console.error('❌ Quick login error:', err);
+      console.error('Quick login error:', err);
       setError(err.message || 'Demo login failed');
     } finally {
       setLoading(false);

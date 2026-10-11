@@ -57,7 +57,7 @@ export default function PowerView() {
                     ● {node.status.toUpperCase()}
                   </p>
                 </div>
-                <div className="text-4xl">⚡</div>
+                <Zap size={36} className="shrink-0" />
               </div>
 
               {/* Load Gauge */}

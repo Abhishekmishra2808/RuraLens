@@ -28,7 +28,7 @@ const isLocalhost = () => {
 const getApiUrl = () => {
   // ALWAYS check localhost FIRST - this ensures dev mode works
   if (isLocalhost()) {
-    console.log('🔧 DEV MODE: Using local backend at localhost:3001');
+    console.log('DEV MODE: Using local backend at localhost:3001');
     return `http://${LOCAL_DEV_HOST}:${LOCAL_DEV_PORT}`;
   }
   
@@ -62,7 +62,7 @@ export const API_URL = getApiUrl();
 export const WS_URL = getWsUrl();
 
 // Always log the API configuration for debugging
-console.log('🌐 API Configuration:');
+console.log('API Configuration:');
 console.log('  Hostname:', typeof window !== 'undefined' ? window.location.hostname : 'SSR');
 console.log('  Is Localhost:', isLocalhost());
 console.log('  API URL:', API_URL);

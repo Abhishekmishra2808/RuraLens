@@ -13,6 +13,14 @@ import {
   Building,
   ShoppingCart,
   XCircle,
+  BarChart3,
+  CheckCircle2,
+  Download,
+  Lightbulb,
+  Link2,
+  Map as MapIcon,
+  MapPin,
+  MousePointerClick,
 } from 'lucide-react';
 import { useAppStore, type GNNInfraNode } from '../store/appStore';
 import { API_URL } from '../config/api';
@@ -68,7 +76,10 @@ export const ImpactGenerator: React.FC = () => {
   const [newNodeHealth, setNewNodeHealth] = useState(0.9);
   
   // Status message
-  const [statusMessage, setStatusMessage] = useState('');
+  const [statusMessage, setStatusMessage] = useState<{
+    kind: 'success' | 'error' | 'warning' | 'info';
+    text: string;
+  } | null>(null);
   
   // API status
   const [apiStatus, setApiStatus] = useState<'checking' | 'online' | 'offline'>('checking');
@@ -77,7 +88,7 @@ export const ImpactGenerator: React.FC = () => {
   useEffect(() => {
     if (gnnNodes.length === 0 && (waterTanks.length > 0 || powerNodes.length > 0 || buildings.length > 0)) {
       initializeRealNetwork();
-      setStatusMessage('✅ Loaded real infrastructure network - visible on 3D Map!');
+      setStatusMessage({ kind: 'success', text: 'Loaded real infrastructure network - visible on 3D Map!' });
     }
   }, [waterTanks, powerNodes, buildings, gnnNodes.length, initializeRealNetwork]);
 
@@ -102,12 +113,12 @@ export const ImpactGenerator: React.FC = () => {
   // Add node with auto-connection based on type
   const addNode = useCallback(() => {
     if (!newNodeName.trim()) {
-      setStatusMessage('❌ Please enter a node name');
+      setStatusMessage({ kind: 'error', text: 'Please enter a node name' });
       return;
     }
     
     if (gnnNodes.find(n => n.name === newNodeName.trim())) {
-      setStatusMessage('❌ Node already exists');
+      setStatusMessage({ kind: 'error', text: 'Node already exists' });
       return;
     }
     
@@ -173,9 +184,9 @@ export const ImpactGenerator: React.FC = () => {
     }
     
     if (connectionsAdded > 0) {
-      setStatusMessage(`✅ Added "${newNodeName}" with ${connectionsAdded} auto-connections - visible on 3D Map!`);
+      setStatusMessage({ kind: 'success', text: `Added "${newNodeName}" with ${connectionsAdded} auto-connections - visible on 3D Map!` });
     } else {
-      setStatusMessage(`✅ Added: ${newNodeName} (${newNodeType}) - Now visible on 3D Map!`);
+      setStatusMessage({ kind: 'success', text: `Added: ${newNodeName} (${newNodeType}) - Now visible on 3D Map!` });
     }
     
     setNewNodeName('');
@@ -186,7 +197,7 @@ export const ImpactGenerator: React.FC = () => {
     initializeRealNetwork();
     clearAllFailures();
     clearNodeImpacts();
-    setStatusMessage('🔄 Reset to real infrastructure');
+    setStatusMessage({ kind: 'info', text: 'Reset to real infrastructure' });
   };
 
   // Get node icon component
@@ -216,8 +227,9 @@ export const ImpactGenerator: React.FC = () => {
                apiStatus === 'offline' ? '◐ Local Mode' : '◌ Checking...'}
             </div>
             {gnnNodes.length > 0 && (
-              <div className="px-2 py-1 rounded text-xs font-medium bg-cyan-500/20 text-cyan-400">
-                🗺️ {gnnNodes.length} nodes on map
+              <div className="px-2 py-1 rounded text-xs font-medium bg-cyan-500/20 text-cyan-400 flex items-center gap-1">
+                <MapIcon size={12} className="shrink-0" />
+                {gnnNodes.length} nodes on map
               </div>
             )}
           </div>
@@ -228,13 +240,17 @@ export const ImpactGenerator: React.FC = () => {
 
         {/* Status Message */}
         {statusMessage && (
-          <div className={`mb-4 p-3 rounded-lg ${
-            statusMessage.startsWith('✅') ? 'bg-green-500/20 text-green-400' :
-            statusMessage.startsWith('❌') ? 'bg-red-500/20 text-red-400' :
-            statusMessage.startsWith('⚠️') ? 'bg-amber-500/20 text-amber-400' :
+          <div className={`mb-4 p-3 rounded-lg flex items-center gap-2 ${
+            statusMessage.kind === 'success' ? 'bg-green-500/20 text-green-400' :
+            statusMessage.kind === 'error' ? 'bg-red-500/20 text-red-400' :
+            statusMessage.kind === 'warning' ? 'bg-amber-500/20 text-amber-400' :
             'bg-blue-500/20 text-blue-400'
           }`}>
-            {statusMessage}
+            {statusMessage.kind === 'success' ? <CheckCircle2 size={16} className="shrink-0" /> :
+             statusMessage.kind === 'error' ? <XCircle size={16} className="shrink-0" /> :
+             statusMessage.kind === 'warning' ? <AlertTriangle size={16} className="shrink-0" /> :
+             <RefreshCw size={16} className="shrink-0" />}
+            {statusMessage.text}
           </div>
         )}
 
@@ -316,7 +332,7 @@ export const ImpactGenerator: React.FC = () => {
                     onClick={() => {
                       clearAllFailures();
                       clearNodeImpacts();
-                      setStatusMessage('🔄 All failures cleared - nodes restored on 3D Map');
+                      setStatusMessage({ kind: 'info', text: 'All failures cleared - nodes restored on 3D Map' });
                     }}
                     className="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                   >
@@ -333,8 +349,9 @@ export const ImpactGenerator: React.FC = () => {
                 <Network className="w-5 h-5 text-cyan-400" />
                 Infrastructure Network
                 {gnnNodes.length > 0 && (
-                  <span className="ml-auto text-xs bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded">
-                    🗺️ Live on Map
+                  <span className="ml-auto text-xs bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded flex items-center gap-1">
+                    <MapIcon size={12} className="shrink-0" />
+                    Live on Map
                   </span>
                 )}
               </h2>
@@ -344,7 +361,7 @@ export const ImpactGenerator: React.FC = () => {
               ) : (
                 <>
                   <div className="mb-4">
-                    <h3 className="text-sm font-medium text-slate-300 mb-2">📍 Infrastructure ({gnnNodes.length})</h3>
+                    <h3 className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-1.5"><MapPin size={14} className="shrink-0" />Infrastructure ({gnnNodes.length})</h3>
                     <div className="space-y-1 max-h-48 overflow-y-auto">
                       {gnnNodes.map(node => {
                         const Icon = getNodeIcon(node.type);
@@ -367,10 +384,11 @@ export const ImpactGenerator: React.FC = () => {
                             <span className={`font-medium truncate ${
                               isFailed ? 'text-red-400' : hasImpact ? 'text-amber-400' : 'text-white'
                             }`}>{node.name}</span>
-                            {isFailed && <span className="text-red-400 text-xs font-medium ml-auto">⚠️ FAILED</span>}
+                            {isFailed && <span className="text-red-400 text-xs font-medium ml-auto flex items-center gap-1"><AlertTriangle size={12} className="shrink-0" />FAILED</span>}
                             {hasImpact && !isFailed && (
-                              <span className="text-amber-400 text-xs font-medium ml-auto">
-                                📊 {node.impactScore}%
+                              <span className="text-amber-400 text-xs font-medium ml-auto flex items-center gap-1">
+                                <BarChart3 size={12} className="shrink-0" />
+                                {node.impactScore}%
                               </span>
                             )}
                           </div>
@@ -380,7 +398,7 @@ export const ImpactGenerator: React.FC = () => {
                   </div>
                   
                   <div>
-                    <h3 className="text-sm font-medium text-slate-300 mb-2">🔗 Connections ({gnnEdges.length})</h3>
+                    <h3 className="text-sm font-medium text-slate-300 mb-2 flex items-center gap-1.5"><Link2 size={14} className="shrink-0" />Connections ({gnnEdges.length})</h3>
                     {gnnEdges.length === 0 ? (
                       <p className="text-slate-400 text-sm italic">No connections</p>
                     ) : (
@@ -404,7 +422,7 @@ export const ImpactGenerator: React.FC = () => {
               
               <div className="space-y-4 text-slate-300">
                 <div className="flex items-start gap-3 p-3 bg-slate-700/50 rounded-lg">
-                  <span className="text-2xl">1️⃣</span>
+                  <Plus size={24} className="shrink-0" />
                   <div>
                     <p className="font-semibold text-white">Add Nodes (Optional)</p>
                     <p className="text-sm text-slate-400">Use the form on the left to add new infrastructure nodes. They'll auto-connect to the network based on type.</p>
@@ -412,7 +430,7 @@ export const ImpactGenerator: React.FC = () => {
                 </div>
                 
                 <div className="flex items-start gap-3 p-3 bg-slate-700/50 rounded-lg">
-                  <span className="text-2xl">2️⃣</span>
+                  <MapIcon size={24} className="shrink-0" />
                   <div>
                     <p className="font-semibold text-white">Go to 3D Map</p>
                     <p className="text-sm text-slate-400">Navigate to the 3D Map view to see all infrastructure nodes with their identification badges.</p>
@@ -420,7 +438,7 @@ export const ImpactGenerator: React.FC = () => {
                 </div>
                 
                 <div className="flex items-start gap-3 p-3 bg-slate-700/50 rounded-lg">
-                  <span className="text-2xl">3️⃣</span>
+                  <MousePointerClick size={24} className="shrink-0" />
                   <div>
                     <p className="font-semibold text-white">Click on Any Node</p>
                     <p className="text-sm text-slate-400">Click on a node badge to open the failure panel. Select failure type and severity, then trigger the failure.</p>
@@ -428,7 +446,7 @@ export const ImpactGenerator: React.FC = () => {
                 </div>
                 
                 <div className="flex items-start gap-3 p-3 bg-slate-700/50 rounded-lg">
-                  <span className="text-2xl">4️⃣</span>
+                  <Download size={24} className="shrink-0" />
                   <div>
                     <p className="font-semibold text-white">View Impact & Download Report</p>
                     <p className="text-sm text-slate-400">The InfoPanel will show detailed impact analysis with affected nodes. Download the full report from there.</p>
@@ -438,7 +456,7 @@ export const ImpactGenerator: React.FC = () => {
               
               <div className="mt-6 p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
                 <p className="text-cyan-400 text-sm">
-                  💡 <strong>Tip:</strong> Failed nodes appear in <span className="text-red-400 font-bold">RED</span> and impacted nodes appear in <span className="text-yellow-400 font-bold">YELLOW</span> on the map.
+                  <Lightbulb size={14} className="inline-block shrink-0 align-text-bottom mr-1" /><strong>Tip:</strong> Failed nodes appear in <span className="text-red-400 font-bold">RED</span> and impacted nodes appear in <span className="text-yellow-400 font-bold">YELLOW</span> on the map.
                 </p>
               </div>
             </div>

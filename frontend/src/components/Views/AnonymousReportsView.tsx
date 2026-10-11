@@ -17,7 +17,16 @@ import {
   ThumbsUp,
   ThumbsDown,
   Copy,
-  Check
+  Check,
+  Route,
+  Droplet,
+  Zap,
+  Trash2,
+  Stethoscope,
+  BookOpen,
+  Scale,
+  FileText,
+  type LucideIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAnonymousReports } from '../../hooks/useAnonymousReports';
@@ -44,16 +53,16 @@ const STATUS_CONFIG = {
   rejected: { label: { en: 'Rejected', hi: 'अस्वीकृत' }, color: 'text-red-400', bg: 'bg-red-500/20', icon: XCircle }
 };
 
-const CATEGORY_CONFIG: Record<string, { label: { en: string; hi: string }; emoji: string; color: string }> = {
-  road: { label: { en: 'Road & Infrastructure', hi: 'सड़क और अवसंरचना' }, emoji: '🛣️', color: 'text-amber-400' },
-  water: { label: { en: 'Water Supply', hi: 'जल आपूर्ति' }, emoji: '💧', color: 'text-blue-400' },
-  power: { label: { en: 'Electricity', hi: 'बिजली' }, emoji: '⚡', color: 'text-yellow-400' },
-  waste: { label: { en: 'Waste Management', hi: 'कचरा प्रबंधन' }, emoji: '🗑️', color: 'text-green-400' },
-  healthcare: { label: { en: 'Healthcare', hi: 'स्वास्थ्य सेवा' }, emoji: '🏥', color: 'text-red-400' },
-  education: { label: { en: 'Education', hi: 'शिक्षा' }, emoji: '📚', color: 'text-purple-400' },
-  corruption: { label: { en: 'Corruption', hi: 'भ्रष्टाचार' }, emoji: '⚖️', color: 'text-orange-400' },
-  safety: { label: { en: 'Safety', hi: 'सुरक्षा' }, emoji: '🛡️', color: 'text-indigo-400' },
-  other: { label: { en: 'Other', hi: 'अन्य' }, emoji: '📝', color: 'text-slate-400' }
+const CATEGORY_CONFIG: Record<string, { label: { en: string; hi: string }; icon: LucideIcon; color: string }> = {
+  road: { label: { en: 'Road & Infrastructure', hi: 'सड़क और अवसंरचना' }, icon: Route, color: 'text-amber-400' },
+  water: { label: { en: 'Water Supply', hi: 'जल आपूर्ति' }, icon: Droplet, color: 'text-blue-400' },
+  power: { label: { en: 'Electricity', hi: 'बिजली' }, icon: Zap, color: 'text-yellow-400' },
+  waste: { label: { en: 'Waste Management', hi: 'कचरा प्रबंधन' }, icon: Trash2, color: 'text-green-400' },
+  healthcare: { label: { en: 'Healthcare', hi: 'स्वास्थ्य सेवा' }, icon: Stethoscope, color: 'text-red-400' },
+  education: { label: { en: 'Education', hi: 'शिक्षा' }, icon: BookOpen, color: 'text-purple-400' },
+  corruption: { label: { en: 'Corruption', hi: 'भ्रष्टाचार' }, icon: Scale, color: 'text-orange-400' },
+  safety: { label: { en: 'Safety', hi: 'सुरक्षा' }, icon: Shield, color: 'text-indigo-400' },
+  other: { label: { en: 'Other', hi: 'अन्य' }, icon: FileText, color: 'text-slate-400' }
 };
 
 export default function AnonymousReportsView() {
@@ -136,7 +145,7 @@ export default function AnonymousReportsView() {
           {/* Header */}
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="text-xl">{categoryConfig.emoji}</span>
+              <categoryConfig.icon size={20} className="shrink-0" />
               <span className={`text-sm ${categoryConfig.color}`}>{categoryConfig.label[lang]}</span>
             </div>
             <div className="flex items-center gap-2">
@@ -345,7 +354,7 @@ export default function AnonymousReportsView() {
             >
               <option value="">{tx('All Categories', 'सभी श्रेणियां')}</option>
               {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
-                <option key={key} value={key}>{config.emoji} {config.label[lang]}</option>
+                <option key={key} value={key}>{config.label[lang]}</option>
               ))}
             </select>
 

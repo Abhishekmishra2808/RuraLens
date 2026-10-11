@@ -8,11 +8,11 @@ export default function MobileDashboard() {
   const hi = lang === 'hi';
   const tx = (en: string, hiText: string) => (hi ? hiText : en);
 
-  console.log('📱 MobileDashboard rendering - kpis:', kpis, 'userRole:', userRole);
+  console.log('MobileDashboard rendering - kpis:', kpis, 'userRole:', userRole);
 
   // Ensure we have data to display
   if (!kpis) {
-    console.error('❌ KPIs not loaded!');
+    console.error('KPIs not loaded!');
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">

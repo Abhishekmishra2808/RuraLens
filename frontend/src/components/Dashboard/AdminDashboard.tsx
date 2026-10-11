@@ -12,7 +12,12 @@ import {
   Activity,
   Zap,
   Sparkles,
-  MessageSquare
+  MessageSquare,
+  Brush,
+  Droplet,
+  Home,
+  HardHat,
+  type LucideIcon
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
@@ -69,12 +74,17 @@ export default function AdminDashboard() {
   };
 
   // Category mapping for icons
-  const categoryIcons: Record<string, string> = {
-    'Sanitation': '🧹',
-    'Water Supply': '💧',
-    'Housing': '🏠',
-    'Employment': '👷',
-    'Power': '⚡'
+  const categoryIcons: Record<string, LucideIcon> = {
+    'Sanitation': Brush,
+    'Water Supply': Droplet,
+    'Housing': Home,
+    'Employment': HardHat,
+    'Power': Zap
+  };
+
+  const renderCategoryIcon = (category: string, size: number) => {
+    const Icon = categoryIcons[category];
+    return Icon ? <Icon size={size} className="shrink-0" /> : null;
   };
 
   const categoryColors: Record<string, string> = {
@@ -215,7 +225,7 @@ export default function AdminDashboard() {
                 <div key={category} className="bg-slate-800/30 rounded-lg p-3 border border-white/5">
                   <div className="flex justify-between items-center mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{categoryIcons[category]}</span>
+                      {renderCategoryIcon(category, 18)}
                       <span className="text-sm font-medium text-slate-300">{category}</span>
                     </div>
                     <span className="text-xs font-mono text-slate-400">₹{(data.allocated / 100000).toFixed(0)}L</span>
@@ -247,7 +257,7 @@ export default function AdminDashboard() {
                 <div key={scheme.id} className="p-4 hover:bg-white/5 transition-colors flex items-center justify-between group cursor-pointer" onClick={() => setActiveView('schemes')}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-xl border border-white/5">
-                      {categoryIcons[scheme.category]}
+                      {renderCategoryIcon(scheme.category, 20)}
                     </div>
                     <div>
                       <div className="font-medium text-white group-hover:text-purple-400 transition-colors">{scheme.name}</div>
@@ -382,8 +392,8 @@ export default function AdminDashboard() {
           isOpen={showRagModal}
           onClose={() => setShowRagModal(false)}
           onHighlightCitation={(citation: Citation) => {
-            console.log('📍 Admin Dashboard - Highlight citation:', citation);
-            alert(hi ? `📍 एआई संदर्भ:\n\nप्रकार: ${citation.type}\nअंश: ${citation.snippet}\nस्कोर: ${citation.score}` : `📍 Citation from AI:\n\nType: ${citation.type}\nSnippet: ${citation.snippet}\nScore: ${citation.score}`);
+            console.log('Admin Dashboard - Highlight citation:', citation);
+            alert(hi ? `एआई संदर्भ:\n\nप्रकार: ${citation.type}\nअंश: ${citation.snippet}\nस्कोर: ${citation.score}` : `Citation from AI:\n\nType: ${citation.type}\nSnippet: ${citation.snippet}\nScore: ${citation.score}`);
           }}
         />
       )}

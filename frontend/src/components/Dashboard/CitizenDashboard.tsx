@@ -114,7 +114,7 @@ export default function CitizenDashboard() {
     setAiStatus({ status: 'anonymizing', message: 'Finalizing local model setup...', progress: 41 });
     await new Promise(resolve => setTimeout(resolve, 3000));
     
-    setAiStatus({ status: 'anonymizing', message: 'RunAnywhere SDK ready ✓', progress: 47 });
+    setAiStatus({ status: 'anonymizing', message: 'RunAnywhere SDK ready', progress: 47 });
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Stage 2: Loading model into memory (10 seconds)
@@ -127,7 +127,7 @@ export default function CitizenDashboard() {
     setAiStatus({ status: 'anonymizing', message: 'Initializing privacy-preserving layers...', progress: 71 });
     await new Promise(resolve => setTimeout(resolve, 3000));
     
-    setAiStatus({ status: 'anonymizing', message: 'Local AI model ready ✓', progress: 78 });
+    setAiStatus({ status: 'anonymizing', message: 'Local AI model ready', progress: 78 });
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Stage 3: Anonymizing the feedback
@@ -137,7 +137,7 @@ export default function CitizenDashboard() {
     setAiStatus({ status: 'anonymizing', message: 'Removing PII (names, emails, phones, addresses)...', progress: 91 });
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    setAiStatus({ status: 'anonymizing', message: 'Anonymization complete ✓ (100% Local)', progress: 95 });
+    setAiStatus({ status: 'anonymizing', message: 'Anonymization complete (on device)', progress: 95 });
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     try {
@@ -174,7 +174,7 @@ export default function CitizenDashboard() {
       }
 
       const result = await response.json();
-      console.log('✅ Feedback submitted successfully:', result);
+      console.log('Feedback submitted successfully:', result);
 
       setAiStatus({ status: 'complete', message: tx('Feedback submitted successfully!', 'फीडबैक सफलतापूर्वक जमा हुआ!'), progress: 100 });
       setIsProcessing(false);
@@ -186,7 +186,7 @@ export default function CitizenDashboard() {
       }, 2000);
 
     } catch (error) {
-      console.error('❌ Error submitting feedback:', error);
+      console.error('Error submitting feedback:', error);
       setIsProcessing(false);
       setAiStatus({ status: 'error', message: tx('Failed to submit feedback', 'फीडबैक जमा नहीं हो सका'), progress: 0 });
       alert(tx('Failed to submit feedback. Please try again.', 'फीडबैक जमा नहीं हो सका। कृपया फिर से प्रयास करें।'));

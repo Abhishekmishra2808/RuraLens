@@ -10,14 +10,14 @@
 import { useAppStore } from '../store/appStore';
 
 export function enableDevMode() {
-  console.log('🔓 DEV MODE: Auto-login enabled');
+  console.log('DEV MODE: Auto-login enabled');
   
   // Auto-login as administrator
   const store = useAppStore.getState();
   store.login('admin', 'dev-admin');
   
-  console.log('✅ Logged in as: dev-admin (Administrator)');
-  console.log('🎯 You can now access all features without backend!');
+  console.log('Logged in as: dev-admin (Administrator)');
+  console.log('You can now access all features without backend.');
 }
 
 // Auto-enable if in development

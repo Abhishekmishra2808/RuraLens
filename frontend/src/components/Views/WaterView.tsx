@@ -58,7 +58,7 @@ export default function WaterView() {
                     ● {tank.status.toUpperCase()}
                   </p>
                 </div>
-                <div className="text-4xl">💧</div>
+                <Droplet size={36} className="shrink-0" />
               </div>
 
               {/* Level Gauge */}

@@ -540,7 +540,7 @@ export const useAppStore = create<AppState>((set) => ({
 
   fetchSchemes: async () => {
     try {
-      console.log('📡 Fetching schemes from:', `${API_URL}/api/schemes`);
+      console.log('Fetching schemes from:', `${API_URL}/api/schemes`);
       const response = await fetch(`${API_URL}/api/schemes`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -549,17 +549,17 @@ export const useAppStore = create<AppState>((set) => ({
       });
       
       if (!response.ok) {
-        console.warn('⚠️ Schemes fetch failed with status:', response.status);
+        console.warn('Schemes fetch failed with status:', response.status);
         return; // Don't block UI
       }
       
       const data = await response.json();
       if (data.schemes) {
-        console.log('✅ Schemes loaded:', data.schemes.length);
+        console.log('Schemes loaded:', data.schemes.length);
         set({ schemes: data.schemes });
       }
     } catch (error) {
-      console.warn('⚠️ Failed to fetch schemes (non-critical):', error);
+      console.warn('Failed to fetch schemes (non-critical):', error);
       // Don't throw - allow UI to continue without schemes
     }
   },

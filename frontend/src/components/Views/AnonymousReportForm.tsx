@@ -9,21 +9,29 @@ import {
   AlertTriangle,
   CheckCircle,
   Copy,
-  Info
+  Info,
+  Route,
+  Droplet,
+  Zap,
+  Trash2,
+  Stethoscope,
+  BookOpen,
+  Scale,
+  FileText
 } from 'lucide-react';
 import { useAnonymousReports } from '../../hooks/useAnonymousReports';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 const CATEGORIES = [
-  { id: 'road', label: { en: 'Road & Infrastructure', hi: 'सड़क और अवसंरचना' }, emoji: '🛣️', description: { en: 'Potholes, broken roads, bridges, drainage', hi: 'गड्ढे, टूटी सड़कें, पुल, जल निकासी' } },
-  { id: 'water', label: { en: 'Water Supply', hi: 'जल आपूर्ति' }, emoji: '💧', description: { en: 'Water shortage, contamination, pipeline issues', hi: 'जल कमी, दूषित पानी, पाइपलाइन समस्याएं' } },
-  { id: 'power', label: { en: 'Electricity', hi: 'बिजली' }, emoji: '⚡', description: { en: 'Power cuts, voltage issues, streetlights', hi: 'बिजली कटौती, वोल्टेज समस्या, स्ट्रीटलाइट' } },
-  { id: 'waste', label: { en: 'Waste Management', hi: 'कचरा प्रबंधन' }, emoji: '🗑️', description: { en: 'Garbage collection, dumping, sanitation', hi: 'कचरा संग्रह, डंपिंग, स्वच्छता' } },
-  { id: 'healthcare', label: { en: 'Healthcare', hi: 'स्वास्थ्य सेवा' }, emoji: '🏥', description: { en: 'Medical facilities, ambulance, health camps', hi: 'चिकित्सा सुविधाएं, एम्बुलेंस, स्वास्थ्य शिविर' } },
-  { id: 'education', label: { en: 'Education', hi: 'शिक्षा' }, emoji: '📚', description: { en: 'Schools, teachers, mid-day meals', hi: 'स्कूल, शिक्षक, मध्यान्ह भोजन' } },
-  { id: 'corruption', label: { en: 'Corruption', hi: 'भ्रष्टाचार' }, emoji: '⚖️', description: { en: 'Bribery, misuse of funds, irregularities', hi: 'रिश्वत, धन का दुरुपयोग, अनियमितताएं' } },
-  { id: 'safety', label: { en: 'Safety', hi: 'सुरक्षा' }, emoji: '🛡️', description: { en: 'Crime, harassment, security concerns', hi: 'अपराध, उत्पीड़न, सुरक्षा चिंताएं' } },
-  { id: 'other', label: { en: 'Other', hi: 'अन्य' }, emoji: '📝', description: { en: 'Any other local issues', hi: 'अन्य स्थानीय समस्याएं' } }
+  { id: 'road', label: { en: 'Road & Infrastructure', hi: 'सड़क और अवसंरचना' }, icon: Route, description: { en: 'Potholes, broken roads, bridges, drainage', hi: 'गड्ढे, टूटी सड़कें, पुल, जल निकासी' } },
+  { id: 'water', label: { en: 'Water Supply', hi: 'जल आपूर्ति' }, icon: Droplet, description: { en: 'Water shortage, contamination, pipeline issues', hi: 'जल कमी, दूषित पानी, पाइपलाइन समस्याएं' } },
+  { id: 'power', label: { en: 'Electricity', hi: 'बिजली' }, icon: Zap, description: { en: 'Power cuts, voltage issues, streetlights', hi: 'बिजली कटौती, वोल्टेज समस्या, स्ट्रीटलाइट' } },
+  { id: 'waste', label: { en: 'Waste Management', hi: 'कचरा प्रबंधन' }, icon: Trash2, description: { en: 'Garbage collection, dumping, sanitation', hi: 'कचरा संग्रह, डंपिंग, स्वच्छता' } },
+  { id: 'healthcare', label: { en: 'Healthcare', hi: 'स्वास्थ्य सेवा' }, icon: Stethoscope, description: { en: 'Medical facilities, ambulance, health camps', hi: 'चिकित्सा सुविधाएं, एम्बुलेंस, स्वास्थ्य शिविर' } },
+  { id: 'education', label: { en: 'Education', hi: 'शिक्षा' }, icon: BookOpen, description: { en: 'Schools, teachers, mid-day meals', hi: 'स्कूल, शिक्षक, मध्यान्ह भोजन' } },
+  { id: 'corruption', label: { en: 'Corruption', hi: 'भ्रष्टाचार' }, icon: Scale, description: { en: 'Bribery, misuse of funds, irregularities', hi: 'रिश्वत, धन का दुरुपयोग, अनियमितताएं' } },
+  { id: 'safety', label: { en: 'Safety', hi: 'सुरक्षा' }, icon: Shield, description: { en: 'Crime, harassment, security concerns', hi: 'अपराध, उत्पीड़न, सुरक्षा चिंताएं' } },
+  { id: 'other', label: { en: 'Other', hi: 'अन्य' }, icon: FileText, description: { en: 'Any other local issues', hi: 'अन्य स्थानीय समस्याएं' } }
 ];
 
 export default function AnonymousReportForm() {
@@ -245,7 +253,7 @@ export default function AnonymousReportForm() {
                       : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
                   }`}
                 >
-                  <div className="text-xl mb-1">{cat.emoji}</div>
+                  <div className="mb-1"><cat.icon size={20} className="shrink-0" /></div>
                   <div className="text-sm font-medium text-white">{cat.label[lang]}</div>
                   <div className="text-xs text-slate-500 mt-1">{cat.description[lang]}</div>
                 </button>
@@ -336,8 +344,9 @@ export default function AnonymousReportForm() {
                 {detecting ? tx('Detecting...', 'पता लगाया जा रहा है...') : tx('Detect Location', 'स्थान पहचानें')}
               </button>
               {coords && (
-                <span className="text-sm text-green-400">
-                  {tx('✓ Location detected (will be generalized for privacy)', '✓ स्थान मिला (गोपनीयता हेतु सामान्यीकृत किया जाएगा)')}
+                <span className="inline-flex items-center gap-1 text-sm text-green-400">
+                  <CheckCircle size={14} />
+                  {tx('Location detected (generalized for privacy)', 'स्थान मिला (गोपनीयता हेतु सामान्यीकृत)')}
                 </span>
               )}
             </div>

@@ -1,6 +1,35 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import {
+  AlertTriangle,
+  Building2,
+  Cross,
+  Droplet,
+  Factory,
+  Flame,
+  Gauge,
+  Home,
+  Lightbulb,
+  Loader2,
+  MapPin,
+  Plus,
+  Radio,
+  Rotate3d,
+  RotateCcw,
+  Route,
+  School,
+  Store,
+  TriangleRight,
+  Users,
+  Waypoints,
+  Wheat,
+  XCircle,
+  Zap,
+  ZoomIn,
+  type LucideIcon,
+} from 'lucide-react';
 import { useAppStore, type GNNInfraNode } from '../../store/appStore';
 import { Capacitor } from '@capacitor/core';
 import { API_URL } from '../../config/api';
@@ -8,15 +37,31 @@ import { API_URL } from '../../config/api';
 const MAP_CENTER: [number, number] = [73.8567, 18.5204]; // Pune coordinates
 const GNN_API_URL = API_URL;
 
+const iconSvgCache = new Map<LucideIcon, Map<number, string>>();
+
+function iconSvg(Icon: LucideIcon, size: number): string {
+  let bySize = iconSvgCache.get(Icon);
+  if (!bySize) {
+    bySize = new Map();
+    iconSvgCache.set(Icon, bySize);
+  }
+  let svg = bySize.get(size);
+  if (!svg) {
+    svg = renderToStaticMarkup(createElement(Icon, { size, color: 'currentColor', strokeWidth: 2 }));
+    bySize.set(size, svg);
+  }
+  return svg;
+}
+
 // Node types for adding
 const NODE_TYPES = [
-  { value: 'tank', label: 'Water Tank', icon: '💧' },
-  { value: 'pump', label: 'Water Pump', icon: '⚙️' },
-  { value: 'pipe', label: 'Water Pipe', icon: '🔧' },
-  { value: 'hospital', label: 'Hospital', icon: '🏥' },
-  { value: 'school', label: 'School', icon: '🏫' },
-  { value: 'power', label: 'Power Node', icon: '⚡' },
-  { value: 'market', label: 'Market', icon: '🛒' },
+  { value: 'tank', label: 'Water Tank' },
+  { value: 'pump', label: 'Water Pump' },
+  { value: 'pipe', label: 'Water Pipe' },
+  { value: 'hospital', label: 'Hospital' },
+  { value: 'school', label: 'School' },
+  { value: 'power', label: 'Power Node' },
+  { value: 'market', label: 'Market' },
 ];
 
 // Failure types and severity levels
@@ -65,7 +110,7 @@ function AddNodePopup({ position, mapCoords, onClose, onAddNode }: AddNodePopupP
       {/* Header */}
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-emerald-500/30">
         <div className="flex items-center gap-3">
-          <span className="text-2xl">➕</span>
+          <Plus size={22} className="shrink-0" />
           <span className="text-white font-bold text-base">Add New Node</span>
         </div>
         <button 
@@ -77,8 +122,9 @@ function AddNodePopup({ position, mapCoords, onClose, onAddNode }: AddNodePopupP
       </div>
 
       {/* Location Info */}
-      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 mb-3 text-xs text-emerald-300">
-        📍 {mapCoords[1].toFixed(5)}°N, {mapCoords[0].toFixed(5)}°E
+      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3 mb-3 text-xs text-emerald-300 flex items-center gap-1.5">
+        <MapPin size={14} className="shrink-0" />
+        {mapCoords[1].toFixed(5)}°N, {mapCoords[0].toFixed(5)}°E
       </div>
 
       {/* Node Name */}
@@ -103,7 +149,7 @@ function AddNodePopup({ position, mapCoords, onClose, onAddNode }: AddNodePopupP
         >
           {NODE_TYPES.map(type => (
             <option key={type.value} value={type.value}>
-              {type.icon} {type.label}
+              {type.label}
             </option>
           ))}
         </select>
@@ -115,7 +161,8 @@ function AddNodePopup({ position, mapCoords, onClose, onAddNode }: AddNodePopupP
         disabled={!nodeName.trim()}
         className="w-full py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:from-slate-700 disabled:to-slate-600 text-white rounded-lg font-bold text-sm transition-all shadow-lg hover:shadow-emerald-500/50 flex items-center justify-center gap-2"
       >
-        ➕ Add to Network
+        <Plus size={16} className="shrink-0" />
+        Add to Network
       </button>
 
       <p className="text-[11px] text-slate-400 mt-3 text-center">
@@ -151,7 +198,7 @@ function FailurePopup({ node, position, onClose, onTriggerFailure, isLoading }: 
       {/* Header */}
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-orange-500/30">
         <div className="flex items-center gap-3">
-          <span className="text-2xl">⚠️</span>
+          <AlertTriangle size={22} className="shrink-0" />
           <span className="text-white font-bold text-base">Trigger Failure</span>
         </div>
         <button 
@@ -210,12 +257,13 @@ function FailurePopup({ node, position, onClose, onTriggerFailure, isLoading }: 
       >
         {isLoading ? (
           <>
-            <span className="animate-spin">⏳</span>
+            <Loader2 size={16} className="shrink-0 animate-spin" />
             Running GNN...
           </>
         ) : (
           <>
-            💥 Trigger Failure
+            <Flame size={16} className="shrink-0" />
+            Trigger Failure
           </>
         )}
       </button>
@@ -661,17 +709,17 @@ export default function Map3D() {
       });
 
     // Building type icons and colors
-    const buildingConfig: Record<string, { icon: string; color: string; label: string }> = {
-      school: { icon: '🏫', color: '#8b5cf6', label: 'School' },
-      health: { icon: '🏥', color: '#ef4444', label: 'Health' },
-      hospital: { icon: '🏥', color: '#ef4444', label: 'Hospital' },
-      market: { icon: '🛒', color: '#f59e0b', label: 'Market' },
-      commercial: { icon: '🏪', color: '#f59e0b', label: 'Shop' },
-      government: { icon: '🏛️', color: '#3b82f6', label: 'Govt' },
-      residential: { icon: '🏘️', color: '#10b981', label: 'Homes' },
-      religious: { icon: '🛕', color: '#ec4899', label: 'Temple' },
-      industrial: { icon: '🏭', color: '#6b7280', label: 'Industry' },
-      default: { icon: '🏢', color: '#64748b', label: 'Building' },
+    const buildingConfig: Record<string, { icon: LucideIcon; color: string; label: string }> = {
+      school: { icon: School, color: '#8b5cf6', label: 'School' },
+      health: { icon: Cross, color: '#ef4444', label: 'Health' },
+      hospital: { icon: Cross, color: '#ef4444', label: 'Hospital' },
+      market: { icon: Store, color: '#f59e0b', label: 'Market' },
+      commercial: { icon: Store, color: '#f59e0b', label: 'Shop' },
+      government: { icon: Landmark, color: '#3b82f6', label: 'Govt' },
+      residential: { icon: Home, color: '#10b981', label: 'Homes' },
+      religious: { icon: Landmark, color: '#ec4899', label: 'Temple' },
+      industrial: { icon: Factory, color: '#6b7280', label: 'Industry' },
+      default: { icon: Building2, color: '#64748b', label: 'Building' },
     };
 
     // Add building markers with icons and labels
@@ -683,7 +731,7 @@ export default function Map3D() {
       
       // Create marker with icon and label
       el.innerHTML = `
-        <div class="building-icon">${config.icon}</div>
+        <div class="building-icon">${iconSvg(config.icon, 20)}</div>
         <div class="building-label">${building.name.length > 15 ? building.name.substring(0, 15) + '...' : building.name}</div>
       `;
       
@@ -834,7 +882,7 @@ export default function Map3D() {
     waterTanks.slice(0, 5).forEach(tank => {
       const el = document.createElement('div');
       el.className = 'water-tank-marker';
-      el.textContent = '💧';
+      el.innerHTML = iconSvg(Droplet, 18);
       
       const statusColor = tank.status === 'good' ? '#10b981' : 
                           tank.status === 'warning' ? '#f59e0b' : '#ef4444';
@@ -882,7 +930,7 @@ export default function Map3D() {
     powerNodes.slice(0, 8).forEach(node => {
       const el = document.createElement('div');
       el.className = 'power-node-marker';
-      el.textContent = '⚡';
+      el.innerHTML = iconSvg(Zap, 16);
       
       const loadPercent = (node.currentLoad / node.capacity) * 100;
       const statusColor = loadPercent > 95 ? '#ef4444' : 
@@ -929,14 +977,14 @@ export default function Map3D() {
       .filter(m => m.getElement().classList.contains('sensor-marker'))
       .forEach(marker => marker.remove());
 
-    const sensorIcons: Record<string, string> = {
-      soil_moisture: '🌱',
-      air_quality: '💨',
-      weather: '🌡️',
-      water_quality: '💧',
-      noise: '🔊',
-      energy: '☀️',
-      waste: '🗑️',
+    const sensorIcons: Record<string, LucideIcon> = {
+      soil_moisture: Sprout,
+      air_quality: Wind,
+      weather: Thermometer,
+      water_quality: Droplet,
+      noise: Volume2,
+      energy: Sun,
+      waste: Trash2,
     };
 
     // Only show 15 sensors to reduce clutter
@@ -944,8 +992,8 @@ export default function Map3D() {
       const el = document.createElement('div');
       el.className = 'sensor-marker';
       
-      const icon = sensorIcons[sensor.type] || '📡';
-      el.textContent = icon;
+      const icon = sensorIcons[sensor.type] || Radio;
+      el.innerHTML = iconSvg(icon, 12);
       
       Object.assign(el.style, {
         width: '24px',
@@ -989,24 +1037,24 @@ export default function Map3D() {
         markersRef.current = markersRef.current.filter(m => m !== marker);
       });
 
-    const gnnIcons: Record<string, string> = {
-      tank: '💧',
-      pump: '⚙️',
-      pipe: '🔧',
-      hospital: '🏥',
-      school: '🏫',
-      transformer: '⚡',
-      power: '⚡',
-      building: '🏢',
-      market: '🛒',
-      sensor: '📡',
-      road: '🛣️',
-      cluster: '👥',
-      residential: '🏠',
-      commercial: '🏢',
-      industrial: '🏭',
-      agricultural: '🌾',
-      default: '📍',
+    const gnnIcons: Record<string, LucideIcon> = {
+      tank: Droplet,
+      pump: Gauge,
+      pipe: Waypoints,
+      hospital: Cross,
+      school: School,
+      transformer: Zap,
+      power: Zap,
+      building: Building2,
+      market: Store,
+      sensor: Radio,
+      road: Route,
+      cluster: Users,
+      residential: Home,
+      commercial: Building2,
+      industrial: Factory,
+      agricultural: Wheat,
+      default: MapPin,
     };
 
     gnnNodes.forEach(node => {
@@ -1022,12 +1070,12 @@ export default function Map3D() {
       if (isFailed) {
         bgColor = '#dc2626'; // Bright red for failed
         borderColor = '#fca5a5';
-        statusText = ' ❌ FAILED';
+        statusText = ` ${iconSvg(XCircle, 14)} FAILED`;
       } else if (hasImpact) {
         // Orange/yellow gradient based on impact severity
         bgColor = node.impactScore! > 70 ? '#ea580c' : node.impactScore! > 40 ? '#d97706' : '#ca8a04';
         borderColor = '#fde68a';
-        statusText = ` ⚠️ ${node.impactScore}%`;
+        statusText = ` ${iconSvg(AlertTriangle, 14)} ${node.impactScore}%`;
       } else if (node.health < 0.4) {
         bgColor = '#ef4444'; // Red for low health
       } else if (node.health < 0.7) {
@@ -1047,7 +1095,7 @@ export default function Map3D() {
       
       // Main identification badge with icon + name
       const badge = document.createElement('div');
-      badge.innerHTML = `<span style="font-size:18px;margin-right:6px;">${icon}</span><span>${node.name}${statusText}</span>`;
+      badge.innerHTML = `<span style="display:inline-flex;flex-shrink:0;margin-right:6px;">${iconSvg(icon, 18)}</span><span style="display:inline-flex;align-items:center;gap:4px;">${node.name}${statusText}</span>`;
       badge.style.cssText = `
         display: flex;
         align-items: center;
@@ -1093,17 +1141,17 @@ export default function Map3D() {
       tooltip.style.boxShadow = '0 8px 20px rgba(0,0,0,0.5)';
       
       // Build tooltip content with detailed info
-      let tooltipContent = `<div style="font-weight:700;margin-bottom:8px;font-size:14px;">${icon} ${node.name}</div>`;
+      let tooltipContent = `<div style="display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:8px;font-size:14px;">${iconSvg(icon, 16)} ${node.name}</div>`;
       tooltipContent += `<div style="color:#94a3b8;margin-bottom:3px;">Type: ${node.type}</div>`;
       tooltipContent += `<div style="color:#94a3b8;margin-bottom:3px;">Health: ${(node.health * 100).toFixed(0)}%</div>`;
       
       if (isFailed) {
-        tooltipContent += `<div style="color:#f87171;font-weight:700;margin-top:8px;font-size:13px;">🔴 NODE FAILED</div>`;
+        tooltipContent += `<div style="display:flex;align-items:center;gap:6px;color:#f87171;font-weight:700;margin-top:8px;font-size:13px;">${iconSvg(XCircle, 14)} NODE FAILED</div>`;
         if (node.failureType) {
           tooltipContent += `<div style="color:#fca5a5;">Failure: ${node.failureType}</div>`;
         }
       } else if (hasImpact) {
-        tooltipContent += `<div style="color:#fbbf24;font-weight:700;margin-top:8px;font-size:13px;">⚠️ IMPACTED: ${node.impactScore}%</div>`;
+        tooltipContent += `<div style="display:flex;align-items:center;gap:6px;color:#fbbf24;font-weight:700;margin-top:8px;font-size:13px;">${iconSvg(AlertTriangle, 14)} IMPACTED: ${node.impactScore}%</div>`;
         if (node.impactFrom) {
           const sourceNode = gnnNodes.find(n => n.id === node.impactFrom);
           tooltipContent += `<div style="color:#fde68a;">Caused by: ${sourceNode?.name || node.impactFrom}</div>`;
@@ -1221,12 +1269,12 @@ export default function Map3D() {
       }`}>
         <div className={`flex items-center gap-3 ${isMobile ? 'text-xs' : 'text-sm'}`}>
           <div className="flex items-center gap-1">
-            <span className="text-slate-400">🔍</span>
+            <ZoomIn size={14} className="shrink-0 text-slate-400" />
             <span className="font-semibold text-white">{currentZoom}x</span>
           </div>
           <div className="w-px h-4 bg-slate-700" />
           <div className="flex items-center gap-1">
-            <span className="text-slate-400">📐</span>
+            <TriangleRight size={14} className="shrink-0 text-slate-400" />
             <span className="font-semibold text-white">{currentPitch}°</span>
           </div>
         </div>
@@ -1250,12 +1298,13 @@ export default function Map3D() {
               });
             }
           }}
-          className={`bg-slate-900/90 hover:bg-slate-800 active:scale-95 backdrop-blur-md text-white rounded-lg shadow-lg border border-white/10 font-medium transition-all ${
+          className={`flex items-center gap-1.5 bg-slate-900/90 hover:bg-slate-800 active:scale-95 backdrop-blur-md text-white rounded-lg shadow-lg border border-white/10 font-medium transition-all ${
             isMobile ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm'
           }`}
           title="Reset to map center"
         >
-          🏠 {isMobile ? 'Reset' : 'Reset View'}
+          <Home size={isMobile ? 14 : 16} className="shrink-0" />
+          {isMobile ? 'Reset' : 'Reset View'}
         </button>
         <button
           onClick={() => {
@@ -1267,19 +1316,20 @@ export default function Map3D() {
               });
             }
           }}
-          className={`bg-slate-900/90 hover:bg-slate-800 active:scale-95 backdrop-blur-md text-white rounded-lg shadow-lg border border-white/10 font-medium transition-all ${
+          className={`flex items-center gap-1.5 bg-slate-900/90 hover:bg-slate-800 active:scale-95 backdrop-blur-md text-white rounded-lg shadow-lg border border-white/10 font-medium transition-all ${
             isMobile ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm'
           }`}
           title="Toggle 3D view"
         >
-          🔄 3D
+          <Rotate3d size={isMobile ? 14 : 16} className="shrink-0" />
+          3D
         </button>
       </div>
 
       {/* Failure Counter Display */}
       {failureCount > 0 && (
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-slate-900/90 backdrop-blur-md rounded-lg shadow-lg border border-red-500/50 px-4 py-2 flex items-center gap-3 z-10">
-          <div className="text-2xl">⚠️</div>
+          <AlertTriangle size={24} className="shrink-0" />
           <div>
             <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Failure Events</div>
             <div className="text-xl font-bold text-white">{failureCount} <span className="text-sm font-normal text-slate-400">accumulated</span></div>
@@ -1293,7 +1343,7 @@ export default function Map3D() {
             className="ml-2 p-1 hover:bg-white/10 rounded-full transition-colors"
             title="Reset Failures"
           >
-            🔄
+            <RotateCcw size={16} className="shrink-0" />
           </button>
         </div>
       )}
@@ -1322,8 +1372,9 @@ export default function Map3D() {
       
       {/* Add Node Hint */}
       {!addNodePopup && !failurePopup && gnnNodes.length > 0 && (
-        <div className="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md rounded-lg px-3 py-2 text-xs text-slate-400 border border-white/10">
-          💡 Right-click on map to add a new node
+        <div className="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md rounded-lg px-3 py-2 text-xs text-slate-400 border border-white/10 flex items-center gap-1.5">
+          <Lightbulb size={14} className="shrink-0" />
+          Right-click on map to add a new node
         </div>
       )}
     </div>

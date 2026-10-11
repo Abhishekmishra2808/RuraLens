@@ -11,6 +11,7 @@ import {
   MapPin,
   Filter,
   X,
+  Check,
   Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -433,8 +434,9 @@ export default function AnonymousReportAdminPanel({ selectedReportId }: Props) {
                 {selectedReport.resolutionFeedback && (
                   <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
                     <h3 className="text-sm font-medium text-green-400 mb-2">{tx('Citizen Feedback', 'नागरिक प्रतिक्रिया')}</h3>
-                    <div className="text-white">
-                      {selectedReport.resolutionFeedback.isResolved ? tx('✓ Confirmed Resolved', '✓ समाधान की पुष्टि') : tx('✗ Not Resolved', '✗ समाधान नहीं हुआ')}
+                    <div className="flex items-center gap-1 text-white">
+                      {selectedReport.resolutionFeedback.isResolved ? <Check size={14} /> : <X size={14} />}
+                      {selectedReport.resolutionFeedback.isResolved ? tx('Confirmed resolved', 'समाधान की पुष्टि') : tx('Not resolved', 'समाधान नहीं हुआ')}
                       <span className="ml-3">{tx('Rating:', 'रेटिंग:')} {selectedReport.resolutionFeedback.satisfactionRating}/5</span>
                     </div>
                     {selectedReport.resolutionFeedback.feedback && (

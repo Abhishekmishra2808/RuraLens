@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, Activity, AlertCircle, Clock } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, AlertCircle, AlertTriangle, Clock } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 
 export default function KPICards() {
@@ -59,11 +59,11 @@ export default function KPICards() {
                   </div>
                 )}
                 {card.subtext && (
-                  <p className={`text-sm font-medium ${
+                  <p className={`text-sm font-medium flex items-center gap-1 ${
                     card.color === 'text-success' ? 'text-green-600' : 
                     card.color === 'text-warning' ? 'text-yellow-600' : 'text-red-600'
                   }`}>
-                    ⚠ {card.subtext}
+                    <AlertTriangle size={14} className="shrink-0" />{card.subtext}
                   </p>
                 )}
               </div>

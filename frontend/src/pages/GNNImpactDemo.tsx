@@ -12,6 +12,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { AlertTriangle, Brain, RefreshCw, RotateCcw, Zap } from 'lucide-react';
 import ImpactGraphVisualizer from '../components/ImpactGraphVisualizer';
 import { gnnService } from '../services/gnnImpactService';
 import type { GraphVisualizationData, GraphNode } from '../types/graph-visualization';
@@ -270,7 +271,9 @@ const GNNImpactDemo: React.FC = () => {
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '20px' }}>🧠</div>
+          <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
+            <Brain size={48} className="shrink-0" />
+          </div>
           <div style={{ fontSize: '24px', fontWeight: 'bold' }}>Initializing GNN Brain...</div>
           <div style={{ marginTop: '10px', color: '#a0aec0' }}>Loading infrastructure graph</div>
         </div>
@@ -293,8 +296,9 @@ const GNNImpactDemo: React.FC = () => {
         borderRadius: '12px',
         color: 'white'
       }}>
-        <h1 style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', marginBottom: '10px' }}>
-          🧠 Infrastructure Impact Brain
+        <h1 style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Brain size={32} className="shrink-0" />
+          Infrastructure Impact Brain
         </h1>
         <p style={{ margin: 0, opacity: 0.9, fontSize: '16px' }}>
           Graph Neural Network powered failure prediction and impact visualization
@@ -379,9 +383,13 @@ const GNNImpactDemo: React.FC = () => {
                 cursor: loading ? 'not-allowed' : 'pointer',
                 fontSize: '14px',
                 opacity: loading ? 0.5 : 1,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
               }}
             >
-              🔄 Refresh
+              <RefreshCw size={16} className="shrink-0" />
+              Refresh
             </button>
             <button
               onClick={() => {
@@ -404,9 +412,13 @@ const GNNImpactDemo: React.FC = () => {
                 cursor: (loading || accumulatedFailures.size === 0) ? 'not-allowed' : 'pointer',
                 fontSize: '14px',
                 opacity: (loading || accumulatedFailures.size === 0) ? 0.5 : 1,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
               }}
             >
-              🔄 Reset Failures ({accumulatedFailures.size})
+              <RotateCcw size={16} className="shrink-0" />
+              Reset Failures ({accumulatedFailures.size})
             </button>
           </div>
         </div>
@@ -425,7 +437,7 @@ const GNNImpactDemo: React.FC = () => {
             alignItems: 'center',
             gap: '10px',
           }}>
-            <span style={{ fontSize: '18px' }}>⚡</span>
+            <Zap size={18} className="shrink-0" />
             <span>
               <strong>{accumulatedFailures.size} node(s) failed:</strong>{' '}
               {Array.from(accumulatedFailures).map(id => {
@@ -444,9 +456,13 @@ const GNNImpactDemo: React.FC = () => {
             border: '1px solid #FC8181',
             borderRadius: '8px',
             color: '#FC8181',
-            fontSize: '14px'
+            fontSize: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
           }}>
-            ⚠️ {error}
+            <AlertTriangle size={16} className="shrink-0" />
+            {error}
           </div>
         )}
       </div>

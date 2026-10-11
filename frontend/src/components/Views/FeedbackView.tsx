@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { GovernmentScheme } from '../../store/appStore';
 import { API_URL } from '../../config/api';
+import { AlertTriangle } from 'lucide-react';
 
 interface Feedback {
   id: string;
@@ -165,7 +166,7 @@ const FeedbackView: React.FC<FeedbackViewProps> = ({ scheme, onClose }) => {
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <div className="text-red-400 mb-2">⚠️ {error}</div>
+              <div className="text-red-400 mb-2 flex items-center justify-center gap-1.5"><AlertTriangle size={16} className="shrink-0" />{error}</div>
               <button
                 onClick={fetchFeedback}
                 className="text-cyan-400 hover:text-cyan-300 underline"

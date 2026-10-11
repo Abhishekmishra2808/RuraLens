@@ -1,5 +1,5 @@
 import { useAppStore } from '../../store/appStore';
-import { Bell, AlertTriangle, Info, AlertCircle } from 'lucide-react';
+import { Bell, AlertTriangle, Info, AlertCircle, Droplet, Zap } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function AlertsView() {
@@ -64,7 +64,7 @@ export default function AlertsView() {
               <div key={tank.id} className="p-3 bg-red-500/10 rounded-lg border border-red-500/20">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-semibold text-white">💧 {tank.name}</p>
+                    <p className="font-semibold text-white flex items-center gap-1.5"><Droplet size={16} className="shrink-0" />{tank.name}</p>
                     <p className="text-sm text-slate-300">Water level critically low: {tank.currentLevel.toFixed(1)}%</p>
                   </div>
                   <span className="text-xs text-slate-400">Now</span>
@@ -75,7 +75,7 @@ export default function AlertsView() {
               <div key={node.id} className="p-3 bg-red-500/10 rounded-lg border border-red-500/20">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-semibold text-white">⚡ {node.name}</p>
+                    <p className="font-semibold text-white flex items-center gap-1.5"><Zap size={16} className="shrink-0" />{node.name}</p>
                     <p className="text-sm text-slate-300">Overload: {((node.currentLoad / node.capacity) * 100).toFixed(1)}% capacity</p>
                   </div>
                   <span className="text-xs text-slate-400">Now</span>

@@ -3,6 +3,7 @@ import {
   Search,
   Clock,
   CheckCircle,
+  XCircle,
   ArrowUpRight,
   ThumbsUp,
   ThumbsDown,
@@ -389,8 +390,9 @@ export default function AnonymousReportTracker() {
               <div className="bg-slate-700/50 rounded-xl p-4">
                 <div className="text-sm text-slate-400 mb-2">{tx('Your Feedback', 'आपकी प्रतिक्रिया')}</div>
                 <div className="flex items-center gap-4">
-                  <span className={report.resolutionFeedback.isResolved ? 'text-green-400' : 'text-red-400'}>
-                    {report.resolutionFeedback.isResolved ? tx('✓ Confirmed Resolved', '✓ समाधान की पुष्टि') : tx('✗ Not Resolved', '✗ समाधान नहीं हुआ')}
+                  <span className={`inline-flex items-center gap-1 ${report.resolutionFeedback.isResolved ? 'text-green-400' : 'text-red-400'}`}>
+                    {report.resolutionFeedback.isResolved ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                    {report.resolutionFeedback.isResolved ? tx('Confirmed resolved', 'समाधान की पुष्टि') : tx('Not resolved', 'समाधान नहीं हुआ')}
                   </span>
                   <div className="flex">
                     {[1, 2, 3, 4, 5].map(r => (

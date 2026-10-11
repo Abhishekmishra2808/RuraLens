@@ -20,7 +20,15 @@ import {
   Filter,
   ChevronDown,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Route,
+  Droplet,
+  Zap,
+  Trash2,
+  Stethoscope,
+  BookOpen,
+  Scale,
+  FileText
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAnonymousReports } from '../../hooks/useAnonymousReports';
@@ -28,15 +36,15 @@ import { API_URL } from '../../config/api';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 const CATEGORIES = [
-  { id: 'road', label: { en: 'Road', hi: 'सड़क' }, emoji: '🛣️' },
-  { id: 'water', label: { en: 'Water', hi: 'पानी' }, emoji: '💧' },
-  { id: 'power', label: { en: 'Power', hi: 'बिजली' }, emoji: '⚡' },
-  { id: 'waste', label: { en: 'Waste', hi: 'कचरा' }, emoji: '🗑️' },
-  { id: 'healthcare', label: { en: 'Health', hi: 'स्वास्थ्य' }, emoji: '🏥' },
-  { id: 'education', label: { en: 'Education', hi: 'शिक्षा' }, emoji: '📚' },
-  { id: 'corruption', label: { en: 'Corruption', hi: 'भ्रष्टाचार' }, emoji: '⚖️' },
-  { id: 'safety', label: { en: 'Safety', hi: 'सुरक्षा' }, emoji: '🛡️' },
-  { id: 'other', label: { en: 'Other', hi: 'अन्य' }, emoji: '📝' }
+  { id: 'road', label: { en: 'Road', hi: 'सड़क' }, icon: Route },
+  { id: 'water', label: { en: 'Water', hi: 'पानी' }, icon: Droplet },
+  { id: 'power', label: { en: 'Power', hi: 'बिजली' }, icon: Zap },
+  { id: 'waste', label: { en: 'Waste', hi: 'कचरा' }, icon: Trash2 },
+  { id: 'healthcare', label: { en: 'Health', hi: 'स्वास्थ्य' }, icon: Stethoscope },
+  { id: 'education', label: { en: 'Education', hi: 'शिक्षा' }, icon: BookOpen },
+  { id: 'corruption', label: { en: 'Corruption', hi: 'भ्रष्टाचार' }, icon: Scale },
+  { id: 'safety', label: { en: 'Safety', hi: 'सुरक्षा' }, icon: Shield },
+  { id: 'other', label: { en: 'Other', hi: 'अन्य' }, icon: FileText }
 ];
 
 const STATUS_CONFIG: Record<string, { label: { en: string; hi: string }; color: string; bg: string }> = {
@@ -82,10 +90,10 @@ export default function MobileAnonymousReports() {
 
   // Debug log for mobile
   useEffect(() => {
-    console.log('📱 MobileAnonymousReports mounted');
-    console.log('🔗 API_URL:', API_URL);
-    console.log('📊 Reports count:', reports.length);
-    console.log('❌ Error:', error);
+    console.log('MobileAnonymousReports mounted');
+    console.log('API_URL:', API_URL);
+    console.log('Reports count:', reports.length);
+    console.log('Error:', error);
   }, [reports, error]);
 
   // Submit form state
@@ -277,6 +285,10 @@ export default function MobileAnonymousReports() {
     setRefreshing(false);
   };
 
+  const SelectedCategoryIcon = selectedReport
+    ? CATEGORIES.find(c => c.id === selectedReport.category)?.icon
+    : undefined;
+
   const renderBrowse = () => (
     <div className="space-y-4">
       {/* Error Display */}
@@ -345,7 +357,7 @@ export default function MobileAnonymousReports() {
                 filterCategory === cat.id ? 'bg-cyan-500 text-white' : 'bg-slate-800 text-slate-400'
               }`}
             >
-              {cat.emoji} {cat.label[lang]}
+              <cat.icon size={14} className="shrink-0" />{cat.label[lang]}
             </button>
           ))}
         </div>
@@ -366,6 +378,7 @@ export default function MobileAnonymousReports() {
           {filteredReports.map(report => {
             const status = STATUS_CONFIG[report.status] || STATUS_CONFIG.pending;
             const category = CATEGORIES.find(c => c.id === report.category);
+            const CategoryIcon = category?.icon ?? FileText;
             
             return (
               <div
@@ -375,7 +388,7 @@ export default function MobileAnonymousReports() {
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">{category?.emoji || '📝'}</span>
+                    <CategoryIcon size={18} className="shrink-0" />
                     <span className={`px-2 py-0.5 rounded text-xs ${status.bg} ${status.color}`}>
                       {status.label[lang]}
                     </span>
@@ -431,7 +444,7 @@ export default function MobileAnonymousReports() {
             </div>
             <div className="p-4 overflow-y-auto max-h-[70vh] space-y-4">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">{CATEGORIES.find(c => c.id === selectedReport.category)?.emoji}</span>
+                {SelectedCategoryIcon && <SelectedCategoryIcon size={24} className="shrink-0" />}
                 <span className={`px-2 py-1 rounded text-sm ${STATUS_CONFIG[selectedReport.status]?.bg} ${STATUS_CONFIG[selectedReport.status]?.color}`}>
                   {STATUS_CONFIG[selectedReport.status]?.label[lang]}
                 </span>
@@ -561,7 +574,7 @@ export default function MobileAnonymousReports() {
                     : 'border-slate-700 bg-slate-800/50'
                 }`}
               >
-                <div className="text-xl mb-1">{cat.emoji}</div>
+                <div className="mb-1 flex justify-center"><cat.icon size={20} className="shrink-0" /></div>
                 <div className="text-xs text-slate-300">{cat.label[lang]}</div>
               </button>
             ))}
@@ -622,8 +635,8 @@ export default function MobileAnonymousReports() {
           disabled={detecting}
           className="flex items-center gap-2 px-4 py-2 bg-slate-800 rounded-xl text-slate-300"
         >
-          {detecting ? <Loader2 size={16} className="animate-spin" /> : <MapPin size={16} />}
-          {detecting ? tx('Detecting...', 'पता लगाया जा रहा है...') : coords ? tx('✓ Location Added', '✓ स्थान जोड़ दिया गया') : tx('Add GPS Location', 'जीपीएस स्थान जोड़ें')}
+          {detecting ? <Loader2 size={16} className="animate-spin" /> : coords ? <Check size={16} /> : <MapPin size={16} />}
+          {detecting ? tx('Detecting...', 'पता लगाया जा रहा है...') : coords ? tx('Location added', 'स्थान जोड़ दिया गया') : tx('Add GPS location', 'जीपीएस स्थान जोड़ें')}
         </button>
 
         {/* Photos */}
@@ -900,8 +913,9 @@ export default function MobileAnonymousReports() {
               <div className="bg-slate-700/50 rounded-xl p-3">
                 <div className="text-xs text-slate-400 mb-1">{tx('Your Feedback', 'आपकी प्रतिक्रिया')}</div>
                 <div className="flex items-center gap-2">
-                  <span className={trackedReport.resolutionFeedback.isResolved ? 'text-green-400' : 'text-red-400'}>
-                    {trackedReport.resolutionFeedback.isResolved ? tx('✓ Resolved', '✓ समाधान हुआ') : tx('✗ Not Resolved', '✗ समाधान नहीं हुआ')}
+                  <span className={`inline-flex items-center gap-1 ${trackedReport.resolutionFeedback.isResolved ? 'text-green-400' : 'text-red-400'}`}>
+                    {trackedReport.resolutionFeedback.isResolved ? <Check size={14} /> : <X size={14} />}
+                    {trackedReport.resolutionFeedback.isResolved ? tx('Resolved', 'समाधान हुआ') : tx('Not resolved', 'समाधान नहीं हुआ')}
                   </span>
                   <div className="flex">
                     {[1, 2, 3, 4, 5].map(r => (

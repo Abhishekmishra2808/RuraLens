@@ -13,6 +13,7 @@ import {
   Droplet,
   MapPin,
   Network,
+  Lightbulb,
 } from 'lucide-react';
 
 /**
@@ -157,7 +158,7 @@ const ImpactPredictorView: React.FC = () => {
           {/* Tip */}
           <div className="mt-4 p-2 bg-slate-800/50 rounded-lg border border-slate-700">
             <p className="text-xs text-slate-400">
-              💡 <span className="text-cyan-400 font-medium">Tip:</span> Right-click on the Map to add nodes • Click on nodes to trigger failures • View cascading effects in real-time
+              <Lightbulb size={14} className="shrink-0 inline-block align-text-bottom mr-1" /><span className="text-cyan-400 font-medium">Tip:</span> Right-click on the Map to add nodes • Click on nodes to trigger failures • View cascading effects in real-time
             </p>
           </div>
         </div>
@@ -197,7 +198,7 @@ const ImpactPredictorView: React.FC = () => {
               ))}
             </div>
             <p className="text-xs text-slate-500 mt-3">
-              💡 Go to the Map view and click on the corresponding node to trigger these scenarios
+              <Lightbulb size={14} className="shrink-0 inline-block align-text-bottom mr-1" />Go to the Map view and click on the corresponding node to trigger these scenarios
             </p>
           </div>
         )}

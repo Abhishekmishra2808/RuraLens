@@ -178,7 +178,7 @@ const VisualizerTest: React.FC = () => {
         color: 'white'
       }}>
         <h1 style={{ margin: 0, marginBottom: '10px' }}>
-          🧠 GNN Impact Visualizer - Test
+          GNN Impact Visualizer - Test
         </h1>
         <p style={{ margin: 0, opacity: 0.9 }}>
           Scenario: Main Power Substation Failure
@@ -210,13 +210,13 @@ const VisualizerTest: React.FC = () => {
       }}>
         <h3 style={{ marginTop: 0 }}>What You Should See:</h3>
         <ul style={{ lineHeight: '1.8', color: '#a0aec0' }}>
-          <li>✅ <strong style={{ color: 'white' }}>Purple pulsing node</strong> - The failed power substation (breathing animation)</li>
-          <li>✅ <strong style={{ color: 'white' }}>Red nodes</strong> - Critical impacts (hospital, pump)</li>
-          <li>✅ <strong style={{ color: 'white' }}>Animated particles</strong> - Red/orange dots flowing from epicenter to victims</li>
-          <li>✅ <strong style={{ color: 'white' }}>Fast particles</strong> = Critical impact, <strong style={{ color: 'white' }}>slow particles</strong> = Low impact</li>
-          <li>✅ <strong style={{ color: 'white' }}>Hover</strong> - Node highlights with neighbors, info panel appears</li>
-          <li>✅ <strong style={{ color: 'white' }}>Click</strong> - Alert with node details</li>
-          <li>✅ <strong style={{ color: 'white' }}>Zoom/Pan</strong> - Mouse wheel zoom, drag to pan</li>
+          <li><strong style={{ color: 'white' }}>Purple pulsing node</strong> - The failed power substation (breathing animation)</li>
+          <li><strong style={{ color: 'white' }}>Red nodes</strong> - Critical impacts (hospital, pump)</li>
+          <li><strong style={{ color: 'white' }}>Animated particles</strong> - Red/orange dots flowing from epicenter to victims</li>
+          <li><strong style={{ color: 'white' }}>Fast particles</strong> = Critical impact, <strong style={{ color: 'white' }}>slow particles</strong> = Low impact</li>
+          <li><strong style={{ color: 'white' }}>Hover</strong> - Node highlights with neighbors, info panel appears</li>
+          <li><strong style={{ color: 'white' }}>Click</strong> - Alert with node details</li>
+          <li><strong style={{ color: 'white' }}>Zoom/Pan</strong> - Mouse wheel zoom, drag to pan</li>
         </ul>
       </div>
     </div>

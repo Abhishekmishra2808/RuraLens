@@ -3,7 +3,8 @@ import {
   Briefcase, 
   TrendingUp, 
   AlertTriangle, 
-  CheckCircle, 
+  CheckCircle,
+  Check, 
   DollarSign,
   FileText,
   Filter,
@@ -19,7 +20,16 @@ import {
   Sparkles,
   Send,
   Flag,
-  Cpu
+  Cpu,
+  Brush,
+  Droplet,
+  Home,
+  HardHat,
+  Zap,
+  ClipboardList,
+  Circle,
+  Lightbulb,
+  type LucideIcon
 } from 'lucide-react';
 import { useAppStore, type GovernmentScheme } from '../../store/appStore';
 import { API_URL } from '../../config/api';
@@ -153,7 +163,7 @@ export default function SchemesView() {
       }
 
       const result = await response.json();
-      console.log('✅ Feedback submitted successfully:', result);
+      console.log('Feedback submitted successfully:', result);
 
       setAiStatus({ status: 'complete', message: 'Feedback submitted successfully!', progress: 100 });
       setIsProcessing(false);
@@ -165,7 +175,7 @@ export default function SchemesView() {
       }, 2000);
 
     } catch (error) {
-      console.error('❌ Error submitting feedback:', error);
+      console.error('Error submitting feedback:', error);
       setIsProcessing(false);
       setAiStatus({ status: 'error', message: 'Failed to submit feedback', progress: 0 });
       alert('Failed to submit feedback. Please try again.');
@@ -193,12 +203,17 @@ export default function SchemesView() {
   });
 
   // Category mapping for icons
-  const categoryIcons: Record<string, string> = {
-    'Sanitation': '🧹',
-    'Water Supply': '💧',
-    'Housing': '🏠',
-    'Employment': '👷',
-    'Power': '⚡'
+  const categoryIcons: Record<string, LucideIcon> = {
+    'Sanitation': Brush,
+    'Water Supply': Droplet,
+    'Housing': Home,
+    'Employment': HardHat,
+    'Power': Zap
+  };
+
+  const renderCategoryIcon = (category: string, size: number) => {
+    const Icon = categoryIcons[category] ?? ClipboardList;
+    return <Icon size={size} className="shrink-0" />;
   };
 
   // Status badge component
@@ -372,7 +387,7 @@ export default function SchemesView() {
               <div className="p-5 pb-0 flex justify-between items-start">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-[#eaf2e6] border border-[#d1decd] flex items-center justify-center text-xl shadow-inner">
-                    {categoryIcons[scheme.category] || '📋'}
+                    {renderCategoryIcon(scheme.category, 20)}
                   </div>
                   <div>
                     <span className="text-xs font-medium text-[#6f8677] uppercase tracking-wider">{scheme.category}</span>
@@ -648,10 +663,10 @@ export default function SchemesView() {
           isOpen={showRagModal}
           onClose={() => setShowRagModal(false)}
           onHighlightCitation={(citation: Citation) => {
-            console.log('📍 Highlight citation on map:', citation);
+            console.log('Highlight citation on map:', citation);
             // TODO: Implement map highlighting when map instance is available
             // For now, just show an alert
-            alert(`📍 Citation Location:\n\nType: ${citation.type}\nSnippet: ${citation.snippet}\nCoordinates: ${citation.geo?.lat}, ${citation.geo?.lon}`);
+            alert(`Citation Location:\n\nType: ${citation.type}\nSnippet: ${citation.snippet}\nCoordinates: ${citation.geo?.lat}, ${citation.geo?.lon}`);
           }}
         />
       )}
@@ -913,7 +928,7 @@ function SchemeDetailsModal({
                     {scheme.discrepancies.map((disc, idx) => (
                       <li key={idx} className="bg-white rounded-lg p-3 border border-red-200">
                         <div className="flex items-start space-x-2">
-                          <span className="text-red-600 mt-1">⚠️</span>
+                          <AlertTriangle size={14} className="text-red-600 mt-1 shrink-0" />
                           <div className="flex-1">
                             <div className="text-sm text-red-800 leading-relaxed">{disc.description}</div>
                             <div className="flex items-center gap-3 mt-2 text-xs text-red-700">
@@ -1072,7 +1087,7 @@ function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
     setUploadError('');
 
     try {
-      console.log('📄 Uploading vendor report for analysis:', file.name);
+      console.log('Uploading vendor report for analysis:', file.name);
       
       const formData = new FormData();
       formData.append('pdf', file);
@@ -1085,15 +1100,15 @@ function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
       const result = await response.json();
 
       if (result.success) {
-        console.log('✅ Vendor report analyzed:', result.report);
-        console.log('📊 Scheme metrics updated:', result.updatedScheme);
+        console.log('Vendor report analyzed:', result.report);
+        console.log('Scheme metrics updated:', result.updatedScheme);
         
         // Refresh the schemes data to get updated information
         await fetchSchemes();
         
         // Show success message with updated metrics
         const updatedScheme = result.updatedScheme;
-        alert(`✅ Vendor report uploaded and analyzed successfully!\n\n` +
+        alert(`Vendor report uploaded and analyzed successfully!\n\n` +
               `Updated Metrics:\n` +
               `• Progress: ${updatedScheme.overallProgress}%\n` +
               `• Budget Utilized: ₹${(updatedScheme.budgetUtilized / 100000).toFixed(2)}L\n` +
@@ -1103,7 +1118,7 @@ function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
         throw new Error(result.error || 'Failed to analyze vendor report');
       }
     } catch (err: any) {
-      console.error('❌ Vendor report upload error:', err);
+      console.error('Vendor report upload error:', err);
       setUploadError(err.message || 'Failed to upload vendor report');
     } finally {
       setIsUploading(false);
@@ -1191,15 +1206,13 @@ function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
                     </span>
                     {/* Risk Level Badge */}
                     {report.complianceAnalysis?.riskLevel && (
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1.5 ${
                         report.complianceAnalysis.riskLevel === 'critical' ? 'bg-red-600/20 text-red-300' :
                         report.complianceAnalysis.riskLevel === 'high' ? 'bg-orange-600/20 text-orange-300' :
                         report.complianceAnalysis.riskLevel === 'medium' ? 'bg-yellow-600/20 text-yellow-300' :
                         'bg-green-600/20 text-green-300'
                       }`}>
-                        {report.complianceAnalysis.riskLevel === 'critical' ? '🔴' :
-                         report.complianceAnalysis.riskLevel === 'high' ? '🟠' :
-                         report.complianceAnalysis.riskLevel === 'medium' ? '🟡' : '🟢'} Risk: {report.complianceAnalysis.riskLevel.toUpperCase()}
+                        <Circle size={8} className="shrink-0 fill-current" />Risk: {report.complianceAnalysis.riskLevel.toUpperCase()}
                       </span>
                     )}
                     {report.complianceAnalysis && (
@@ -1303,7 +1316,7 @@ function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
                       <ul className="space-y-1">
                         {report.complianceAnalysis.matchingItems.map((item: string, idx: number) => (
                           <li key={idx} className="text-sm text-slate-300 flex items-start space-x-2">
-                            <span className="text-emerald-400 mt-0.5">✓</span>
+                            <Check size={14} className="mt-0.5 shrink-0 text-emerald-400" />
                             <span>{item}</span>
                           </li>
                         ))}
@@ -1329,15 +1342,13 @@ function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <span className={`text-xs px-2 py-0.5 rounded uppercase font-bold ${
+                                  <span className={`text-xs px-2 py-0.5 rounded uppercase font-bold inline-flex items-center gap-1.5 ${
                                     disc.severity === 'critical' ? 'bg-red-500/30 text-red-200' :
                                     disc.severity === 'high' ? 'bg-orange-500/30 text-orange-200' :
                                     disc.severity === 'medium' ? 'bg-yellow-500/30 text-yellow-200' :
                                     'bg-blue-500/30 text-blue-200'
                                   }`}>
-                                    {disc.severity === 'critical' ? '🔴' :
-                                     disc.severity === 'high' ? '🟠' :
-                                     disc.severity === 'medium' ? '🟡' : '🔵'} {disc.severity}
+                                    <Circle size={8} className="shrink-0 fill-current" />{disc.severity}
                                   </span>
                                   <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300 uppercase">
                                     {disc.category}
@@ -1368,7 +1379,7 @@ function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
                                 )}
                                 {disc.recommendation && (
                                   <div className="mt-2 text-xs bg-slate-800/50 rounded p-2">
-                                    <span className="text-slate-400">💡 Action: </span>
+                                    <span className="text-slate-400"><Lightbulb size={12} className="shrink-0 inline-block align-text-bottom mr-1" />Action: </span>
                                     <span className="text-slate-200">{disc.recommendation}</span>
                                   </div>
                                 )}
@@ -2231,7 +2242,7 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
     setError('');
 
     try {
-      console.log('📄 Uploading PDF for extraction:', file.name);
+      console.log('Uploading PDF for extraction:', file.name);
       
       const formData = new FormData();
       formData.append('pdf', file);
@@ -2244,7 +2255,7 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
       const result = await response.json();
 
       if (result.success && result.data) {
-        console.log('✅ PDF data extracted:', result.data);
+        console.log('PDF data extracted:', result.data);
         
         // Auto-fill form with extracted data
         setFormData({
@@ -2266,12 +2277,12 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
         const confidence = result.confidence || 'Medium';
         const methodDisplay = method.includes('pathway') ? 'Pathway RAG AI' : 
                              method === 'llm' ? 'AI-powered extraction' : method;
-        alert(`✅ PDF data extracted successfully!\n\nExtraction Method: ${methodDisplay}\nConfidence: ${confidence}\n\nPlease review and edit if needed.`);
+        alert(`PDF data extracted successfully!\n\nExtraction Method: ${methodDisplay}\nConfidence: ${confidence}\n\nPlease review and edit if needed.`);
       } else {
         throw new Error(result.error || 'Failed to extract data from PDF');
       }
     } catch (err: any) {
-      console.error('❌ PDF extraction error:', err);
+      console.error('PDF extraction error:', err);
       setError(err.message || 'Failed to extract data from PDF. Please fill manually.');
     } finally {
       setIsExtractingPDF(false);
@@ -2284,7 +2295,7 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
     setError('');
 
     try {
-      console.log('📤 Submitting new scheme:', formData);
+      console.log('Submitting new scheme:', formData);
       
       const response = await fetch(`${API_URL}/api/schemes`, {
         method: 'POST',
@@ -2300,11 +2311,11 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
       }
 
       const result = await response.json();
-      console.log('✅ Scheme created:', result);
+      console.log('Scheme created:', result);
       
       onSubmit(formData);
     } catch (err: any) {
-      console.error('❌ Error creating scheme:', err);
+      console.error('Error creating scheme:', err);
       setError(err.message || 'Failed to create scheme. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -2343,8 +2354,8 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
                   </div>
                 </div>
                 {pdfFile && (
-                  <span className="text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full">
-                    ✓ {pdfFile.name}
+                  <span className="inline-flex items-center gap-1 text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full">
+                    <Check size={12} /> {pdfFile.name}
                   </span>
                 )}
               </div>
@@ -2377,7 +2388,7 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
               <p className="text-xs text-slate-500 mt-2 text-center">
                 PDF analyzed using Pathway Docker RAG with vectorized retrieval.
                 <br/>
-                <span className="text-purple-400 font-medium">⚡ AI-powered extraction for accurate data</span>
+                <span className="text-purple-400 font-medium inline-flex items-center gap-1"><Zap size={12} className="shrink-0" />AI-powered extraction for accurate data</span>
               </p>
             </div>
 

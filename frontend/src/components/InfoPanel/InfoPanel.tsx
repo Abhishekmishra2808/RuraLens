@@ -1,4 +1,27 @@
-import { X, ExternalLink, Wrench, Bell, Download, AlertTriangle, Clock } from 'lucide-react';
+import {
+  X,
+  ExternalLink,
+  Wrench,
+  Bell,
+  Download,
+  AlertTriangle,
+  Clock,
+  BarChart3,
+  Building2,
+  Cross,
+  Droplet,
+  Gauge,
+  Link2,
+  MapPin,
+  Radio,
+  Route,
+  School,
+  Store,
+  Users,
+  Waypoints,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -42,7 +65,7 @@ function WaterTankDetails({ data }: { data: any }) {
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <div className="text-5xl mb-2">💧</div>
+        <Droplet size={48} className="mx-auto mb-2 shrink-0" />
         <h4 className="text-xl font-bold text-white">{data.name}</h4>
         <p className={`text-sm ${statusColor} font-medium`}>
           ● {data.status.toUpperCase()} ({data.currentLevel.toFixed(1)}% full)
@@ -91,7 +114,7 @@ function BuildingDetails({ data }: { data: any }) {
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <div className="text-5xl mb-2">🏢</div>
+        <Building2 size={48} className="mx-auto mb-2 shrink-0" />
         <h4 className="text-xl font-bold text-white">{data.name}</h4>
         <p className="text-sm text-slate-400 capitalize">{data.type}</p>
       </div>
@@ -115,7 +138,7 @@ function PowerNodeDetails({ data }: { data: any }) {
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <div className="text-5xl mb-2">⚡</div>
+        <Zap size={48} className="mx-auto mb-2 shrink-0" />
         <h4 className="text-xl font-bold text-white">{data.name}</h4>
         <p className={`text-sm ${statusColor} font-medium`}>
           ● {data.status.toUpperCase()} ({loadPercent.toFixed(1)}% load)
@@ -155,7 +178,7 @@ function SensorDetails({ data }: { data: any }) {
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <div className="text-5xl mb-2">📡</div>
+        <Radio size={48} className="mx-auto mb-2 shrink-0" />
         <h4 className="text-xl font-bold text-white">{data.name}</h4>
         <p className="text-sm text-slate-400 capitalize">{data.type.replace('_', ' ')}</p>
       </div>
@@ -167,7 +190,7 @@ function SensorDetails({ data }: { data: any }) {
             {data.value.toFixed(1)} {data.unit}
           </div>
         </div>
-        <DetailRow label="Status" value={data.status === 'active' ? '🟢 Active' : '🔴 Offline'} />
+        <DetailRow label="Status" value={data.status === 'active' ? 'Active' : 'Offline'} />
         <DetailRow label="Last Update" value={formatDistanceToNow(new Date(data.lastUpdate), { addSuffix: true })} />
         {data.humidity && <DetailRow label="Humidity" value={`${data.humidity.toFixed(1)}%`} />}
         {data.windSpeed && <DetailRow label="Wind Speed" value={`${data.windSpeed.toFixed(1)} km/h`} />}
@@ -203,19 +226,19 @@ function GNNNodeDetails({ data }: { data: any }) {
   const freshNodeData = gnnNodes.find(n => n.id === data.id);
   const nodeData = freshNodeData ? { ...data, ...freshNodeData, isFailed: failedNodes.includes(data.id) } : data;
   
-  const typeIcons: Record<string, string> = {
-    tank: '💧',
-    pump: '⚙️',
-    pipe: '🔧',
-    hospital: '🏥',
-    school: '🏫',
-    transformer: '⚡',
-    power: '⚡',
-    building: '🏢',
-    market: '🛒',
-    sensor: '📡',
-    road: '🛣️',
-    cluster: '👥',
+  const typeIcons: Record<string, LucideIcon> = {
+    tank: Droplet,
+    pump: Gauge,
+    pipe: Waypoints,
+    hospital: Cross,
+    school: School,
+    transformer: Zap,
+    power: Zap,
+    building: Building2,
+    market: Store,
+    sensor: Radio,
+    road: Route,
+    cluster: Users,
   };
 
   const typeLabels: Record<string, string> = {
@@ -233,7 +256,7 @@ function GNNNodeDetails({ data }: { data: any }) {
     cluster: 'Consumer Cluster',
   };
 
-  const icon = typeIcons[nodeData.type] || '📍';
+  const TypeIcon = typeIcons[nodeData.type] || MapPin;
   const typeLabel = typeLabels[nodeData.type] || nodeData.type;
   const healthPercent = (nodeData.health * 100).toFixed(0);
   
@@ -422,7 +445,7 @@ function GNNNodeDetails({ data }: { data: any }) {
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <div className="text-5xl mb-2">{icon}</div>
+        <TypeIcon size={48} className="mx-auto mb-2 shrink-0" />
         <h4 className="text-xl font-bold text-white">{nodeData.name}</h4>
         <p className="text-sm text-slate-400">{typeLabel}</p>
         <p className={`text-sm ${statusColor} font-medium mt-1`}>
@@ -467,8 +490,9 @@ function GNNNodeDetails({ data }: { data: any }) {
       {/* Impact Information */}
       {(isCurrentlyFailed || hasCurrentImpact) && (
         <div className={`p-4 rounded-lg border ${isCurrentlyFailed ? 'bg-red-500/20 border-red-500' : 'bg-yellow-500/20 border-yellow-500'}`}>
-          <h5 className={`font-semibold mb-2 ${isCurrentlyFailed ? 'text-red-400' : 'text-yellow-400'}`}>
-            {isCurrentlyFailed ? '⚠️ Failure Status' : '📊 Impact Analysis'}
+          <h5 className={`font-semibold mb-2 flex items-center gap-2 ${isCurrentlyFailed ? 'text-red-400' : 'text-yellow-400'}`}>
+            {isCurrentlyFailed ? <AlertTriangle size={16} className="shrink-0" /> : <BarChart3 size={16} className="shrink-0" />}
+            {isCurrentlyFailed ? 'Failure Status' : 'Impact Analysis'}
           </h5>
           {isCurrentlyFailed && nodeData.failureType && (
             <p className="text-red-300 text-sm">Failure Type: {nodeData.failureType}</p>
@@ -488,12 +512,12 @@ function GNNNodeDetails({ data }: { data: any }) {
       {(dependentFailedNodes.length > 0 || dependentImpactedNodes.length > 0 || nodesImpactedByCurrentFailure.length > 0) && (
         <div className="bg-slate-800/50 p-4 rounded-lg border border-white/10">
           <h5 className="font-semibold mb-3 text-white flex items-center gap-2">
-            <span>🔗</span> Network Status
+            <Link2 size={16} className="shrink-0" /> Network Status
           </h5>
           <div className="space-y-2 text-sm">
             {dependentFailedNodes.length > 0 && (
               <div className="p-2 bg-red-500/10 border border-red-500/30 rounded">
-                <p className="text-red-400 font-semibold mb-1">⚠️ Failed Nodes in Network:</p>
+                <p className="text-red-400 font-semibold mb-1 flex items-center gap-1.5"><AlertTriangle size={14} className="shrink-0" />Failed Nodes in Network:</p>
                 {dependentFailedNodes.map(node => (
                   <p key={node.id} className="text-red-300 ml-4">• {node.name}</p>
                 ))}
@@ -501,7 +525,7 @@ function GNNNodeDetails({ data }: { data: any }) {
             )}
             {nodesImpactedByCurrentFailure.length > 0 && isCurrentlyFailed && (
               <div className="p-2 bg-yellow-500/10 border border-yellow-500/30 rounded">
-                <p className="text-yellow-400 font-semibold mb-1">📊 Nodes Affected by This Failure:</p>
+                <p className="text-yellow-400 font-semibold mb-1 flex items-center gap-1.5"><BarChart3 size={14} className="shrink-0" />Nodes Affected by This Failure:</p>
                 {nodesImpactedByCurrentFailure.map(node => (
                   <p key={node.id} className="text-yellow-300 ml-4">
                     • {node.name} ({node.impactScore}%)
@@ -511,7 +535,7 @@ function GNNNodeDetails({ data }: { data: any }) {
             )}
             {dependentImpactedNodes.length > 0 && !isCurrentlyFailed && (
               <div className="p-2 bg-yellow-500/10 border border-yellow-500/30 rounded">
-                <p className="text-yellow-400 font-semibold mb-1">📊 Downstream Impacted Nodes:</p>
+                <p className="text-yellow-400 font-semibold mb-1 flex items-center gap-1.5"><BarChart3 size={14} className="shrink-0" />Downstream Impacted Nodes:</p>
                 {dependentImpactedNodes.map(node => (
                   <p key={node.id} className="text-yellow-300 ml-4">
                     • {node.name} ({node.impactScore}%)

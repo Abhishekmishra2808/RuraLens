@@ -13,6 +13,7 @@
 
 import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
+import { Zap } from 'lucide-react';
 import type { 
   GraphNode, 
   GraphLink, 
@@ -393,9 +394,13 @@ const ImpactGraphVisualizer: React.FC<ImpactGraphVisualizerProps> = ({
               fontSize: '11px',
               color: '#9F7AEA',
               fontWeight: 'bold',
-              textAlign: 'center'
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '4px'
             }}>
-              ⚡ FAILURE EPICENTER
+              <Zap size={12} className="shrink-0" />FAILURE EPICENTER
             </div>
           )}
         </div>
