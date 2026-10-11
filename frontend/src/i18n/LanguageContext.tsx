@@ -45,32 +45,40 @@ interface LanguageContextValue {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
+/** Only written when the user picks a language, so English stays the default for everyone else. */
+const LANG_KEY = 'ruralens_lang';
+
+function readStoredLang(): Lang {
+  try {
+    return localStorage.getItem(LANG_KEY) === 'hi' ? 'hi' : 'en';
+  } catch {
+    return 'en';
+  }
+}
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Lang>('hi');
+  const [lang, setLangState] = useState<Lang>(readStoredLang);
 
   useEffect(() => {
-    const stored = localStorage.getItem('app_lang');
-    if (stored === 'en' || stored === 'hi') {
-      setLang(stored);
-    } else {
-      setLang('hi');
-      localStorage.setItem('app_lang', 'hi');
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('app_lang', lang);
+    document.documentElement.lang = lang;
   }, [lang]);
 
-  const value = useMemo(
-    () => ({
+  const value = useMemo(() => {
+    const setLang = (next: Lang) => {
+      setLangState(next);
+      try {
+        localStorage.setItem(LANG_KEY, next);
+      } catch {
+        // Storage unavailable (private mode); the choice lasts for this session only.
+      }
+    };
+    return {
       lang,
       setLang,
-      toggleLang: () => setLang((prev) => (prev === 'en' ? 'hi' : 'en')),
+      toggleLang: () => setLang(lang === 'en' ? 'hi' : 'en'),
       t: (key: string, fallback = key) => dictionary[key]?.[lang] || fallback
-    }),
-    [lang]
-  );
+    };
+  }, [lang]);
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
