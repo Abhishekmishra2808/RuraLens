@@ -2,73 +2,102 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Design tokens. Neutrals are zinc; the only accent is brand green (logo);
+ * red and amber are reserved for status. Keep new UI on these values.
+ */
 :root {
-  --glass-border: rgba(0, 0, 0, 0.08);
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --primary-glow: conic-gradient(from 180deg at 50% 50%, #2a8af6 0deg, #3b82f6 180deg, #1d4ed8 360deg);
+  --rl-canvas: #f7f7f6;
+  --rl-surface: #ffffff;
+  --rl-subtle: #f4f4f3;
+  --rl-muted: #e9e9e7;
+  --rl-border: #e4e4e7;
+  --rl-ink: #18181b;
+  --rl-ink-2: #3f3f46;
+  --rl-ink-3: #71717a;
+  --rl-brand: #2f7a3d;
+
+  /* shadcn/ui tokens (HSL channels), zinc base to match the rest of the app */
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 60 4.8% 97.5%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 240 5.9% 10%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 72.2% 50.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 5.9% 10%;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: Geist, 'Noto Sans Devanagari', ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: 'ss01', 'cv11';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #fdfbf5; /* Off-cream */
-  color: #2b2a28; /* Soft charcoal */
+  background-color: var(--rl-canvas);
+  color: var(--rl-ink);
   overflow-x: hidden;
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f5f5f4;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #a8a29e;
+  background: #d4d4d8;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #78716c;
+  background: #a1a1aa;
 }
 
 @layer components {
-  /* Glassmorphism Utilities */
   .glass {
-    @apply bg-slate-900/70 backdrop-blur-md border border-white/10 shadow-xl;
+    @apply border border-zinc-200 bg-white/80 shadow-sm backdrop-blur-md;
   }
 
   .glass-card {
-    @apply bg-slate-800/40 backdrop-blur-sm border border-white/5 rounded-2xl transition-all duration-300 hover:bg-slate-800/60 hover:border-white/10 hover:shadow-lg hover:shadow-blue-500/5;
+    @apply rounded-2xl border border-zinc-200 bg-white transition-colors duration-200 hover:border-zinc-300;
   }
 
   .glass-button {
-    @apply px-6 py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 active:scale-95;
+    @apply flex items-center justify-center gap-2 rounded-xl px-6 py-3 font-medium transition-all duration-200 active:scale-95;
   }
 
-  /* Typography */
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400;
+    @apply text-brand-700;
   }
-  
+
   .h1-display {
-    @apply text-5xl md:text-7xl font-bold tracking-tight leading-tight;
+    @apply text-5xl font-semibold leading-tight tracking-tight md:text-7xl;
   }
 
   .h2-display {
-    @apply text-3xl md:text-4xl font-bold tracking-tight;
-  }
-  
-  .body-large {
-    @apply text-lg text-slate-400 leading-relaxed;
+    @apply text-3xl font-semibold tracking-tight md:text-4xl;
   }
 
-  /* In the components layer so utilities like `border` can override `border: none`. */
+  .body-large {
+    @apply text-lg leading-relaxed text-zinc-500;
+  }
+
+  /* Landing page glass (dark hero). In the components layer so utilities can override `border`. */
   .liquid-glass {
     background: rgba(0, 0, 0, 0.4);
     background-blend-mode: luminosity;
@@ -97,7 +126,6 @@ body {
   }
 }
 
-/* Custom Animations */
 @keyframes float {
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
@@ -115,25 +143,25 @@ body {
 
 .bg-grid-pattern {
   background-size: 40px 40px;
-  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-image: linear-gradient(to right, rgba(24, 24, 27, 0.05) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(24, 24, 27, 0.05) 1px, transparent 1px);
   mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
 }
 
-/* MapLibre Controls - Dark Theme for Visibility */
+/* MapLibre controls (classic map) */
 .maplibregl-ctrl-group {
-  background-color: rgba(255, 253, 246, 0.95) !important;
-  border: 1px solid rgba(60, 54, 47, 0.15) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  background-color: #fff !important;
+  border: 1px solid var(--rl-border) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06) !important;
   overflow: hidden;
 }
 
 .maplibregl-ctrl-group button {
   background-color: transparent !important;
-  width: 40px !important;
-  height: 40px !important;
-  border-bottom: 1px solid rgba(60, 54, 47, 0.1) !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-bottom: 1px solid var(--rl-border) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -144,142 +172,123 @@ body {
 }
 
 .maplibregl-ctrl-group button:hover {
-  background-color: rgba(153, 142, 126, 0.16) !important;
+  background-color: var(--rl-subtle) !important;
 }
 
 .maplibregl-ctrl-group button:active {
-  background-color: rgba(153, 142, 126, 0.24) !important;
+  background-color: var(--rl-muted) !important;
 }
 
-/* Hide default icons and replace with custom colored SVGs */
 .maplibregl-ctrl-icon {
   background-image: none !important;
   background-color: transparent !important;
 }
 
-/* Zoom In Button - Plus sign */
 .maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235c564f' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='5' x2='12' y2='19'%3E%3C/line%3E%3Cline x1='5' y1='12' x2='19' y2='12'%3E%3C/line%3E%3C/svg%3E") !important;
-  background-size: 20px 20px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233f3f46' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='5' x2='12' y2='19'%3E%3C/line%3E%3Cline x1='5' y1='12' x2='19' y2='12'%3E%3C/line%3E%3C/svg%3E") !important;
+  background-size: 18px 18px !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
 }
 
-/* Zoom Out Button - Minus sign */
 .maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235c564f' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'%3E%3C/line%3E%3C/svg%3E") !important;
-  background-size: 20px 20px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233f3f46' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'%3E%3C/line%3E%3C/svg%3E") !important;
+  background-size: 18px 18px !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
 }
 
-/* Fullscreen Button - Expand icon */
 .maplibregl-ctrl-fullscreen .maplibregl-ctrl-icon {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235c564f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 3 21 3 21 9'%3E%3C/polyline%3E%3Cpolyline points='9 21 3 21 3 15'%3E%3C/polyline%3E%3Cline x1='21' y1='3' x2='14' y2='10'%3E%3C/line%3E%3Cline x1='3' y1='21' x2='10' y2='14'%3E%3C/line%3E%3C/svg%3E") !important;
-  background-size: 18px 18px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233f3f46' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 3 21 3 21 9'%3E%3C/polyline%3E%3Cpolyline points='9 21 3 21 3 15'%3E%3C/polyline%3E%3Cline x1='21' y1='3' x2='14' y2='10'%3E%3C/line%3E%3Cline x1='3' y1='21' x2='10' y2='14'%3E%3C/line%3E%3C/svg%3E") !important;
+  background-size: 16px 16px !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
 }
 
-/* Fullscreen Exit Button - Shrink icon */
 .maplibregl-ctrl-shrink .maplibregl-ctrl-icon {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235c564f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='4 14 10 14 10 20'%3E%3C/polyline%3E%3Cpolyline points='20 10 14 10 14 4'%3E%3C/polyline%3E%3Cline x1='14' y1='10' x2='21' y2='3'%3E%3C/line%3E%3Cline x1='3' y1='21' x2='10' y2='14'%3E%3C/line%3E%3C/svg%3E") !important;
-  background-size: 18px 18px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233f3f46' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='4 14 10 14 10 20'%3E%3C/polyline%3E%3Cpolyline points='20 10 14 10 14 4'%3E%3C/polyline%3E%3Cline x1='14' y1='10' x2='21' y2='3'%3E%3C/line%3E%3Cline x1='3' y1='21' x2='10' y2='14'%3E%3C/line%3E%3C/svg%3E") !important;
+  background-size: 16px 16px !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
 }
 
-/* Compass Button - Arrow/compass icon */
 .maplibregl-ctrl-compass .maplibregl-ctrl-icon {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238f7a66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 19 21 12 17 5 21 12 2'%3E%3C/polygon%3E%3C/svg%3E") !important;
-  background-size: 18px 18px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233f3f46' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 19 21 12 17 5 21 12 2'%3E%3C/polygon%3E%3C/svg%3E") !important;
+  background-size: 16px 16px !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
 }
 
-/* Scale control styling */
 .maplibregl-ctrl-scale {
-  background-color: rgba(255, 253, 246, 0.9) !important;
-  color: #5b5650 !important;
-  border: 1px solid rgba(60, 54, 47, 0.2) !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  color: var(--rl-ink-2) !important;
+  border: 1px solid var(--rl-border) !important;
   border-radius: 6px !important;
   font-size: 11px !important;
   padding: 2px 6px !important;
 }
 
-/* Global palette override to off-cream */
-.bg-slate-950 { background-color: #fdfbf5 !important; }
-.bg-slate-900 { background-color: #fbf8f1 !important; }
-.bg-slate-800 { background-color: #f6f1e8 !important; }
-.bg-slate-700 { background-color: #efe9dd !important; }
-.bg-slate-600 { background-color: #e6dece !important; }
+/*
+ * Legacy views are written with dark classes (bg-slate-9xx, text-white...).
+ * Map them onto the light palette until each view is migrated.
+ */
+[class*="bg-slate-950"], [class*="bg-gray-950"] { background-color: var(--rl-canvas) !important; }
+[class*="bg-slate-900"], [class*="bg-gray-900"] { background-color: var(--rl-surface) !important; }
+[class*="bg-slate-800"], [class*="bg-gray-800"] { background-color: var(--rl-subtle) !important; }
+[class*="bg-slate-700"], [class*="bg-gray-700"] { background-color: var(--rl-muted) !important; }
+[class*="bg-slate-600"], [class*="bg-gray-600"] { background-color: #dededb !important; }
 
-.text-slate-200 { color: #2b2a28 !important; }
-.text-slate-300 { color: #3a3733 !important; }
-.text-slate-400 { color: #5b5650 !important; }
-.text-slate-500 { color: #6d665f !important; }
+[class*="bg-black"] { background-color: rgba(244, 244, 245, 0.88) !important; }
 
-.border-slate-700 { border-color: #e7e1d7 !important; }
-.border-slate-600 { border-color: #e0d7c9 !important; }
-.border-slate-500 { border-color: #d6cbb8 !important; }
+.bg-white\/5, .hover\:bg-white\/5:hover { background-color: rgba(24, 24, 27, 0.03) !important; }
+.bg-white\/10, .hover\:bg-white\/10:hover { background-color: rgba(24, 24, 27, 0.05) !important; }
+.bg-white\/20, .hover\:bg-white\/20:hover { background-color: rgba(24, 24, 27, 0.07) !important; }
 
-.glass {
-  background-color: rgba(255, 253, 246, 0.7) !important;
-  border-color: rgba(60, 54, 47, 0.12) !important;
+[class*="text-white"] { color: var(--rl-ink) !important; }
+[class*="text-slate-100"], [class*="text-gray-100"] { color: var(--rl-ink) !important; }
+[class*="text-slate-200"], [class*="text-gray-200"] { color: #27272a !important; }
+[class*="text-slate-300"], [class*="text-gray-300"] { color: var(--rl-ink-2) !important; }
+[class*="text-slate-400"], [class*="text-gray-400"] { color: #52525b !important; }
+[class*="text-slate-500"], [class*="text-gray-500"] { color: var(--rl-ink-3) !important; }
+
+/* White text stays white on solid accent/status fills. */
+:is(
+  .bg-brand-500, .bg-brand-600, .bg-brand-700, .bg-brand-800,
+  .bg-blue-500, .bg-blue-600, .bg-blue-700, .bg-indigo-500, .bg-indigo-600, .bg-indigo-700,
+  .bg-purple-500, .bg-purple-600, .bg-purple-700, .bg-violet-500, .bg-violet-600,
+  .bg-emerald-500, .bg-emerald-600, .bg-emerald-700, .bg-green-500, .bg-green-600, .bg-green-700,
+  .bg-teal-500, .bg-teal-600, .bg-cyan-500, .bg-cyan-600, .bg-sky-500, .bg-sky-600,
+  .bg-red-500, .bg-red-600, .bg-red-700, .bg-rose-500, .bg-rose-600,
+  .bg-amber-500, .bg-amber-600, .bg-orange-500, .bg-orange-600,
+  .bg-zinc-800, .bg-zinc-900, .bg-zinc-950, .bg-gradient-to-r, .bg-gradient-to-br, .bg-gradient-to-tr
+).text-white {
+  color: #fff !important;
 }
-
-.glass-card {
-  background-color: rgba(255, 253, 246, 0.6) !important;
-  border-color: rgba(60, 54, 47, 0.08) !important;
-}
-
-/* Catch Tailwind opacity variants (e.g. bg-slate-900/50, border-white/10, bg-black/60) */
-[class*="bg-slate-950"] { background-color: #fdfbf5 !important; }
-[class*="bg-slate-900"] { background-color: #fbf8f1 !important; }
-[class*="bg-slate-800"] { background-color: #f6f1e8 !important; }
-[class*="bg-slate-700"] { background-color: #efe9dd !important; }
-[class*="bg-slate-600"] { background-color: #e6dece !important; }
-
-[class*="bg-gray-900"] { background-color: #fbf8f1 !important; }
-[class*="bg-gray-800"] { background-color: #f6f1e8 !important; }
-[class*="bg-gray-700"] { background-color: #efe9dd !important; }
-
-[class*="bg-black"] { background-color: rgba(247, 242, 233, 0.88) !important; }
-
-[class*="text-white"],
-.text-white {
-  color: #2b2a28 !important;
-}
-
-[class*="text-slate-100"] { color: #2f2c28 !important; }
-[class*="text-slate-200"] { color: #3a3733 !important; }
-[class*="text-slate-300"] { color: #4c4741 !important; }
-[class*="text-slate-400"] { color: #5e5750 !important; }
-[class*="text-slate-500"] { color: #6f675f !important; }
 
 [class*="border-white"],
 [class*="border-slate-900"],
 [class*="border-slate-800"],
 [class*="border-slate-700"],
-[class*="border-slate-600"] {
-  border-color: #e6dece !important;
+[class*="border-slate-600"],
+[class*="border-gray-800"],
+[class*="border-gray-700"] {
+  border-color: var(--rl-border) !important;
 }
 
-[class*="placeholder-slate-500"],
-[class*="placeholder-slate-400"] {
-  --tw-placeholder-opacity: 1 !important;
-  color: #8d8478 !important;
+[class*="placeholder-slate-"]::placeholder,
+[class*="placeholder:text-slate-"]::placeholder {
+  color: #a1a1aa !important;
 }
 
 input[class*="bg-slate"],
 select[class*="bg-slate"],
 textarea[class*="bg-slate"] {
-  background-color: #fffdf8 !important;
-  color: #2b2a28 !important;
-  border-color: #ded3c2 !important;
+  background-color: #fff !important;
+  color: var(--rl-ink) !important;
+  border-color: #d4d4d8 !important;
 }
 
-/* Video hero is dark by design; opt it out of the off-cream palette overrides above. */
+/* Landing hero is dark by design; opt it out of the overrides above. */
 .hero-section {
   background-color: #000 !important;
   color: #fff !important;
@@ -295,6 +304,16 @@ textarea[class*="bg-slate"] {
 
 .hero-section [class*="border-white/20"] {
   border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.hero-section [class*="text-gray-300"] {
+  color: #d4d4d8 !important;
+}
+
+.hero-section .hero-nav {
+  background: rgba(9, 9, 11, 0.55);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
 html.docs-mode,
@@ -313,4 +332,30 @@ html.docs-mode ::-webkit-scrollbar-thumb {
 
 html.docs-mode ::-webkit-scrollbar-thumb:hover {
   background: #525252;
+}
+
+/* Cesium data attribution (3D digital twin). Required by data licences; must stay visible. */
+.twin-credits {
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.twin-credits .cesium-credit-logoContainer img {
+  height: 14px;
+  vertical-align: middle;
+}
+
+.twin-credits a,
+.twin-credits .cesium-credit-expand-link {
+  color: var(--rl-ink-2);
+  text-decoration: underline;
+}
+
+.twin-progress {
+  animation: twin-progress 1.2s ease-in-out infinite;
+}
+
+@keyframes twin-progress {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
 }

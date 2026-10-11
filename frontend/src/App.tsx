@@ -8,7 +8,6 @@ import { DOC_SECTIONS } from './components/Docs/docsContent';
 import LoginPage from './components/Auth/LoginPageNew';
 import TopNav from './components/Layout/TopNav';
 import Sidebar from './components/Sidebar/Sidebar';
-import StatusBar from './components/Layout/StatusBar';
 import InfoPanel from './components/InfoPanel/InfoPanel';
 import Dashboard from './components/Dashboard/Dashboard';
 import SettingsView from './components/Views/SettingsView';
@@ -61,7 +60,7 @@ function App() {
   // Load demo data on startup if no data loaded
   useEffect(() => {
     if (waterTanks.length === 0) {
-      console.log('🗺️ Loading demo infrastructure data with built-in network...');
+      console.log('Loading demo infrastructure data with built-in network...');
       setInfraData(demoInfraData);
     }
   }, [waterTanks.length, setInfraData]);
@@ -117,7 +116,7 @@ function App() {
 
   // Render appropriate view based on activeView and userRole
   const renderView = () => {
-    console.log('🔷 Rendering view:', activeView, 'userRole:', userRole, 'isMobile:', isMobile);
+    console.log('Rendering view:', activeView, 'userRole:', userRole, 'isMobile:', isMobile);
     
     // Field Worker sees their dashboard by default
     if (userRole === 'field_worker' && !isMobile) {
@@ -149,7 +148,7 @@ function App() {
 
   // Mobile Layout (Android APK)
   if (isMobile && isAuthenticated) {
-    console.log('🔵 Mobile authenticated layout - activeView:', activeView, 'userRole:', userRole);
+    console.log('Mobile authenticated layout - activeView:', activeView, 'userRole:', userRole);
     return (
       <div className="h-screen w-screen bg-slate-950 text-slate-200 flex flex-col overflow-hidden">
         {/* 1. Native-style Header */}
@@ -209,13 +208,10 @@ function App() {
   }
 
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden bg-slate-950 text-slate-200">
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-[var(--rl-canvas)] text-zinc-900">
       <TopNav />
-      
-      <div className="flex-1 flex overflow-hidden" style={{
-        marginTop: '64px',
-        marginBottom: '32px'
-      }}>
+
+      <div className="flex flex-1 overflow-hidden" style={{ marginTop: '64px' }}>
         <Sidebar />
         
         <main className={`flex-1 flex transition-all duration-300 ${
@@ -236,8 +232,6 @@ function App() {
           )}
         </main>
       </div>
-      
-      <StatusBar />
     </div>
   );
 }

@@ -1,117 +1,77 @@
-import { 
-  Home, 
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  Map,
-  Briefcase,
-  Shield,
-  CloudSun,
-  Phone
-} from 'lucide-react';
+import { Home, Settings, ChevronLeft, ChevronRight, Map, Briefcase, Shield, CloudSun, Phone } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 const menuItems = [
   { id: 'dashboard', icon: Home, labelKey: 'dashboard', label: 'Dashboard' },
-  { id: 'map', icon: Map, labelKey: 'mapView', label: '3D Map View' },
-  { id: 'schemes', icon: Briefcase, labelKey: 'govSchemes', label: 'Government Schemes' },
+  { id: 'map', icon: Map, labelKey: 'mapView', label: '3D Map' },
+  { id: 'schemes', icon: Briefcase, labelKey: 'govSchemes', label: 'Schemes' },
   { id: 'aqi-weather', icon: CloudSun, labelKey: 'aqiWeather', label: 'AQI & Weather' },
   { id: 'anonymous-reports', icon: Shield, labelKey: 'citizenReports', label: 'Citizen Reports' },
-  { id: 'call-records', icon: Phone, labelKey: 'citizenCallRecords', label: 'Citizen Call Records' },
+  { id: 'call-records', icon: Phone, labelKey: 'citizenCallRecords', label: 'Call Records' },
   { id: 'settings', icon: Settings, labelKey: 'settings', label: 'Settings' },
 ];
+
+const ROLE_ITEMS: Record<string, string[]> = {
+  field_worker: ['dashboard', 'map', 'aqi-weather', 'anonymous-reports', 'settings'],
+  user: ['dashboard', 'map', 'schemes', 'aqi-weather', 'anonymous-reports', 'settings'],
+};
 
 export default function Sidebar() {
   const { activeView, setActiveView, sidebarCollapsed, toggleSidebar, userRole } = useAppStore();
   const { t } = useLanguage();
 
-  // Filter menu items based on user role
-  const getMenuItems = () => {
-    if (userRole === 'field_worker') {
-      // Field workers see limited menu
-      return menuItems.filter(item => 
-        ['dashboard', 'map', 'aqi-weather', 'anonymous-reports', 'settings'].includes(item.id)
-      );
-    }
-    if (userRole === 'user') {
-      // Citizens see basic menu including anonymous reports
-      return menuItems.filter(item => 
-        ['dashboard', 'map', 'schemes', 'aqi-weather', 'anonymous-reports', 'settings'].includes(item.id)
-      );
-    }
-    // Admin sees all
-    return menuItems;
-  };
+  const allowed = userRole ? ROLE_ITEMS[userRole] : undefined;
+  const items = allowed ? menuItems.filter((item) => allowed.includes(item.id)) : menuItems;
 
   const handleMenuClick = (itemId: string) => {
     setActiveView(itemId);
-    // On mobile, close sidebar after clicking
-    if (window.innerWidth < 768 && !sidebarCollapsed) {
-      toggleSidebar();
-    }
+    if (window.innerWidth < 768 && !sidebarCollapsed) toggleSidebar();
   };
 
   return (
     <>
-      {/* Mobile Overlay - Only visible when sidebar is open on mobile */}
       {!sidebarCollapsed && (
-        <div 
-          className="md:hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-20 top-16 bottom-8"
+        <div
+          className="fixed inset-0 bottom-0 top-16 z-20 bg-zinc-900/20 md:hidden"
           onClick={toggleSidebar}
           aria-label="Close sidebar"
         />
       )}
 
-      {/* Sidebar - Always render content, just hide/show the container */}
-      <aside 
-        className={`fixed left-0 bottom-8 bg-slate-900/50 backdrop-blur-md border-r border-white/10 shadow-xl transition-transform duration-300 z-30 ${
-          sidebarCollapsed 
-            ? '-translate-x-full md:translate-x-0 md:w-16' 
-            : 'translate-x-0 w-64'
+      <aside
+        className={`fixed bottom-0 left-0 z-30 border-r border-zinc-200 bg-white transition-transform duration-300 ${
+          sidebarCollapsed ? '-translate-x-full md:w-16 md:translate-x-0' : 'w-60 translate-x-0'
         }`}
-        style={{
-          top: 'calc(64px + env(safe-area-inset-top, 0px))'
-        }}
+        style={{ top: 'calc(64px + env(safe-area-inset-top, 0px))' }}
       >
-        {/* Toggle Button - Desktop Only */}
         <button
           onClick={toggleSidebar}
-          className="hidden md:flex absolute -right-3 top-6 w-6 h-6 bg-blue-600 rounded-full items-center justify-center hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20 z-50"
+          className="absolute -right-3 top-5 z-50 hidden h-6 w-6 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 shadow-sm hover:text-zinc-900 md:flex"
           aria-label="Toggle sidebar"
         >
-          {sidebarCollapsed ? (
-            <ChevronRight size={14} className="text-white" />
-          ) : (
-            <ChevronLeft size={14} className="text-white" />
-          )}
+          {sidebarCollapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
         </button>
 
-        {/* Menu Items - ALWAYS RENDERED */}
-        <nav className="p-2 space-y-1 overflow-y-auto h-full">
-          {getMenuItems().map((item) => {
+        <nav className="h-full space-y-0.5 overflow-y-auto p-2">
+          {items.map((item) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;
-
+            const label = t(item.labelKey, item.label);
             return (
               <button
                 key={item.id}
                 onClick={() => handleMenuClick(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
-                  isActive 
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' 
-                    : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                aria-current={isActive ? 'page' : undefined}
+                title={sidebarCollapsed ? label : undefined}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                  isActive
+                    ? 'bg-brand-50 font-medium text-brand-700'
+                    : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900'
                 }`}
-                title={sidebarCollapsed ? t(item.labelKey, item.label) : ''}
               >
-                <Icon size={20} className="flex-shrink-0" />
-                {!sidebarCollapsed && (
-                  <>
-                    <span className="text-sm font-medium flex-1 text-left whitespace-nowrap">
-                      {t(item.labelKey, item.label)}
-                    </span>
-                  </>
-                )}
+                <Icon size={18} className="shrink-0" />
+                {!sidebarCollapsed && <span className="flex-1 whitespace-nowrap text-left">{label}</span>}
               </button>
             );
           })}
