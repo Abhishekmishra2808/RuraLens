@@ -1,420 +1,278 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { User, Shield, Briefcase, ChevronRight, Lock, Mail, AlertCircle, Loader, ArrowLeft } from 'lucide-react';
-import { useAppStore } from '../../store/appStore';
-import { API_URL } from '../../config/api';
-import { useLanguage } from '../../i18n/LanguageContext';
+import { useState, type FormEvent } from 'react';
+import { AlertCircle, Briefcase, Loader2, Shield, User, type LucideIcon } from 'lucide-react';
+import Login03, { ENTER, stagger } from '@/components/ui/login-03';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { useAppStore } from '@/store/appStore';
+import { API_URL } from '@/config/api';
+import { useLanguage } from '@/i18n/LanguageContext';
 
-const roles = [
-  { 
-    id: 'admin' as const, 
-    name: { en: 'Administrator', hi: 'प्रशासक' }, 
-    icon: Shield, 
-    description: { en: 'Manage schemes and governance workflows', hi: 'योजनाओं और प्रशासनिक वर्कफ्लो का प्रबंधन' },
-    color: 'from-purple-500 to-indigo-600',
-    accent: 'text-purple-400',
-    border: 'group-hover:border-purple-500/50',
-    bg: 'group-hover:bg-purple-500/10',
-    shadow: 'group-hover:shadow-purple-500/20'
+type Role = 'admin' | 'field_worker' | 'user';
+type Bilingual = { en: string; hi: string };
+
+const ROLES: Array<{ id: Role; label: Bilingual; icon: LucideIcon; demo: { email: string; password: string } }> = [
+  {
+    id: 'admin',
+    label: { en: 'Admin', hi: 'प्रशासक' },
+    icon: Shield,
+    demo: { email: 'admin@ruralens.com', password: 'admin123' },
   },
-  { 
-    id: 'field_worker' as const, 
-    name: { en: 'Field Worker', hi: 'फील्ड वर्कर' }, 
-    icon: Briefcase, 
-    description: { en: 'Update field data and reports', hi: 'फील्ड डेटा और रिपोर्ट अपडेट करें' },
-    color: 'from-orange-500 to-amber-600',
-    accent: 'text-orange-400',
-    border: 'group-hover:border-orange-500/50',
-    bg: 'group-hover:bg-orange-500/10',
-    shadow: 'group-hover:shadow-orange-500/20'
+  {
+    id: 'field_worker',
+    label: { en: 'Field worker', hi: 'फील्ड वर्कर' },
+    icon: Briefcase,
+    demo: { email: 'field@ruralens.com', password: 'field123' },
   },
-  { 
-    id: 'user' as const, 
-    name: { en: 'Citizen', hi: 'नागरिक' }, 
-    icon: User, 
-    description: { en: 'View schemes and feedback', hi: 'योजनाएं और फीडबैक देखें' },
-    color: 'from-emerald-500 to-teal-600',
-    accent: 'text-emerald-400',
-    border: 'group-hover:border-emerald-500/50',
-    bg: 'group-hover:bg-emerald-500/10',
-    shadow: 'group-hover:shadow-emerald-500/20'
+  {
+    id: 'user',
+    label: { en: 'Citizen', hi: 'नागरिक' },
+    icon: User,
+    demo: { email: 'citizen@ruralens.com', password: 'user123' },
   },
 ];
+
+const roleMeta = (id: Role) => ROLES.find((r) => r.id === id) ?? ROLES[2];
 
 interface LoginPageProps {
   onBack?: () => void;
 }
 
 export default function LoginPage({ onBack }: LoginPageProps) {
-  const [selectedRole, setSelectedRole] = useState<'user' | 'admin' | 'field_worker' | null>(null);
+  const [role, setRole] = useState<Role>('user');
   const [isRegister, setIsRegister] = useState(false);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
-  const login = useAppStore((state) => state.login);
+
+  const login = useAppStore((s) => s.login);
   const { t, lang, toggleLang } = useLanguage();
   const hi = lang === 'hi';
   const tx = (en: string, hiText: string) => (hi ? hiText : en);
+  const roleLabel = roleMeta(role).label[lang];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const authenticate = async (endpoint: '/api/auth/login' | '/api/auth/register', body: Record<string, string>) => {
     setError('');
     setLoading(true);
-
     try {
-      const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
-      const body = isRegister 
-        ? { email, password, name, role: selectedRole }
-        : { email, password };
-
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       });
-
-      // Check if response has content before parsing JSON
       const text = await response.text();
       const data = text ? JSON.parse(text) : {};
+      if (!response.ok) throw new Error(data.error || tx('Authentication failed', 'प्रमाणीकरण विफल'));
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Authentication failed');
+      const accountRole = data.user?.role as Role | undefined;
+      if (accountRole && accountRole !== role) {
+        throw new Error(
+          tx(
+            `This account is registered as ${roleMeta(accountRole).label.en}. Select that role to sign in.`,
+            `यह खाता ${roleMeta(accountRole).label.hi} के रूप में पंजीकृत है। साइन इन के लिए वह भूमिका चुनें।`,
+          ),
+        );
       }
 
-      // Store token and user data
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      
-      // Update store - login(role, username)
       login(data.user.role, data.user.name);
-
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      setError(
+        err instanceof TypeError
+          ? tx('Cannot reach the server. Is the backend running?', 'सर्वर से कनेक्ट नहीं हो सका। क्या बैकएंड चल रहा है?')
+          : message || tx('Something went wrong', 'कुछ गलत हो गया'),
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // Quick login for demo
-  const quickLogin = async (demoEmail: string, demoPassword: string, demoRole: 'admin' | 'field_worker' | 'user') => {
-    setSelectedRole(demoRole);
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    setIsRegister(false);
+  const onSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (isRegister) void authenticate('/api/auth/register', { name, email, password, role });
+    else void authenticate('/api/auth/login', { email, password });
+  };
+
+  const signInWithDemo = () => {
+    const { demo } = roleMeta(role);
+    setEmail(demo.email);
+    setPassword(demo.password);
+    void authenticate('/api/auth/login', demo);
+  };
+
+  const switchMode = () => {
+    setIsRegister((v) => !v);
     setError('');
-    setLoading(true);
-
-    try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: demoEmail, password: demoPassword })
-      });
-
-      // Check if response has content before parsing JSON
-      const text = await response.text();
-      const data = text ? JSON.parse(text) : {};
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Authentication failed');
-      }
-
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      // Update store - login(role, username)
-      login(data.user.role, data.user.name);
-
-    } catch (err: any) {
-      setError(err.message || 'Demo login failed. Server may not be running.');
-    } finally {
-      setLoading(false);
-    }
   };
+
+  const brand = (
+    <div className="flex items-center gap-2">
+      <img src="/ruralens-logo.png" alt="" className="size-7 object-contain" />
+      <span className="text-base font-semibold tracking-[-0.025em]">{t('appBrand', 'RuraLens')}</span>
+    </div>
+  );
+
+  const aside = (
+    <>
+      <blockquote className="font-serif text-3xl leading-[1.15] tracking-tight md:text-4xl">
+        {tx('Monitor. Predict.', 'निगरानी। पूर्वानुमान।')}{' '}
+        <span className="italic text-foreground">{tx('Resolve.', 'समाधान।')}</span>
+      </blockquote>
+      <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+        {tx(
+          'A live digital twin of village infrastructure: water, power, health and schools. Forecast failures, track scheme delivery and close citizen reports in one place.',
+          'गाँव के इंफ्रास्ट्रक्चर का लाइव डिजिटल ट्विन: पानी, बिजली, स्वास्थ्य और स्कूल। विफलताओं का पूर्वानुमान, योजनाओं की प्रगति और नागरिक शिकायतें, सब एक जगह।',
+        )}
+      </p>
+      <figcaption className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+        <span>{tx('Digital twin', 'डिजिटल ट्विन')}</span>
+        <span aria-hidden className="text-border">|</span>
+        <span>{tx('GNN forecasts', 'GNN पूर्वानुमान')}</span>
+        <span aria-hidden className="text-border">|</span>
+        <span>{tx('Citizen reports', 'नागरिक शिकायतें')}</span>
+      </figcaption>
+    </>
+  );
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-[#f5f7ef] relative overflow-hidden font-sans selection:bg-emerald-500/20">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#fefdf8] via-[#f4f7ef] to-[#eaf2e4] pointer-events-none" />
-      <div className="absolute top-[-20%] left-[10%] w-[60vw] h-[60vw] bg-emerald-500/10 rounded-full blur-[120px] animate-pulse pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[10%] w-[40vw] h-[40vw] bg-lime-500/10 rounded-full blur-[100px] animate-pulse pointer-events-none" />
-      
-      {/* Noise Texture Overlay */}
-      <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
-
-      <div className="w-full max-w-6xl relative z-10 px-6 flex flex-col h-full justify-center">
-        {/* Back Button - Absolute positioned */}
-        {onBack && (
-          <motion.button
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            onClick={onBack}
-            className="absolute top-8 left-6 flex items-center gap-2 text-[#5d7466] hover:text-[#214f3d] transition-colors p-2 rounded-lg hover:bg-[#e5efe0] group"
-          >
-            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-medium">{t('back', 'Back')}</span>
-          </motion.button>
-        )}
-
-        <button
-          onClick={toggleLang}
-          className="absolute top-8 right-6 rounded-md border border-[#9cb7a6] px-3 py-1.5 text-xs font-bold text-[#2a5f46]"
-        >
+    <Login03
+      brand={brand}
+      aside={aside}
+      onBack={onBack}
+      backLabel={t('back', 'Back')}
+      topRight={
+        <Button variant="ghost" size="sm" onClick={toggleLang} aria-label={tx('Switch to Hindi', 'Switch to English')}>
           {hi ? 'EN' : 'हि'}
-        </button>
+        </Button>
+      }
+    >
+      <div className="flex flex-col gap-2">
+        <h1 style={stagger(1)} className={cn(ENTER, 'font-serif text-4xl font-normal tracking-tight sm:text-5xl')}>
+          {isRegister ? tx('Create account.', 'खाता बनाएं।') : tx('Welcome back.', 'फिर से स्वागत है।')}
+        </h1>
+        <p style={stagger(2)} className={cn(ENTER, 'text-sm text-muted-foreground')}>
+          {isRegister
+            ? tx(`Join RuraLens as ${roleLabel.toLowerCase()}.`, `${roleLabel} के रूप में जुड़ें।`)
+            : tx('Choose your role and sign in.', 'अपनी भूमिका चुनें और साइन इन करें।')}
+        </p>
+      </div>
 
-        {/* Hero Section */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-8 flex flex-col items-center shrink-0"
-        >
-          <div className="relative mb-4 group">
-            <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full group-hover:bg-emerald-500/30 transition-all duration-500"></div>
-            <img 
-              src="/ruralens-logo.png" 
-              alt="RuraLens Logo" 
-              className="w-20 h-20 object-contain relative z-10 drop-shadow-[0_0_15px_rgba(46,124,87,0.35)] transition-transform duration-500 group-hover:scale-110" 
-            />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2 bg-clip-text text-transparent bg-gradient-to-r from-[#13372a] via-[#24533f] to-[#5f7e68]">
-            {t('appBrand', 'RuraLens')}
-          </h1>
-          <p className="text-base text-[#5d7466] font-light max-w-xl mx-auto tracking-wide">
-            {tx('Empowering communities with ', 'समुदायों को ')}<span className="text-[#2c6650] font-medium">AI</span> {tx('and', 'और')} <span className="text-[#3f8b60] font-medium">{tx('Transparency', 'पारदर्शिता')}</span> {tx('for better governance.', 'से सशक्त बनाना')}
-          </p>
-        </motion.div>
-
-        {/* Role Selection */}
-        {!selectedRole ? (
-          <div className="max-w-5xl mx-auto w-full flex flex-col gap-8">
-            
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="flex items-center justify-center gap-4 mb-2"
-            >
-              <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#a7bcae]"></div>
-              <span className="text-xs uppercase tracking-[0.2em] text-[#698171] font-medium">{t('choosePortal', 'Choose your portal')}</span>
-              <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#a7bcae]"></div>
-            </motion.div>
-
-            <div className="grid md:grid-cols-3 gap-5">
-              {roles.map((role, index) => {
-                const RoleIcon = role.icon;
-                return (
-                  <motion.button
-                    key={role.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 + index * 0.1 }}
-                    onClick={() => setSelectedRole(role.id)}
-                    className={`group relative p-6 rounded-2xl transition-all duration-300 text-left bg-[#fbfdf8] border border-[#d7e2d4] hover:border-transparent ${role.border} ${role.bg} hover:-translate-y-1 hover:shadow-2xl ${role.shadow} flex flex-col items-center text-center overflow-hidden`}
-                  >
-                    {/* Hover Gradient Background */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${role.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
-                    
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 bg-[#e8f1e4] border border-[#cfddcc] group-hover:scale-110 transition-transform duration-300 ${role.accent}`}>
-                      <RoleIcon size={28} strokeWidth={1.5} />
-                    </div>
-                    
-                    <h3 className="font-bold text-lg mb-2 text-[#1f2d26] transition-colors">{role.name[lang]}</h3>
-                    <p className="text-sm text-[#677e6f] leading-relaxed mb-4">
-                      {role.description[lang]}
-                    </p>
-
-                    <div className={`mt-auto flex items-center text-xs font-bold uppercase tracking-wider ${role.accent} opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300`}>
-                      {t('enterPortal', 'Enter Portal')} <ChevronRight size={14} className="ml-1" />
-                    </div>
-                  </motion.button>
-                );
-              })}
-            </div>
-
-            {/* Quick Demo Login - Enhanced */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="bg-[#f8fbf4]/95 border border-[#d7e2d4] rounded-2xl p-5 text-center backdrop-blur-sm max-w-3xl mx-auto w-full"
-            >
-              <p className="text-xs text-[#6a826f] mb-4 font-medium uppercase tracking-wider">{t('quickDemo', 'Quick Demo Access')}</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <button
-                  onClick={() => quickLogin('admin@ruralens.com', 'admin123', 'admin')}
-                  disabled={loading}
-                  className="group relative overflow-hidden bg-transparent border border-purple-300 text-purple-700 py-2.5 px-4 rounded-xl hover:bg-purple-100/70 transition-all disabled:opacity-50 font-medium text-sm flex items-center justify-center gap-2"
-                >
-                  <Shield size={14} className="text-purple-400" />
-                  <span>{tx('Admin Demo', 'एडमिन डेमो')}</span>
-                </button>
-                <button
-                  onClick={() => quickLogin('field@ruralens.com', 'field123', 'field_worker')}
-                  disabled={loading}
-                  className="group relative overflow-hidden bg-transparent border border-orange-300 text-orange-700 py-2.5 px-4 rounded-xl hover:bg-orange-100/70 transition-all disabled:opacity-50 font-medium text-sm flex items-center justify-center gap-2"
-                >
-                  <Briefcase size={14} className="text-orange-400" />
-                  <span>{tx('Field Demo', 'फील्ड डेमो')}</span>
-                </button>
-                <button
-                  onClick={() => quickLogin('citizen@ruralens.com', 'user123', 'user')}
-                  disabled={loading}
-                  className="group relative overflow-hidden bg-emerald-100/70 border border-emerald-300 text-emerald-800 py-2.5 px-4 rounded-xl hover:bg-emerald-200/70 transition-all disabled:opacity-50 font-medium text-sm flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(78,150,111,0.15)]"
-                >
-                  <User size={14} className="text-emerald-400" />
-                  <span>{tx('Citizen Demo', 'नागरिक डेमो')}</span>
-                </button>
-              </div>
-              
-              {(error || loading) && (
-                <div className="mt-3 flex items-center justify-center">
-                  {error && (
-                    <div className="flex items-center space-x-2 text-red-400 bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20">
-                      <AlertCircle size={12} />
-                      <span className="text-xs">{error}</span>
-                    </div>
-                  )}
-                  {loading && (
-                    <div className="flex items-center space-x-2 text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20">
-                      <Loader size={12} className="animate-spin" />
-                      <span className="text-xs">{tx('Authenticating...', 'प्रमाणीकरण हो रहा है...')}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </motion.div>
-          </div>
-        ) : (
-          /* Login/Register Form - Compact */
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="max-w-sm mx-auto w-full"
-          >
+      <div
+        role="radiogroup"
+        aria-label={tx('Role', 'भूमिका')}
+        style={stagger(3)}
+        className={cn(ENTER, 'grid grid-cols-3 gap-2')}
+      >
+        {ROLES.map(({ id, label, icon: Icon }) => {
+          const active = role === id;
+          return (
             <button
-              onClick={() => { setSelectedRole(null); setError(''); }}
-              className="text-[#667d6e] hover:text-[#214f3d] mb-6 flex items-center gap-2 transition-colors text-xs group"
-            >
-              <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-              {tx('Back to Roles', 'भूमिकाओं पर वापस')}
-            </button>
-
-            <div className="bg-[#fbfdf8]/95 border border-[#d8e3d4] backdrop-blur-xl rounded-2xl p-8 shadow-2xl relative overflow-hidden">
-              {/* Form Background Gradient */}
-              <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${roles.find(r => r.id === selectedRole)?.color || 'from-blue-500 to-cyan-500'}`} />
-              
-              <div className="text-center mb-6">
-                <div className={`w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-3 bg-[#e8f2e5] border border-[#d1dfcd] ${roles.find(r => r.id === selectedRole)?.accent}`}>
-                  {(() => {
-                    const RoleIcon = roles.find(r => r.id === selectedRole)?.icon || User;
-                    return <RoleIcon size={24} />;
-                  })()}
-                </div>
-                <h2 className="text-xl font-bold text-[#1f2f27] mb-1">
-                  {isRegister ? tx('Create Account', 'खाता बनाएं') : tx('Welcome Back', 'फिर से स्वागत है')}
-                </h2>
-                <p className="text-xs text-[#6c8474]">
-                  {tx('Login as', 'लॉगिन करें:')} <span className={`font-medium ${roles.find(r => r.id === selectedRole)?.accent}`}>{roles.find(r => r.id === selectedRole)?.name[lang]}</span>
-                </p>
-              </div>
-
-              {error && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center space-x-2 text-red-400"
-                >
-                  <AlertCircle size={14} className="shrink-0" />
-                  <span className="text-xs">{error}</span>
-                </motion.div>
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => {
+                setRole(id);
+                setError('');
+              }}
+              className={cn(
+                'flex flex-col items-center gap-1.5 rounded-md border px-2 py-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                active
+                  ? 'border-primary bg-background text-foreground shadow-sm'
+                  : 'border-border bg-card text-muted-foreground hover:text-foreground',
               )}
-              
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {isRegister && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
-                    <div className="relative group">
-                      <User size={16} className="absolute left-3 top-3 text-[#7b8f82] group-focus-within:text-[#2e6e52] transition-colors" />
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[#fdfefb] border border-[#d3dfcf] text-[#1f2c24] text-sm placeholder-[#90a094] focus:outline-none focus:ring-2 focus:ring-emerald-300/70 focus:border-transparent transition-all"
-                        placeholder={tx('Full Name', 'पूरा नाम')}
-                        required={isRegister}
-                      />
-                    </div>
-                  </motion.div>
-                )}
+            >
+              <Icon className="size-5" strokeWidth={1.75} aria-hidden />
+              {label[lang]}
+            </button>
+          );
+        })}
+      </div>
 
-                <div className="relative group">
-                  <Mail size={16} className="absolute left-3 top-3 text-[#7b8f82] group-focus-within:text-[#2e6e52] transition-colors" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[#fdfefb] border border-[#d3dfcf] text-[#1f2c24] text-sm placeholder-[#90a094] focus:outline-none focus:ring-2 focus:ring-emerald-300/70 focus:border-transparent transition-all"
-                    placeholder={tx('Email Address', 'ईमेल पता')}
-                    required
-                  />
-                </div>
+      <form onSubmit={onSubmit} style={stagger(4)} className={cn(ENTER, 'space-y-3')}>
+        {isRegister && (
+          <div className="space-y-1.5">
+            <label htmlFor="login-name" className="text-sm font-medium">
+              {tx('Full name', 'पूरा नाम')}
+            </label>
+            <Input id="login-name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required />
+          </div>
+        )}
+        <div className="space-y-1.5">
+          <label htmlFor="login-email" className="text-sm font-medium">
+            {tx('Email', 'ईमेल')}
+          </label>
+          <Input
+            id="login-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            placeholder="you@example.com"
+            required
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="login-password" className="text-sm font-medium">
+            {isRegister ? tx('Create password', 'पासवर्ड बनाएं') : tx('Password', 'पासवर्ड')}
+          </label>
+          <Input
+            id="login-password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete={isRegister ? 'new-password' : 'current-password'}
+            placeholder={isRegister ? tx('At least 6 characters', 'कम से कम 6 अक्षर') : undefined}
+            minLength={6}
+            required
+          />
+        </div>
 
-                <div className="relative group">
-                  <Lock size={16} className="absolute left-3 top-3 text-[#7b8f82] group-focus-within:text-[#2e6e52] transition-colors" />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[#fdfefb] border border-[#d3dfcf] text-[#1f2c24] text-sm placeholder-[#90a094] focus:outline-none focus:ring-2 focus:ring-emerald-300/70 focus:border-transparent transition-all"
-                    placeholder={tx('Password', 'पासवर्ड')}
-                    required
-                    minLength={6}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`w-full py-2.5 rounded-lg font-bold text-white shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-sm bg-gradient-to-r ${roles.find(r => r.id === selectedRole)?.color || 'from-blue-600 to-blue-500'} hover:shadow-blue-500/25 hover:scale-[1.02]`}
-                >
-                  {loading ? (
-                    <>
-                      <Loader size={16} className="animate-spin" />
-                      <span>{tx('Processing...', 'प्रोसेस हो रहा है...')}</span>
-                    </>
-                  ) : (
-                    <span>{isRegister ? tx('Create Account', 'खाता बनाएं') : tx('Sign In', 'साइन इन')}</span>
-                  )}
-                </button>
-              </form>
-
-              <div className="mt-6 text-center">
-                <button
-                  onClick={() => { setIsRegister(!isRegister); setError(''); }}
-                  className="text-xs text-[#6d8575] hover:text-[#214f3d] transition-colors"
-                >
-                  {isRegister ? tx('Already have an account? Sign in', 'पहले से खाता है? साइन इन करें') : tx('Need an account? Register', 'खाता चाहिए? रजिस्टर करें')}
-                </button>
-              </div>
-            </div>
-          </motion.div>
+        {error && (
+          <p role="alert" className="flex items-start gap-2 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+            {error}
+          </p>
         )}
 
-        {/* Footer - Compact */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.6 }}
-          transition={{ delay: 0.8 }}
-              className="text-center mt-8 shrink-0"
-        >
-          <p className="text-[10px] text-[#748a79] uppercase tracking-widest">
-            {tx('Powered by', 'संचालित:')} MongoDB · Runanywhere · WebSocket
-          </p>
-        </motion.div>
+        <Button type="submit" size="lg" disabled={loading} className="w-full gap-2">
+          {loading && <Loader2 aria-hidden className="size-4 animate-spin" />}
+          {isRegister ? tx('Create account', 'खाता बनाएं') : tx('Sign in', 'साइन इन')}
+        </Button>
+        <span role="status" className="sr-only">
+          {loading ? tx('Signing in', 'साइन इन हो रहा है') : ''}
+        </span>
+      </form>
+
+      <div style={stagger(5)} className={cn(ENTER, 'space-y-4')}>
+        <p className="text-sm text-muted-foreground">
+          {isRegister ? tx('Already registered?', 'पहले से खाता है?') : tx('New to RuraLens?', 'RuraLens पर नए हैं?')}{' '}
+          <button
+            type="button"
+            onClick={switchMode}
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            {isRegister ? tx('Sign in', 'साइन इन करें') : tx('Create an account', 'खाता बनाएं')}
+          </button>
+        </p>
+
+        {!isRegister && (
+          <>
+            <div className="flex items-center gap-3 text-xs uppercase text-muted-foreground">
+              <span className="h-px flex-1 bg-border" />
+              {tx('or', 'या')}
+              <span className="h-px flex-1 bg-border" />
+            </div>
+            <Button type="button" variant="outline" onClick={signInWithDemo} disabled={loading} className="w-full">
+              {tx(`Try the demo ${roleLabel.toLowerCase()} account`, `डेमो ${roleLabel} खाता आज़माएं`)}
+            </Button>
+          </>
+        )}
       </div>
-    </div>
+    </Login03>
   );
 }
