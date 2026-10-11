@@ -11,6 +11,7 @@ RuraLens is an AI-enabled digital twin platform for monitoring public infrastruc
 - Technology Stack
 - Repository Structure
 - Getting Started
+- 3D Digital Twin (CesiumJS)
 - Environment Configuration
 - API Overview
 - Security and Access Control
@@ -150,7 +151,7 @@ sequenceDiagram
 - React 18 + TypeScript
 - Vite
 - Tailwind CSS
-- MapLibre GL / react-map-gl
+- CesiumJS (3D digital twin) and MapLibre GL (classic 2D map)
 - Chart.js / react-chartjs-2
 - Zustand
 
@@ -232,6 +233,47 @@ npm run dev
 ```bash
 # From repository root
 docker compose --env-file backend/.env -f docker-compose.pathway.yml up -d --build
+```
+
+## 3D Digital Twin (CesiumJS)
+
+The **Map** view opens a CesiumJS 3D city (New Delhi by default, Pune selectable) with terrain, Cesium OSM Buildings, infrastructure assets, the dependency graph used by the backend, and failure simulation. The previous MapLibre map is still available through **Classic map** in the toolbar, and the choice is remembered per browser.
+
+### Setup
+
+1. Create a token at [Cesium ion](https://ion.cesium.com/tokens) with access to Cesium World Terrain, Bing Maps Aerial (with labels), and Cesium OSM Buildings.
+2. Put it in `frontend/.env.local` (git-ignored):
+   ```bash
+   VITE_CESIUM_ION_TOKEN=your-token
+   ```
+3. Start the backend (`cd backend && npm run dev`, port 3001) and the frontend (`cd frontend && npm run dev`, port 3000).
+
+`VITE_*` variables are compiled into the browser bundle, so the token is a **public client credential**. In the ion dashboard, restrict it to the required assets and to your deployed domains. For Render, set `VITE_CESIUM_ION_TOKEN` on the `ruralens-frontend` service (declared with `sync: false` in `render.yaml`). CesiumJS 1.146 requires Node 22 or later to build.
+
+Without a token the twin still runs: it uses OpenStreetMap imagery on a flat globe without terrain or 3D buildings, and says so in the UI.
+
+### What is real and what is not
+
+- **Datasets are synthetic.** Both the Delhi and Pune datasets are illustrative demo assets, labelled "Synthetic demo" in the UI. They are not surveyed infrastructure, and their attribute values are not live telemetry.
+- **Dependency links come from the backend.** They are the edges returned by `POST /api/gnn/initialize`. The frontend draws them as returned and does not infer extra links. Proximity links (assets within about 1.5 km) are hidden by default.
+- **Predictions come from `POST /api/gnn/predict-structured`.** Each result shows which engine produced it:
+  - "Python GNN service": the PyTorch Geometric model service.
+  - "JS fallback engine": the backend's JavaScript heuristic, which is not output from the trained GNN.
+  
+  Nodes the backend promoted through its rule-based "policy guidance" are flagged per node.
+- **Timeline playback is a snapshot.** It replays one prediction, ordered by predicted time-to-impact. It is not a time-stepped simulation.
+- **The copilot is a rule-based interpreter.** It turns a request into a typed scenario that you confirm before anything runs. No language model is connected, and all results come from the prediction backend. `ScenarioInterpreter` in `frontend/src/services/scenarioInterpreter.ts` is the integration point for an LLM-backed interpreter.
+
+### Attribution
+
+Cesium ion, OpenStreetMap, and imagery-provider credits appear in the strip along the bottom of the 3D view and must stay visible.
+
+### Tests
+
+```bash
+cd frontend
+npm test                                                   # unit tests
+TWIN_BACKEND_URL=http://localhost:3001 npx vitest run twin.backend   # contract test against a running backend
 ```
 
 ## Environment Configuration

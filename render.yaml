@@ -56,6 +56,13 @@ services:
     envVars:
       - key: VITE_API_URL
         value: https://ruralens-backend-314u.onrender.com
+      # CesiumJS 1.146 requires Node >= 22 at build time.
+      - key: NODE_VERSION
+        value: "22"
+      # Cesium ion token for the 3D digital twin. Set in the Render dashboard; it is
+      # embedded in the browser bundle, so restrict it to this site's domain in ion.
+      - key: VITE_CESIUM_ION_TOKEN
+        sync: false
     headers:
       - path: /*
         name: Cache-Control
