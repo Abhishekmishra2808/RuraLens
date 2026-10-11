@@ -234,7 +234,7 @@ export function generateInfraData() {
           { id: 2, vendorName: 'ElectroTech Services', submittedDate: '2026-09-20', phase: 3, workCompleted: '75 lights installed and commissioned', expenseClaimed: 505000, verificationStatus: 'verified', documents: ['installation-report.pdf', 'testing-cert.pdf'] }
         ],
         discrepancies: [
-          { type: 'budget-exceeded', severity: 'high', description: 'Total expenditure exceeded approved budget by â‚¹1.5 Lakh', reportedDate: '2026-09-22' },
+          { type: 'budget-exceeded', severity: 'high', description: 'Total expenditure exceeded approved budget by ₹1.5 Lakh', reportedDate: '2026-09-22' },
           { type: 'procurement-irregularity', severity: 'high', description: 'Equipment purchased at 16% higher cost than market rate', reportedDate: '2026-09-25' }
         ],
         citizenRating: 3.5,

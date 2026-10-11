@@ -202,6 +202,8 @@ interface AppState {
   kpis: KPIs;
   selectedAsset: any | null;
   activeView: string;
+  /** Scheme whose details the Schemes view should open once it mounts. */
+  focusedSchemeId: string | null;
   wsConnected: boolean;
   lastUpdate: string | null;
   sidebarCollapsed: boolean;
@@ -221,6 +223,7 @@ interface AppState {
   setInfraData: (data: any) => void;
   setSelectedAsset: (asset: any) => void;
   setActiveView: (view: string) => void;
+  setFocusedSchemeId: (schemeId: string | null) => void;
   setWsConnected: (connected: boolean) => void;
   setLastUpdate: (timestamp: string) => void;
   toggleSidebar: () => void;
@@ -264,6 +267,7 @@ export const useAppStore = create<AppState>((set) => ({
   },
   selectedAsset: null,
   activeView: 'dashboard',
+  focusedSchemeId: null,
   wsConnected: false,
   lastUpdate: null,
   sidebarCollapsed: true, // START COLLAPSED - fixes mobile sidebar glitch
@@ -508,6 +512,7 @@ export const useAppStore = create<AppState>((set) => ({
   }),
   
   setActiveView: (view) => set({ activeView: view }),
+  setFocusedSchemeId: (schemeId) => set({ focusedSchemeId: schemeId }),
   
   setWsConnected: (connected) => set({ wsConnected: connected }),
   
