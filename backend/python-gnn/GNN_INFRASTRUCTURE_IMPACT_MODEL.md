@@ -6,7 +6,7 @@ Framework: PyTorch + PyTorch Geometric
 
 ## 1. Overview
 
-This model predicts cascading infrastructure impact on graphs that represent village digital twin assets.
+This model predicts cascading infrastructure impact on graphs that represent digital twin infrastructure assets.
 
 - Input per node: 24 features
 - Output per node: 12 impact logits (converted to probabilities with sigmoid)

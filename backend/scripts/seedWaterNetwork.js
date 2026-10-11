@@ -40,7 +40,7 @@ async function seedNormalScenario() {
   const tanks = await Tank.insertMany([
     {
       tankId: 'tank-1',
-      name: 'Village Tank A (North)',
+      name: 'Water Tank A (North)',
       capacityL: 50000,
       levelL: 35000, // 70%
       inletPumps: [],
@@ -51,7 +51,7 @@ async function seedNormalScenario() {
     },
     {
       tankId: 'tank-2',
-      name: 'Village Tank B (South)',
+      name: 'Water Tank B (South)',
       capacityL: 30000,
       levelL: 21000, // 70%
       inletPumps: [],
@@ -274,7 +274,7 @@ async function seedNormalScenario() {
     {
       clusterId: 'cluster-10',
       nodeId: 'junction-4',
-      name: 'Anganwadi & Panchayat',
+      name: 'Anganwadi & Civic Office',
       averageDemandLph: 90, // 1.5 L/min
       priority: 'scheme',
       populationServed: 100,

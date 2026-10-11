@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { useVillageStore } from './store/villageStore';
-import { demoVillageData } from './data/demoVillageData';
+import { useAppStore } from './store/appStore';
+import { demoInfraData } from './data/demoInfraData';
 import LandingPage from './components/Landing/LandingPage';
 import DocsPage from './components/Docs/DocsPage';
 import { DOC_SECTIONS } from './components/Docs/docsContent';
@@ -35,7 +35,7 @@ function parseDocsHash(hash: string): string | null {
 }
 
 function App() {
-  const { activeView, sidebarCollapsed, infoPanelOpen, isAuthenticated, userRole, fetchSchemes, waterTanks, setVillageData } = useVillageStore();
+  const { activeView, sidebarCollapsed, infoPanelOpen, isAuthenticated, userRole, fetchSchemes, waterTanks, setInfraData } = useAppStore();
   const { lang, t } = useLanguage();
   const [showLanding, setShowLanding] = useState(true);
   const [docsSection, setDocsSection] = useState<string | null>(() => parseDocsHash(window.location.hash));
@@ -61,10 +61,10 @@ function App() {
   // Load demo data on startup if no data loaded
   useEffect(() => {
     if (waterTanks.length === 0) {
-      console.log('🏘️ Loading demo village data with built-in network...');
-      setVillageData(demoVillageData);
+      console.log('🗺️ Loading demo infrastructure data with built-in network...');
+      setInfraData(demoInfraData);
     }
-  }, [waterTanks.length, setVillageData]);
+  }, [waterTanks.length, setInfraData]);
 
   // Control body overflow based on authentication state
   useEffect(() => {
@@ -184,19 +184,19 @@ function App() {
             {/* Click backdrop to close */}
             <div 
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={useVillageStore.getState().toggleSidebar}
+              onClick={useAppStore.getState().toggleSidebar}
             />
             <div className="absolute right-0 top-0 bottom-0 w-64 bg-slate-900 border-l border-white/10 p-4 pt-16 animate-in slide-in-from-right">
               <h3 className="text-white font-bold mb-4 text-lg">{hi ? 'मेनू' : 'Menu'}</h3>
               {/* You can reuse specific Sidebar items here manually or import Sidebar list */}
               <button 
-                onClick={() => { useVillageStore.getState().setActiveView('settings'); useVillageStore.getState().toggleSidebar(); }}
+                onClick={() => { useAppStore.getState().setActiveView('settings'); useAppStore.getState().toggleSidebar(); }}
                 className="w-full text-left p-3 text-slate-300 hover:bg-white/10 rounded-lg"
               >
                 {t('settings', 'Settings')}
               </button>
               <button 
-                onClick={() => { useVillageStore.getState().logout(); }}
+                onClick={() => { useAppStore.getState().logout(); }}
                 className="w-full text-left p-3 text-red-400 hover:bg-red-500/10 rounded-lg mt-2"
               >
                 {hi ? 'लॉगआउट' : 'Logout'}

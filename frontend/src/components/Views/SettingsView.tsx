@@ -11,11 +11,11 @@ import {
   Download,
   Upload
 } from 'lucide-react';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function SettingsView() {
-  const { userRole, username } = useVillageStore();
+  const { userRole, username } = useAppStore();
   const { lang } = useLanguage();
   const tx = (en: string, hi: string) => (lang === 'hi' ? hi : en);
   const [activeTab, setActiveTab] = useState('general');

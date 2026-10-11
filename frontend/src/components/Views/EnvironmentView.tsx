@@ -12,10 +12,10 @@ import {
   Eye,
   Leaf
 } from 'lucide-react';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 
 export default function EnvironmentView() {
-  const { setSelectedAsset } = useVillageStore();
+  const { setSelectedAsset } = useAppStore();
   const [timeRange, setTimeRange] = useState('24h');
 
   // Mock environmental monitoring stations
@@ -23,7 +23,7 @@ export default function EnvironmentView() {
     {
       id: 1,
       name: 'Central Monitoring Station',
-      location: 'Town Center',
+      location: 'Central Square',
       aqi: 45,
       aqiStatus: 'good',
       pm25: 12.5,

@@ -9,7 +9,7 @@ import {
   CloudSun,
   Phone
 } from 'lucide-react';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 const menuItems = [
@@ -23,7 +23,7 @@ const menuItems = [
 ];
 
 export default function Sidebar() {
-  const { activeView, setActiveView, sidebarCollapsed, toggleSidebar, userRole } = useVillageStore();
+  const { activeView, setActiveView, sidebarCollapsed, toggleSidebar, userRole } = useAppStore();
   const { t } = useLanguage();
 
   // Filter menu items based on user role

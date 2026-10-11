@@ -81,16 +81,16 @@ class GNNImpactService {
   }
 
   /**
-   * Initialize the GNN service with village state
+   * Initialize the GNN service with infrastructure state
    */
-  async initialize(villageState: any): Promise<{ success: boolean }> {
+  async initialize(infraState: any): Promise<{ success: boolean }> {
     try {
       const response = await fetch(`${this.baseUrl}/api/gnn/initialize`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ villageState }),
+        body: JSON.stringify({ infraState }),
       });
 
       if (!response.ok) {

@@ -80,7 +80,7 @@ export default function LandingPage({ onGetStarted, onOpenDocs }: LandingPagePro
           <div>
             <AnimatedHeading
               key={lang}
-              text={tx('Empowering villages\nwith AI and transparency.', 'गांवों को सशक्त बनाएं\nAI और पारदर्शिता से।')}
+              text={tx('Empowering communities\nwith AI and transparency.', 'समुदायों को सशक्त बनाएं\nAI और पारदर्शिता से।')}
               className="mb-4 text-4xl font-normal md:text-5xl lg:whitespace-nowrap lg:text-6xl xl:text-7xl"
               style={{ letterSpacing: hi ? 'normal' : '-0.04em' }}
               initialDelay={200}
@@ -92,8 +92,8 @@ export default function LandingPage({ onGetStarted, onOpenDocs }: LandingPagePro
             <FadeIn delay={800} duration={1000}>
               <p className="mb-5 max-w-xl text-base text-gray-300 md:text-lg">
                 {tx(
-                  'A digital twin for rural India. Monitor infrastructure, track scheme delivery, and resolve citizen issues in real time.',
-                  'ग्रामीण भारत के लिए डिजिटल ट्विन। इंफ्रास्ट्रक्चर की निगरानी करें, योजनाओं की प्रगति पर नज़र रखें और नागरिक शिकायतों का तुरंत समाधान करें।'
+                  'A live digital twin of your community. Monitor infrastructure, track scheme delivery, and resolve citizen issues in real time.',
+                  'आपके समुदाय का लाइव डिजिटल ट्विन। इंफ्रास्ट्रक्चर की निगरानी करें, योजनाओं की प्रगति पर नज़र रखें और नागरिक शिकायतों का तुरंत समाधान करें।'
                 )}
               </p>
             </FadeIn>

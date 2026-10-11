@@ -15,7 +15,7 @@ import {
   Loader,
   Cpu
 } from 'lucide-react';
-import { useVillageStore, type GovernmentScheme } from '../../store/villageStore';
+import { useAppStore, type GovernmentScheme } from '../../store/appStore';
 import { API_URL } from '../../config/api';
 import { Capacitor } from '@capacitor/core';
 import { useLanguage } from '../../i18n/LanguageContext';
@@ -28,9 +28,9 @@ const LocalLLM = Capacitor.isNativePlatform() ? {
 } : null;
 
 export default function CitizenDashboard() {
-  const schemes = useVillageStore((state) => state.schemes);
-  const setActiveView = useVillageStore((state) => state.setActiveView);
-  const username = useVillageStore((state) => state.username);
+  const schemes = useAppStore((state) => state.schemes);
+  const setActiveView = useAppStore((state) => state.setActiveView);
+  const username = useAppStore((state) => state.username);
   const { lang } = useLanguage();
   const hi = lang === 'hi';
   const tx = (en: string, hiText: string) => (hi ? hiText : en);
@@ -222,7 +222,7 @@ export default function CitizenDashboard() {
               <div>
                 <h1 className="text-xl font-bold text-white">{tx('Welcome back, Citizen!', 'फिर से स्वागत है, नागरिक!')}</h1>
                 <p className="mt-1 max-w-xl text-slate-400 text-sm">
-                  {tx('Stay updated with the latest development projects in your communities and cities. Your feedback helps us build better civic services together.', 'अपने समुदायों और शहरों की नवीनतम विकास परियोजनाओं से अपडेट रहें। आपकी प्रतिक्रिया बेहतर नागरिक सेवाएं बनाने में मदद करती है।')}
+                  {tx('Stay updated with the latest development projects in your community. Your feedback helps us build better civic services together.', 'अपने समुदाय की नवीनतम विकास परियोजनाओं से अपडेट रहें। आपकी प्रतिक्रिया बेहतर नागरिक सेवाएं बनाने में मदद करती है।')}
                 </p>
                 <button 
                   onClick={() => setActiveView('schemes')}

@@ -50,7 +50,7 @@ Return ONLY a JSON object with this exact structure:
 
 Rules for creating the anonymized summary:
 - Replace actual names with [PERSON]
-- Replace villages/locations with [VILLAGE] or [DISTRICT]
+- Replace localities with [AREA] or [DISTRICT]
 - Replace phone/ID numbers with [CONTACT] or [ID]
 - Keep the core message and details intact
 - Write in third person perspective
@@ -129,8 +129,8 @@ IMPORTANT INSTRUCTIONS:
 4. For CATEGORY: Choose ONE from: Sanitation, Water Supply, Housing, Employment, Power, Roads, Healthcare, Education, Agriculture, Infrastructure, Welfare
 5. For DESCRIPTION: Summarize the main objective in 2-3 clear sentences
 6. For DATES: Look for start/end dates, project duration, implementation timeline
-7. For VILLAGE/DISTRICT: Extract exact location names mentioned
-8. For TARGET BENEFICIARIES: Who will benefit? (e.g., "Rural households", "Farmers", "School children")
+7. For AREA/DISTRICT: Extract exact location names mentioned
+8. For TARGET BENEFICIARIES: Who will benefit? (e.g., "Low-income households", "Farmers", "School children")
 
 Return ONLY a valid JSON object (no markdown, no extra text):
 {
@@ -138,21 +138,21 @@ Return ONLY a valid JSON object (no markdown, no extra text):
   "category": "One of the categories listed above",
   "totalBudget": 0,
   "description": "Clear 2-3 sentence description of the scheme's purpose",
-  "village": "Village name or NA",
+  "area": "Area or locality name, or NA",
   "district": "District name or NA",
   "targetBeneficiaries": "Who benefits from this scheme",
-  "implementationArea": "Village/District/State/National",
+  "implementationArea": "Local/District/State/National",
   "startDate": "YYYY-MM-DD or null",
   "endDate": "YYYY-MM-DD or null"
 }
 
 EXAMPLE (DO NOT COPY, extract from actual document):
-If document says "Swachh Bharat Mission - Rs. 500 crore for building toilets in rural areas", return:
+If document says "Swachh Bharat Mission - Rs. 500 crore for building household toilets", return:
 {
   "name": "Swachh Bharat Mission",
   "category": "Sanitation",
   "totalBudget": 5000000000,
-  "description": "Initiative to construct household toilets in rural areas to improve sanitation and public health.",
+  "description": "Initiative to construct household toilets to improve sanitation and public health.",
   ...
 }`;
 
@@ -361,7 +361,7 @@ export async function anonymizeAndExtractIntent(title, description, category, lo
   try {
     const client = getHfClient();
     
-    const prompt = `You are an AI system that processes citizen grievance reports for a village governance system. Your tasks are:
+    const prompt = `You are an AI system that processes citizen grievance reports for a local governance system. Your tasks are:
 
 1. ANONYMIZE: Remove ALL personally identifiable information (PII):
    - Names of people (replace with [CITIZEN], [OFFICIAL], etc.)
@@ -403,7 +403,7 @@ Return ONLY a valid JSON object with this structure:
 
 Rules:
 - Preserve the meaning and urgency of the report
-- Keep location at area/village level, not specific addresses
+- Keep location at area or locality level, not specific addresses
 - Ensure the anonymized version still provides enough detail for officials to act
 - Be conservative - if unsure if something is PII, remove it`;
 

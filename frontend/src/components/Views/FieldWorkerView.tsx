@@ -11,7 +11,7 @@ import {
   Filter,
   Loader2
 } from 'lucide-react';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import { format } from 'date-fns';
 import { API_URL } from '../../config/api';
 
@@ -39,7 +39,7 @@ interface AnonymousReport {
 }
 
 export default function FieldWorkerView() {
-  const { username } = useVillageStore();
+  const { username } = useAppStore();
   const [reports, setReports] = useState<AnonymousReport[]>([]);
   const [filter, setFilter] = useState<'all' | 'assigned' | 'pending'>('all');
   const [selectedTicket, setSelectedTicket] = useState<AnonymousReport | null>(null);

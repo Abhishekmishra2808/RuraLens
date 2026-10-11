@@ -284,11 +284,7 @@ function applyGuidedImpactRules({ sourceNode, failureType, graphNodes, affectedN
   const isMainPumpFailure = (sourceNode?.type === 'pump' || sourceText.includes('pump'))
     && (sourceText.includes('main') || sourceText.includes('station'));
   const isRoadFailure = sourceNode?.type === 'road' || sourceText.includes('road');
-  const isMainVillageRoadFailure = isRoadFailure
-    && (
-      sourceText.includes('main village road')
-      || (sourceText.includes('main') && sourceText.includes('village') && sourceText.includes('road'))
-    );
+  const isMainRoadFailure = isRoadFailure && sourceText.includes('main');
 
   if (isMainPumpFailure) {
     const tankCandidates = graphNodes.filter((n) => n.type === 'tank');
@@ -319,19 +315,19 @@ function applyGuidedImpactRules({ sourceNode, failureType, graphNodes, affectedN
     );
   }
 
-  if (isMainVillageRoadFailure) {
+  if (isMainRoadFailure) {
     const schoolCandidates = graphNodes.filter((n) => n.type === 'school' || normalizeText(n.name).includes('school'));
     const marketCandidates = graphNodes.filter((n) => n.type === 'market' || normalizeText(n.name).includes('market'));
 
-    const targetSchool = schoolCandidates.find((n) => normalizeText(n.name).includes('village')) || schoolCandidates[0];
-    const targetMarket = marketCandidates.find((n) => normalizeText(n.name).includes('village')) || marketCandidates[0];
+    const targetSchool = schoolCandidates.find((n) => normalizeText(n.name).includes('public')) || schoolCandidates[0];
+    const targetMarket = marketCandidates.find((n) => normalizeText(n.name).includes('central')) || marketCandidates[0];
 
     upsertGuidedNode(targetSchool, {
       probability: 88,
       severityScore: 90,
       timeToImpact: 3,
       forceFail: true,
-      reason: 'Main village road failure should fail village school access and operations.',
+      reason: 'Main road failure should fail school access and operations.',
     });
 
     upsertGuidedNode(targetMarket, {
@@ -339,7 +335,7 @@ function applyGuidedImpactRules({ sourceNode, failureType, graphNodes, affectedN
       severityScore: 87,
       timeToImpact: 3,
       forceFail: true,
-      reason: 'Main village road failure should fail village market access and operations.',
+      reason: 'Main road failure should fail market access and operations.',
     });
 
     strictAllowedNodeIds = new Set(
@@ -508,14 +504,14 @@ function buildModelImpactPrediction(failureNodeId, failureType, failureSeverity,
 }
 
 function syncGraphFromRequestState(body = {}) {
-  const state = body.villageState || body.waterState;
+  const state = body.infraState || body.waterState;
   if (!state) {
     return false;
   }
 
   // Always sync when state is provided to avoid stale graph mismatch
   // between frontend and backend model inference context.
-  gnnService.initializeFromVillageState(state);
+  gnnService.initializeFromInfraState(state);
   return true;
 }
 
@@ -578,24 +574,24 @@ router.get('/status', (req, res) => {
 
 /**
  * @route POST /api/gnn/initialize
- * @desc Initialize GNN with complete village infrastructure state
+ * @desc Initialize GNN with complete infrastructure state
  */
 router.post('/initialize', (req, res) => {
   try {
-    const { villageState, waterState } = req.body;
+    const { infraState, waterState } = req.body;
     
-    // Accept either villageState or waterState for backward compatibility
-    const state = villageState || waterState;
+    // Accept either infraState or waterState for backward compatibility
+    const state = infraState || waterState;
     
     if (!state) {
-      return res.status(400).json({ error: 'villageState or waterState is required' });
+      return res.status(400).json({ error: 'infraState or waterState is required' });
     }
     
-    gnnService.initializeFromVillageState(state);
+    gnnService.initializeFromInfraState(state);
     
     res.json({
       success: true,
-      message: 'GNN initialized successfully with village infrastructure',
+      message: 'GNN initialized successfully with infrastructure state',
       nodeCount: gnnService.graph.nodes.size,
       nodes: gnnService.getGraphNodes(),
       edges: gnnService.getGraphEdges()

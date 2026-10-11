@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 export async function connectDatabase() {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/village-twin', {
+    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ruralens', {
       serverSelectionTimeoutMS: 3000, // Fast timeout for offline mode
       connectTimeoutMS: 3000,
     });
@@ -51,10 +51,10 @@ export async function seedDatabase() {
     // Create admin
     await User.create({
       name: process.env.ADMIN_NAME || 'Administrator',
-      email: process.env.ADMIN_EMAIL || 'admin@village.com',
+      email: process.env.ADMIN_EMAIL || 'admin@ruralens.com',
       password: process.env.ADMIN_PASSWORD || 'admin123',
       role: 'admin',
-      village: 'Ramgarh'
+      area: 'Ramgarh'
     });
     console.log('✅ Default admin user created');
     console.log(`   Email: ${process.env.ADMIN_EMAIL}`);
@@ -63,30 +63,30 @@ export async function seedDatabase() {
     // Create demo field worker
     await User.create({
       name: 'Field Worker Demo',
-      email: 'field@village.com',
+      email: 'field@ruralens.com',
       password: 'field123',
       role: 'field_worker',
-      village: 'Ramgarh'
+      area: 'Ramgarh'
     });
-    console.log('✅ Demo field worker created (field@village.com / field123)');
+    console.log('✅ Demo field worker created (field@ruralens.com / field123)');
 
     // Create demo citizen
     await User.create({
       name: 'Citizen Demo',
-      email: 'citizen@village.com',
+      email: 'citizen@ruralens.com',
       password: 'user123',
       role: 'user',
-      village: 'Ramgarh'
+      area: 'Ramgarh'
     });
-    console.log('✅ Demo citizen created (citizen@village.com / user123)');
+    console.log('✅ Demo citizen created (citizen@ruralens.com / user123)');
   }
 
   // Check if schemes exist
   const schemesCount = await Scheme.countDocuments();
   if (schemesCount === 0) {
     // Import initial schemes data
-    const { generateVillageData } = await import('../utils/dataGenerator.js');
-    const initialData = generateVillageData();
+    const { generateInfraData } = await import('../utils/dataGenerator.js');
+    const initialData = generateInfraData();
     
     if (initialData.schemes && initialData.schemes.length > 0) {
       // Clean up the schemes data to ensure proper format

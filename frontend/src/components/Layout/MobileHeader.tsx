@@ -1,9 +1,9 @@
 import { Bell } from 'lucide-react';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function MobileHeader() {
-  const { alerts } = useVillageStore();
+  const { alerts } = useAppStore();
   const { t } = useLanguage();
   
   return (

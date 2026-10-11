@@ -137,7 +137,7 @@ export interface GovernmentScheme {
   id: string;
   name: string;
   category: string;
-  village: string;
+  area: string;
   district: string;
   totalBudget: number;
   budgetUtilized: number;
@@ -191,7 +191,7 @@ export interface KPIs {
   avgResponseTime: number;
 }
 
-interface VillageState {
+interface AppState {
   waterTanks: WaterTank[];  waterPumps: any[];
   waterPipes: any[];  buildings: Building[];
   powerNodes: PowerNode[];
@@ -218,7 +218,7 @@ interface VillageState {
   username: string | null;
   
   // Actions
-  setVillageData: (data: any) => void;
+  setInfraData: (data: any) => void;
   setSelectedAsset: (asset: any) => void;
   setActiveView: (view: string) => void;
   setWsConnected: (connected: boolean) => void;
@@ -245,7 +245,7 @@ interface VillageState {
   clearNodeImpacts: () => void;
   initializeRealNetwork: () => void;
 }
-export const useVillageStore = create<VillageState>((set) => ({
+export const useAppStore = create<AppState>((set) => ({
   waterTanks: [],
   waterPumps: [],
   waterPipes: [],
@@ -279,7 +279,7 @@ export const useVillageStore = create<VillageState>((set) => ({
   userRole: null,
   username: null,
   
-  setVillageData: (data) => set(() => {
+  setInfraData: (data) => set(() => {
     const waterTanks = data.waterTanks || [];
     const waterPumps = data.waterPumps || [];
     const waterPipes = data.waterPipes || [];
@@ -663,7 +663,7 @@ export const useVillageStore = create<VillageState>((set) => ({
     })),
   })),
   
-  // Initialize GNN network from real village infrastructure
+  // Initialize GNN network from real infrastructure
   initializeRealNetwork: () => set((state) => {
     const nodes: GNNInfraNode[] = [];
     const edges: GNNInfraEdge[] = [];

@@ -68,7 +68,7 @@ class GovernmentPlanInput(BaseModel):
     endDate: Optional[str] = ""
     phases: Optional[list] = []
     description: Optional[str] = ""
-    village: Optional[str] = ""
+    area: Optional[str] = ""
     district: Optional[str] = ""
 
 

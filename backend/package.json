@@ -10,6 +10,7 @@
     "clear-db": "node clearDB.js",
     "cleanup-feedback": "node cleanupFeedback.js",
     "export-pathway": "node scripts/export-to-pathway.js",
+    "migrate-locations": "node scripts/migrate-location-fields.js",
     "pathway-server": "cd python-gnn && python pathway_api_server.py"
   },
   "dependencies": {

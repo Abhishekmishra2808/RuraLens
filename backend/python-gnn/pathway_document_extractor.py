@@ -89,7 +89,7 @@ class SchemeData:
     name: str = "Unnamed Scheme"
     category: str = "Other"
     description: str = ""
-    village: str = ""
+    area: str = ""
     district: str = ""
     state: str = ""
     total_budget: float = 0.0
@@ -225,7 +225,7 @@ class PathwayDocumentExtractor:
                 r'(?:duration|period)[\s:-]+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})\s+to\s+(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})',
             ],
             'location': [
-                r'(?:village|gram|panchayat)[\s:-]+([A-Za-z\s]{3,50})',
+                r'(?:locality|ward|village|gram|panchayat)[\s:-]+([A-Za-z\s]{3,50})',
                 r'(?:district|dist\.?|zila)[\s:-]+([A-Za-z\s]{3,50})',
                 r'(?:state)[\s:-]+([A-Za-z\s]{3,30})',
             ],
@@ -375,19 +375,16 @@ class PathwayDocumentExtractor:
                     break
         
         # Extract location
-        for loc_type in ['village', 'district', 'state']:
-            patterns = self.compiled_patterns.get('location', [])
-            for pattern in patterns:
-                if loc_type in pattern.pattern.lower():
-                    match = pattern.search(text)
-                    if match:
-                        extracted[loc_type] = ExtractedField(
-                            value=match.group(1).strip(),
-                            confidence=0.7,
-                            source='regex',
-                            raw_text=match.group(0)
-                        )
-                        break
+        location_patterns = self.compiled_patterns.get('location', [])
+        for loc_type, pattern in zip(['area', 'district', 'state'], location_patterns):
+            match = pattern.search(text)
+            if match:
+                extracted[loc_type] = ExtractedField(
+                    value=match.group(1).strip(),
+                    confidence=0.7,
+                    source='regex',
+                    raw_text=match.group(0)
+                )
         
         # Extract dates
         date_patterns = self.compiled_patterns.get('dates', [])
@@ -430,9 +427,9 @@ DOCUMENT TEXT:
 Extract and return ONLY valid JSON with these exact fields (use null for missing data):
 {{
     "name": "exact official scheme/project name",
-    "category": "one of: Sanitation|Water Supply|Housing|Employment|Power|Roads|Healthcare|Education|Agriculture|Rural Development|Infrastructure|Welfare|Other",
+    "category": "one of: Sanitation|Water Supply|Housing|Employment|Power|Roads|Healthcare|Education|Agriculture|Local Development|Infrastructure|Welfare|Other",
     "description": "2-3 sentence objective description",
-    "village": "village name if mentioned",
+    "area": "area or locality name if mentioned",
     "district": "district name",
     "state": "state name",
     "total_budget": 7500000,
@@ -541,7 +538,7 @@ IMPORTANT:
         scheme.name = get_best('name', 'Unnamed Scheme')
         scheme.category = get_best('category', 'Other')
         scheme.description = get_best('description', '')
-        scheme.village = get_best('village', '')
+        scheme.area = get_best('area', '')
         scheme.district = get_best('district', '')
         scheme.state = get_best('state', '')
         scheme.total_budget = float(get_best('total_budget', 0) or 0)
@@ -569,8 +566,8 @@ IMPORTANT:
             scheme.total_budget = regex_data['budget'].value
         if 'category' in regex_data:
             scheme.category = regex_data['category'].value
-        if 'village' in regex_data:
-            scheme.village = regex_data['village'].value
+        if 'area' in regex_data:
+            scheme.area = regex_data['area'].value
         if 'district' in regex_data:
             scheme.district = regex_data['district'].value
         if 'start_date' in regex_data:
@@ -591,7 +588,7 @@ IMPORTANT:
             'Healthcare': ['health', 'medical', 'hospital', 'clinic', 'ayushman', 'doctor'],
             'Education': ['education', 'school', 'shiksha', 'college', 'student', 'learning'],
             'Agriculture': ['agriculture', 'farming', 'krishi', 'crop', 'irrigation', 'farmer'],
-            'Rural Development': ['rural', 'gram', 'panchayat', 'village', 'development'],
+            'Local Development': ['panchayat', 'municipal', 'nagar', 'gram', 'ward', 'development'],
         }
         
         text_lower = text.lower()
@@ -1259,10 +1256,11 @@ if __name__ == "__main__":
         
         # Test with sample text
         sample_text = """
-        PRADHAN MANTRI GRAM SADAK YOJANA (PMGSY)
+        ROAD CONNECTIVITY IMPROVEMENT SCHEME
         Phase III Implementation Plan
         
-        Project: Rural Road Connectivity - Rampur Village
+        Project: Road Connectivity - Rampur
+        Locality: Rampur
         District: Varanasi
         State: Uttar Pradesh
         
@@ -1276,8 +1274,8 @@ if __name__ == "__main__":
         
         Objectives:
         1. Construct 5 km all-weather road
-        2. Connect Rampur village to district headquarters
-        3. Benefit 5000 villagers
+        2. Connect Rampur to district headquarters
+        3. Benefit 5000 residents
         
         Phase 1 (Month 1-6): Survey and Design - Budget Rs. 5 Lakhs
         Phase 2 (Month 7-18): Road Construction - Budget Rs. 60 Lakhs

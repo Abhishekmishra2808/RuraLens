@@ -92,10 +92,10 @@ function extractWithRegex(text) {
     extracted.endDate = parseDate(endMatch[1]);
   }
 
-  // Location - Village, District
-  const villageMatch = text.match(/(?:village|gram|panchayat)\s*[:\-]?\s*([A-Z][a-zA-Z\s]{2,30})/i);
-  if (villageMatch) {
-    extracted.village = villageMatch[1].trim();
+  // Location - Area, District
+  const areaMatch = text.match(/(?:locality|ward|village|gram|panchayat)\s*[:\-]?\s*([A-Z][a-zA-Z\s]{2,30})/i);
+  if (areaMatch) {
+    extracted.area = areaMatch[1].trim();
   }
 
   const districtMatch = text.match(/(?:district|dist\.?|zila)\s*[:\-]?\s*([A-Z][a-zA-Z\s]{2,30})/i);
@@ -366,7 +366,7 @@ export async function extractSchemeFromPDF(pdfBuffer) {
       name: validateAndMerge('name', llmData.name, regexData.name, 'Unnamed Scheme'),
       category: validateAndMerge('category', llmData.category, regexData.category, 'Infrastructure'),
       description: validateAndMerge('description', llmData.description, regexData.description, 'Government scheme details to be updated'),
-      village: validateAndMerge('village', llmData.village, regexData.village, 'NA'),
+      area: validateAndMerge('area', llmData.area, regexData.area, 'NA'),
       district: validateAndMerge('district', llmData.district, regexData.district, 'NA'),
       totalBudget: validateBudget(llmData.totalBudget, regexData.totalBudget),
       targetBeneficiaries: llmData.targetBeneficiaries || regexData.targetBeneficiaries || 'Citizens',

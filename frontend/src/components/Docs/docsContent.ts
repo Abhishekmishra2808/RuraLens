@@ -34,15 +34,15 @@ export const DOC_GROUPS: DocGroup[] = [
         id: 'overview',
         title: L('Introduction', 'परिचय'),
         summary: L(
-          'RuraLens is an AI-enabled digital twin for villages. It brings infrastructure monitoring, scheme oversight and citizen services into one platform.',
-          'RuraLens गांवों के लिए AI-आधारित डिजिटल ट्विन है। यह इंफ्रास्ट्रक्चर निगरानी, योजना निरीक्षण और नागरिक सेवाओं को एक ही प्लेटफॉर्म पर लाता है।'
+          'RuraLens is an AI-enabled digital twin for local communities. It brings infrastructure monitoring, scheme oversight and citizen services into one platform.',
+          'RuraLens स्थानीय समुदायों के लिए AI-आधारित डिजिटल ट्विन है। यह इंफ्रास्ट्रक्चर निगरानी, योजना निरीक्षण और नागरिक सेवाओं को एक ही प्लेटफॉर्म पर लाता है।'
         ),
         blocks: [
           {
             kind: 'p',
             text: L(
-              'Administrators, field workers and citizens all work from the same live model of the village: its water tanks, pumps, pipelines, power nodes and roads, the government schemes running in it, and the issues residents raise.',
-              'प्रशासक, फील्ड कर्मचारी और नागरिक सभी गांव के एक ही लाइव मॉडल पर काम करते हैं: पानी की टंकियां, पंप, पाइपलाइन, बिजली नोड और सड़कें, गांव में चल रही सरकारी योजनाएं, और निवासियों द्वारा उठाई गई समस्याएं।'
+              'Administrators, field workers and citizens all work from the same live model of their area: its water tanks, pumps, pipelines, power nodes and roads, the government schemes running in it, and the issues residents raise.',
+              'प्रशासक, फील्ड कर्मचारी और नागरिक सभी अपने क्षेत्र के एक ही लाइव मॉडल पर काम करते हैं: पानी की टंकियां, पंप, पाइपलाइन, बिजली नोड और सड़कें, क्षेत्र में चल रही सरकारी योजनाएं, और निवासियों द्वारा उठाई गई समस्याएं।'
             ),
           },
           { kind: 'h3', text: L('Modules', 'मॉड्यूल') },
@@ -51,9 +51,9 @@ export const DOC_GROUPS: DocGroup[] = [
             columns: [L('Module', 'मॉड्यूल'), L('What it does', 'यह क्या करता है')],
             rows: [
               [L('Dashboard', 'डैशबोर्ड'), L('Live overview of infrastructure health, alerts and key indicators.', 'इंफ्रास्ट्रक्चर की स्थिति, अलर्ट और मुख्य संकेतकों का लाइव सारांश।')],
-              [L('3D Map View', '3D मैप व्यू'), L('Interactive map of village assets. Trigger a failure on any asset and see its predicted impact.', 'गांव की संपत्तियों का इंटरैक्टिव मैप। किसी भी संपत्ति पर विफलता चलाएं और उसका अनुमानित प्रभाव देखें।')],
+              [L('3D Map View', '3D मैप व्यू'), L('Interactive map of local infrastructure assets. Trigger a failure on any asset and see its predicted impact.', 'स्थानीय इंफ्रास्ट्रक्चर संपत्तियों का इंटरैक्टिव मैप। किसी भी संपत्ति पर विफलता चलाएं और उसका अनुमानित प्रभाव देखें।')],
               [L('Government Schemes', 'सरकारी योजनाएं'), L('Track scheme phases, budgets and vendor reports, and ask questions about them with AI.', 'योजनाओं के चरण, बजट और वेंडर रिपोर्ट ट्रैक करें और AI से उनके बारे में प्रश्न पूछें।')],
-              [L('AQI & Weather', 'AQI और मौसम'), L('Current air quality and weather for the village, from Open-Meteo.', 'Open-Meteo से गांव की वर्तमान वायु गुणवत्ता और मौसम।')],
+              [L('AQI & Weather', 'AQI और मौसम'), L('Current air quality and weather for the area, from Open-Meteo.', 'Open-Meteo से क्षेत्र की वर्तमान वायु गुणवत्ता और मौसम।')],
               [L('Citizen Reports', 'नागरिक रिपोर्ट'), L('Anonymous complaints with private tracking and automatic escalation.', 'निजी ट्रैकिंग और स्वचालित एस्केलेशन के साथ गुमनाम शिकायतें।')],
               [L('Citizen Call Records', 'नागरिक कॉल रिकॉर्ड'), L('Complaints received by phone through the Kavya calling agent. Administrators only.', 'काव्या कॉलिंग एजेंट के ज़रिए फोन पर मिली शिकायतें। केवल प्रशासकों के लिए।')],
             ],
@@ -95,7 +95,7 @@ export const DOC_GROUPS: DocGroup[] = [
             items: [
               L('The browser loads the frontend, which calls the backend at the address set in `VITE_API_URL`.', 'ब्राउज़र फ्रंटएंड लोड करता है, जो `VITE_API_URL` में दिए पते पर बैकएंड को कॉल करता है।'),
               L('The backend checks the user\'s token and role.', 'बैकएंड उपयोगकर्ता के टोकन और भूमिका की जांच करता है।'),
-              L('It reads and writes village data in MongoDB.', 'यह MongoDB में गांव का डेटा पढ़ता और लिखता है।'),
+              L('It reads and writes infrastructure, scheme and report data in MongoDB.', 'यह MongoDB में इंफ्रास्ट्रक्चर, योजना और रिपोर्ट का डेटा पढ़ता और लिखता है।'),
               L('For AI features it calls the RAG service, the GNN service or a language model, and returns one structured response to the browser.', 'AI सुविधाओं के लिए यह RAG सेवा, GNN सेवा या भाषा मॉडल को कॉल करता है और ब्राउज़र को एक संरचित उत्तर लौटाता है।'),
             ],
           },
@@ -113,9 +113,9 @@ export const DOC_GROUPS: DocGroup[] = [
             kind: 'table',
             columns: [L('Role', 'भूमिका'), L('Intended for', 'किसके लिए'), L('Access', 'पहुंच')],
             rows: [
-              [L('Administrator', 'प्रशासक'), L('Panchayat and block administrators', 'पंचायत और ब्लॉक प्रशासक'), L('Every module, including Citizen Call Records, and managing report status, assignment and priority.', 'नागरिक कॉल रिकॉर्ड सहित सभी मॉड्यूल, और रिपोर्ट की स्थिति, असाइनमेंट व प्राथमिकता का प्रबंधन।')],
+              [L('Administrator', 'प्रशासक'), L('Local and district administrators', 'स्थानीय और जिला प्रशासक'), L('Every module, including Citizen Call Records, and managing report status, assignment and priority.', 'नागरिक कॉल रिकॉर्ड सहित सभी मॉड्यूल, और रिपोर्ट की स्थिति, असाइनमेंट व प्राथमिकता का प्रबंधन।')],
               [L('Field worker', 'फील्ड कर्मचारी'), L('Maintenance and inspection staff', 'रखरखाव और निरीक्षण कर्मचारी'), L('A dedicated field worker workspace, plus the map, AQI & weather and citizen reports.', 'एक समर्पित फील्ड कर्मचारी वर्कस्पेस, साथ में मैप, AQI और मौसम तथा नागरिक रिपोर्ट।')],
-              [L('Citizen', 'नागरिक'), L('Village residents', 'गांव के निवासी'), L('Dashboard, map, government schemes, AQI & weather and citizen reports.', 'डैशबोर्ड, मैप, सरकारी योजनाएं, AQI और मौसम तथा नागरिक रिपोर्ट।')],
+              [L('Citizen', 'नागरिक'), L('Residents', 'निवासी'), L('Dashboard, map, government schemes, AQI & weather and citizen reports.', 'डैशबोर्ड, मैप, सरकारी योजनाएं, AQI और मौसम तथा नागरिक रिपोर्ट।')],
             ],
           },
           {
@@ -216,15 +216,15 @@ curl -X POST http://localhost:8000/v1/index/reload`,
         id: 'gnn',
         title: L('GNN Impact Forecaster', 'GNN प्रभाव पूर्वानुमान'),
         summary: L(
-          'Predict how a single failure spreads through the village\'s connected infrastructure, and which assets to fix first.',
-          'पूर्वानुमान लगाएं कि एक विफलता गांव के जुड़े हुए इंफ्रास्ट्रक्चर में कैसे फैलती है, और किन संपत्तियों को पहले ठीक करना है।'
+          'Predict how a single failure spreads through connected infrastructure, and which assets to fix first.',
+          'पूर्वानुमान लगाएं कि एक विफलता जुड़े हुए इंफ्रास्ट्रक्चर में कैसे फैलती है, और किन संपत्तियों को पहले ठीक करना है।'
         ),
         blocks: [
           {
             kind: 'p',
             text: L(
-              'The village is modelled as a graph. Tanks, pumps, pipelines, power nodes, roads and buildings are nodes, and the dependencies between them are edges. A graph neural network (GNN) trained on cascading-failure scenarios estimates how strongly each node is affected when another node fails.',
-              'गांव को एक ग्राफ के रूप में मॉडल किया गया है। टंकियां, पंप, पाइपलाइन, बिजली नोड, सड़कें और इमारतें नोड हैं, और उनके बीच की निर्भरताएं एज हैं। फैलती विफलताओं के परिदृश्यों पर प्रशिक्षित ग्राफ न्यूरल नेटवर्क (GNN) अनुमान लगाता है कि किसी एक नोड के विफल होने पर हर दूसरा नोड कितना प्रभावित होगा।'
+              'The area is modelled as a graph. Tanks, pumps, pipelines, power nodes, roads and buildings are nodes, and the dependencies between them are edges. A graph neural network (GNN) trained on cascading-failure scenarios estimates how strongly each node is affected when another node fails.',
+              'क्षेत्र को एक ग्राफ के रूप में मॉडल किया गया है। टंकियां, पंप, पाइपलाइन, बिजली नोड, सड़कें और इमारतें नोड हैं, और उनके बीच की निर्भरताएं एज हैं। फैलती विफलताओं के परिदृश्यों पर प्रशिक्षित ग्राफ न्यूरल नेटवर्क (GNN) अनुमान लगाता है कि किसी एक नोड के विफल होने पर हर दूसरा नोड कितना प्रभावित होगा।'
             ),
           },
           { kind: 'h3', text: L('Running a simulation', 'सिमुलेशन चलाना') },
@@ -267,7 +267,7 @@ curl -X POST http://localhost:8000/v1/index/reload`,
           {
             kind: 'list',
             items: [
-              L('1,000 synthetic village graphs of 10 to 30 nodes each, labelled by simulating how failures cascade.', '10 से 30 नोड वाले 1,000 सिंथेटिक गांव ग्राफ, जिन्हें विफलताओं के फैलाव का सिमुलेशन करके लेबल किया गया।'),
+              L('1,000 synthetic infrastructure graphs of 10 to 30 nodes each, labelled by simulating how failures cascade.', '10 से 30 नोड वाले 1,000 सिंथेटिक इंफ्रास्ट्रक्चर ग्राफ, जिन्हें विफलताओं के फैलाव का सिमुलेशन करके लेबल किया गया।'),
               L('Five-fold cross-validation, 50 epochs, Adam optimiser with a learning rate of 0.001.', 'पांच-फोल्ड क्रॉस-वैलिडेशन, 50 epochs, 0.001 learning rate वाला Adam optimiser।'),
               L('Weighted binary cross-entropy loss, with critical nodes weighted three times higher.', 'भारित binary cross-entropy loss, जिसमें महत्वपूर्ण नोड्स को तीन गुना अधिक भार दिया गया।'),
               L('Best validation loss 0.81; average across folds 0.83.', 'सर्वश्रेष्ठ validation loss 0.81; सभी फोल्ड का औसत 0.83।'),
@@ -450,8 +450,8 @@ curl -X POST http://localhost:8000/v1/index/reload`,
             kind: 'table',
             columns: [L('Level', 'स्तर'), L('Authority', 'प्राधिकारी'), L('Time to respond', 'जवाब देने का समय')],
             rows: [
-              ['1', L('Village Sarpanch', 'ग्राम सरपंच'), L('7 days', '7 दिन')],
-              ['2', L('Block Development Officer', 'खंड विकास अधिकारी'), L('10 days', '10 दिन')],
+              ['1', L('Local representative', 'स्थानीय प्रतिनिधि'), L('7 days', '7 दिन')],
+              ['2', L('Area officer', 'क्षेत्र अधिकारी'), L('10 days', '10 दिन')],
               ['3', L('District Magistrate', 'ज़िला मजिस्ट्रेट'), L('14 days', '14 दिन')],
               ['4', L('State-level authority', 'राज्य स्तरीय प्राधिकारी'), L('21 days', '21 दिन')],
             ],

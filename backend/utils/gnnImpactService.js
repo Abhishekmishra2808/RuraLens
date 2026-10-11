@@ -1,5 +1,5 @@
 /**
- * GNN-based Impact Prediction Service for Village Infrastructure
+ * GNN-based Impact Prediction Service for Infrastructure Networks
  * 
  * ARCHITECTURE: 4-Layer Deep Neural Network with Residual Connections
  * ================================================================
@@ -14,14 +14,14 @@
  * - Enables deeper learning without vanishing gradients
  * 
  * This service uses Graph Neural Network concepts to predict cascading effects
- * when something goes wrong anywhere in the village infrastructure:
+ * when something goes wrong anywhere in the infrastructure network:
  * - Roads (damage, blockage, flooding, accidents)
  * - Buildings (collapse, fire, evacuation)
  * - Power Grid (outages, overloads)
  * - Water Network (leaks, contamination)
  * - Sensors (offline, malfunction)
  * 
- * The village infrastructure is modeled as a graph where:
+ * The infrastructure is modeled as a graph where:
  * - Nodes: Roads, Buildings, Power nodes, Water tanks, Pumps, Sensors
  * - Edges: Physical connections, dependencies, proximity relationships
  * 
@@ -29,7 +29,7 @@
  * connected infrastructure to predict downstream effects.
  */
 
-// Graph representation of the village infrastructure
+// Graph representation of the infrastructure network
 class InfrastructureGraph {
   constructor() {
     this.nodes = new Map(); // nodeId -> { type, properties, embedding }
@@ -537,7 +537,7 @@ class GNNLayer {
   }
 }
 
-// Impact Prediction GNN Model for Village Infrastructure with Temporal Dynamics
+// Impact Prediction GNN Model for Infrastructure with Temporal Dynamics
 // 4-Layer Deep Architecture with Residual Connections
 class ImpactPredictionGNN {
   constructor() {
@@ -1345,7 +1345,7 @@ class ImpactPredictionGNN {
   }
 }
 
-// Main service class for Village Infrastructure Impact Prediction
+// Main service class for Infrastructure Impact Prediction
 class GNNImpactService {
   constructor() {
     this.graph = new InfrastructureGraph();
@@ -1353,19 +1353,19 @@ class GNNImpactService {
     this.isInitialized = false;
   }
 
-  // Initialize graph from complete village state (roads, buildings, power, water, sensors)
-  initializeFromVillageState(villageState) {
+  // Initialize graph from complete infrastructure state (roads, buildings, power, water, sensors)
+  initializeFromInfraState(infraState) {
     this.graph = new InfrastructureGraph();
     
     // ============ STEP 1: STITCH COORDINATES ============
     // Assign spatial coordinates to nodes that don't have them
     // This creates a realistic layout: roads as spine, buildings east, utilities west
     console.log('📍 Stitching spatial coordinates...');
-    villageState = this.stitchVillageCoordinates(villageState);
+    infraState = this.stitchInfraCoordinates(infraState);
     
     // ============ ADD ROADS ============
-    if (villageState.roads && villageState.roads.length > 0) {
-      for (const road of villageState.roads) {
+    if (infraState.roads && infraState.roads.length > 0) {
+      for (const road of infraState.roads) {
         this.graph.addNode(road.id, 'road', {
           name: road.name,
           condition: road.condition,
@@ -1380,12 +1380,12 @@ class GNNImpactService {
       }
       
       // Build road network connections (intersections)
-      this.buildRoadConnections(villageState.roads);
+      this.buildRoadConnections(infraState.roads);
     }
     
     // ============ ADD BUILDINGS ============
-    if (villageState.buildings && villageState.buildings.length > 0) {
-      for (const building of villageState.buildings) {
+    if (infraState.buildings && infraState.buildings.length > 0) {
+      for (const building of infraState.buildings) {
         const buildingType = this.classifyBuilding(building);
         this.graph.addNode(building.id, buildingType, {
           name: building.name,
@@ -1400,8 +1400,8 @@ class GNNImpactService {
     }
     
     // ============ ADD POWER NODES ============
-    if (villageState.powerNodes && villageState.powerNodes.length > 0) {
-      for (const power of villageState.powerNodes) {
+    if (infraState.powerNodes && infraState.powerNodes.length > 0) {
+      for (const power of infraState.powerNodes) {
         this.graph.addNode(power.id, 'power', {
           name: power.name,
           coords: power.coords,
@@ -1415,8 +1415,8 @@ class GNNImpactService {
     }
     
     // ============ ADD WATER TANKS ============
-    if (villageState.waterTanks && villageState.waterTanks.length > 0) {
-      for (const tank of villageState.waterTanks) {
+    if (infraState.waterTanks && infraState.waterTanks.length > 0) {
+      for (const tank of infraState.waterTanks) {
         this.graph.addNode(tank.id, 'tank', {
           name: tank.name,
           coords: tank.coords,
@@ -1430,8 +1430,8 @@ class GNNImpactService {
     }
     
     // ============ ADD SENSORS ============
-    if (villageState.sensors && villageState.sensors.length > 0) {
-      for (const sensor of villageState.sensors) {
+    if (infraState.sensors && infraState.sensors.length > 0) {
+      for (const sensor of infraState.sensors) {
         this.graph.addNode(sensor.id, 'sensor', {
           name: sensor.name,
           type: sensor.type,
@@ -1445,8 +1445,8 @@ class GNNImpactService {
     
     // ============ ADD WATER SIMULATION DATA (if available) ============
     // Tanks from water simulation
-    if (villageState.tanks) {
-      for (const tank of villageState.tanks) {
+    if (infraState.tanks) {
+      for (const tank of infraState.tanks) {
         const id = tank.tankId || tank.id;
         if (!this.graph.nodes.has(id)) {
           this.graph.addNode(id, 'tank', {
@@ -1462,8 +1462,8 @@ class GNNImpactService {
     }
     
     // Pumps
-    if (villageState.pumps) {
-      for (const pump of villageState.pumps) {
+    if (infraState.pumps) {
+      for (const pump of infraState.pumps) {
         const id = pump.pumpId || pump.id;
         this.graph.addNode(id, 'pump', {
           name: pump.name,
@@ -1480,8 +1480,8 @@ class GNNImpactService {
     }
     
     // Consumer clusters
-    if (villageState.clusters) {
-      for (const cluster of villageState.clusters) {
+    if (infraState.clusters) {
+      for (const cluster of infraState.clusters) {
         const id = cluster.clusterId || cluster.id;
         this.graph.addNode(id, 'cluster', {
           name: cluster.name,
@@ -1494,8 +1494,8 @@ class GNNImpactService {
     }
     
     // Pipes
-    if (villageState.pipes) {
-      for (const pipe of villageState.pipes) {
+    if (infraState.pipes) {
+      for (const pipe of infraState.pipes) {
         const id = pipe.pipeId || pipe.id;
         this.graph.addNode(id, 'pipe', {
           name: `Pipe ${id}`,
@@ -1518,10 +1518,10 @@ class GNNImpactService {
     console.log('🔗 Building infrastructure connections...');
     
     // Build power connections to buildings
-    this.buildPowerConnections(villageState);
+    this.buildPowerConnections(infraState);
     
     // Build road access connections to buildings
-    this.buildRoadAccessConnections(villageState);
+    this.buildRoadAccessConnections(infraState);
     
     // Build proximity-based connections with generous radius (approx 1.5km)
     console.log('   🌐 Building proximity edges (radius: ~1.5km)...');
@@ -1529,7 +1529,7 @@ class GNNImpactService {
     
     // Add hard-coded critical dependencies (logic over proximity)
     console.log('   ⚡ Adding critical infrastructure dependencies...');
-    const criticalEdges = this.addCriticalDependencies(villageState);
+    const criticalEdges = this.addCriticalDependencies(infraState);
     
     // Build adjacency matrix
     this.graph.buildAdjacencyMatrix();
@@ -1606,10 +1606,10 @@ class GNNImpactService {
   }
 
   // Build power connections to buildings and other infrastructure
-  buildPowerConnections(villageState) {
-    const powerNodes = villageState.powerNodes || [];
-    const buildings = villageState.buildings || [];
-    const waterTanks = villageState.waterTanks || [];
+  buildPowerConnections(infraState) {
+    const powerNodes = infraState.powerNodes || [];
+    const buildings = infraState.buildings || [];
+    const waterTanks = infraState.waterTanks || [];
     
     for (const power of powerNodes) {
       if (!power.coords) continue;
@@ -1639,9 +1639,9 @@ class GNNImpactService {
   }
 
   // Build road access connections to buildings
-  buildRoadAccessConnections(villageState) {
-    const roads = villageState.roads || [];
-    const buildings = villageState.buildings || [];
+  buildRoadAccessConnections(infraState) {
+    const roads = infraState.roads || [];
+    const buildings = infraState.buildings || [];
     
     for (const building of buildings) {
       if (!building.coords) continue;
@@ -1672,7 +1672,7 @@ class GNNImpactService {
   }
   
   // Stitch spatial coordinates onto nodes for realistic layout
-  stitchVillageCoordinates(villageState) {
+  stitchInfraCoordinates(infraState) {
     let roadIndex = 0;
     let buildingIndex = 0;
     let powerIndex = 0;
@@ -1680,8 +1680,8 @@ class GNNImpactService {
     let clusterIndex = 0;
 
     // Roads - central spine at X=0
-    if (villageState.roads) {
-      villageState.roads.forEach((node) => {
+    if (infraState.roads) {
+      infraState.roads.forEach((node) => {
         if (!node.coords && !node.path) {
           node.coords = [0, roadIndex * 0.001]; // ~100m spacing
           roadIndex++;
@@ -1690,8 +1690,8 @@ class GNNImpactService {
     }
 
     // Buildings - East cluster
-    if (villageState.buildings) {
-      villageState.buildings.forEach((node) => {
+    if (infraState.buildings) {
+      infraState.buildings.forEach((node) => {
         if (!node.coords) {
           const row = Math.floor(buildingIndex / 2);
           const col = buildingIndex % 2;
@@ -1702,8 +1702,8 @@ class GNNImpactService {
     }
 
     // Power infrastructure - West side
-    if (villageState.powerNodes) {
-      villageState.powerNodes.forEach((node) => {
+    if (infraState.powerNodes) {
+      infraState.powerNodes.forEach((node) => {
         if (!node.coords) {
           node.coords = [-0.004, powerIndex * 0.002]; // 400m West
           powerIndex++;
@@ -1712,8 +1712,8 @@ class GNNImpactService {
     }
 
     // Sensors - Near power
-    if (villageState.sensors) {
-      villageState.sensors.forEach((node) => {
+    if (infraState.sensors) {
+      infraState.sensors.forEach((node) => {
         if (!node.coords) {
           node.coords = [-0.0035, powerIndex * 0.0025];
           powerIndex++;
@@ -1722,7 +1722,7 @@ class GNNImpactService {
     }
 
     // Water infrastructure - North cluster
-    const tanks = villageState.waterTanks || villageState.tanks || [];
+    const tanks = infraState.waterTanks || infraState.tanks || [];
     tanks.forEach((node) => {
       if (!node.coords) {
         node.coords = [-0.002, 0.01 + (waterIndex * 0.0008)];
@@ -1730,8 +1730,8 @@ class GNNImpactService {
       }
     });
 
-    if (villageState.pumps) {
-      villageState.pumps.forEach((node) => {
+    if (infraState.pumps) {
+      infraState.pumps.forEach((node) => {
         if (!node.coords) {
           node.coords = [-0.0025, 0.01 + (waterIndex * 0.0008)];
           waterIndex++;
@@ -1739,8 +1739,8 @@ class GNNImpactService {
       });
     }
 
-    if (villageState.pipes) {
-      villageState.pipes.forEach((node) => {
+    if (infraState.pipes) {
+      infraState.pipes.forEach((node) => {
         if (!node.coords && !node.fromNode) {
           node.coords = [-0.003, 0.01 + (waterIndex * 0.0008)];
           waterIndex++;
@@ -1749,8 +1749,8 @@ class GNNImpactService {
     }
 
     // Consumer clusters - near buildings
-    if (villageState.clusters) {
-      villageState.clusters.forEach((node) => {
+    if (infraState.clusters) {
+      infraState.clusters.forEach((node) => {
         if (!node.coords && !node.geo) {
           const row = Math.floor(clusterIndex / 2);
           const col = clusterIndex % 2;
@@ -1760,17 +1760,17 @@ class GNNImpactService {
       });
     }
 
-    return villageState;
+    return infraState;
   }
   
   // Add critical infrastructure dependencies (logic-based, not proximity)
-  addCriticalDependencies(villageState) {
+  addCriticalDependencies(infraState) {
     let count = 0;
 
     // Power → Pumps (critical)
-    if (villageState.powerNodes && villageState.pumps) {
-      const mainPower = villageState.powerNodes[0];
-      villageState.pumps.forEach((pump) => {
+    if (infraState.powerNodes && infraState.pumps) {
+      const mainPower = infraState.powerNodes[0];
+      infraState.pumps.forEach((pump) => {
         const pumpId = pump.pumpId || pump.id;
         if (this.graph.nodes.has(mainPower.id) && this.graph.nodes.has(pumpId)) {
           this.graph.addEdge(mainPower.id, pumpId, 1.0, 'power-supply', 'critical-dependency', true);
@@ -1780,10 +1780,10 @@ class GNNImpactService {
     }
 
     // Power → Buildings (high priority)
-    if (villageState.powerNodes && villageState.buildings) {
-      const mainPower = villageState.powerNodes[0];
+    if (infraState.powerNodes && infraState.buildings) {
+      const mainPower = infraState.powerNodes[0];
       if (mainPower) {
-        villageState.buildings.forEach((building) => {
+        infraState.buildings.forEach((building) => {
           if (this.graph.nodes.has(mainPower.id) && this.graph.nodes.has(building.id)) {
             this.graph.addEdge(mainPower.id, building.id, 0.9, 'power-supply', 'powers', true);
             count++;
@@ -1793,19 +1793,19 @@ class GNNImpactService {
     }
 
     // Tanks → Pumps → Clusters (water flow)
-    if (villageState.tanks && villageState.pumps && villageState.clusters) {
-      if (villageState.tanks[0] && villageState.pumps[0]) {
-        const tankId = villageState.tanks[0].tankId || villageState.tanks[0].id;
-        const pumpId = villageState.pumps[0].pumpId || villageState.pumps[0].id;
+    if (infraState.tanks && infraState.pumps && infraState.clusters) {
+      if (infraState.tanks[0] && infraState.pumps[0]) {
+        const tankId = infraState.tanks[0].tankId || infraState.tanks[0].id;
+        const pumpId = infraState.pumps[0].pumpId || infraState.pumps[0].id;
         if (this.graph.nodes.has(tankId) && this.graph.nodes.has(pumpId)) {
           this.graph.addEdge(tankId, pumpId, 0.95, 'water-flow', 'supplies', true);
           count++;
         }
       }
 
-      if (villageState.pumps[0] && villageState.clusters[0]) {
-        const pumpId = villageState.pumps[0].pumpId || villageState.pumps[0].id;
-        const clusterId = villageState.clusters[0].clusterId || villageState.clusters[0].id;
+      if (infraState.pumps[0] && infraState.clusters[0]) {
+        const pumpId = infraState.pumps[0].pumpId || infraState.pumps[0].id;
+        const clusterId = infraState.clusters[0].clusterId || infraState.clusters[0].id;
         if (this.graph.nodes.has(pumpId) && this.graph.nodes.has(clusterId)) {
           this.graph.addEdge(pumpId, clusterId, 0.9, 'water-flow', 'supplies', true);
           count++;
@@ -1819,7 +1819,7 @@ class GNNImpactService {
   // Predict impact of a failure
   predictFailureImpact(nodeId, failureType = 'failure', severity = 'medium') {
     if (!this.isInitialized) {
-      throw new Error('GNN not initialized. Call initializeFromVillageState first.');
+      throw new Error('GNN not initialized. Call initializeFromInfraState first.');
     }
     
     if (!this.graph.nodes.has(nodeId)) {

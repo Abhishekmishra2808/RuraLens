@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { CloudSun, Wind, Droplets, Activity, RefreshCw, MapPin } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 
 type WeatherCurrent = {
   temperature_2m?: number;
@@ -55,7 +55,7 @@ function weatherCodeLabel(code?: number) {
 }
 
 export default function AqiWeatherView() {
-  const { waterTanks, sensors, powerNodes } = useVillageStore();
+  const { waterTanks, sensors, powerNodes } = useAppStore();
   const [weather, setWeather] = useState<WeatherCurrent | null>(null);
   const [air, setAir] = useState<AirCurrent | null>(null);
   const [tempSeries, setTempSeries] = useState<SeriesPoint[]>([]);

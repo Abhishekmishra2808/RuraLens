@@ -1,5 +1,5 @@
 """
-??? VILLAGE INFRASTRUCTURE IMPACT PREDICTOR - GNN POWERED
+??? INFRASTRUCTURE IMPACT PREDICTOR - GNN POWERED
 
 Predicts cascading effects across roads, buildings, power, and water systems.
 Matches the React website's Impact Prediction Panel design.
@@ -27,7 +27,7 @@ from collections import deque
 SCRIPT_DIR = Path(__file__).parent
 MODEL_DIR = SCRIPT_DIR / "models"
 
-print("??? Village Impact Predictor - Initializing...")
+print("??? Infrastructure Impact Predictor - Initializing...")
 model_path = str(MODEL_DIR / "gnn_production_v1.pt") if (MODEL_DIR / "gnn_production_v1.pt").exists() else str(MODEL_DIR / "gnn_model.pt")
 predictor = ImpactPredictor(model_path=model_path, temperature=0.5, status_veto_weight=1.5)
 simulation_engine = SimulationEngine(predictor)
@@ -706,7 +706,7 @@ CUSTOM_THEME = gr.themes.Soft(
 )
 
 with gr.Blocks(
-    title="Village Infrastructure Impact Predictor",
+    title="Infrastructure Impact Predictor",
 ) as demo:
     
     # Header
@@ -717,7 +717,7 @@ with gr.Blocks(
                 <span style="font-size: 24px;">??</span>
             </div>
             <div>
-                <h1 style="color: white; font-size: 20px; font-weight: 700; margin: 0;">Village Infrastructure Impact Predictor</h1>
+                <h1 style="color: white; font-size: 20px; font-weight: 700; margin: 0;">Infrastructure Impact Predictor</h1>
                 <p style="color: #94a3b8; font-size: 14px; margin: 4px 0 0 0;">Predict cascading effects across roads, buildings, power, and water systems</p>
             </div>
         </div>
@@ -911,7 +911,7 @@ with gr.Blocks(
 # =============================================================================
 
 if __name__ == "__main__":
-    print("?? Village Infrastructure Impact Predictor launching...")
+    print("?? Infrastructure Impact Predictor launching...")
     print("   URL: http://localhost:7875")
     print("   Design: Matches React website ImpactPredictionPanel\n")
     demo.launch(

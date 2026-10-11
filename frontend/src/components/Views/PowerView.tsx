@@ -1,8 +1,8 @@
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import { Zap, Activity } from 'lucide-react';
 
 export default function PowerView() {
-  const { powerNodes, setSelectedAsset } = useVillageStore();
+  const { powerNodes, setSelectedAsset } = useAppStore();
 
   const totalCapacity = powerNodes.reduce((sum, node) => sum + node.capacity, 0);
   const totalLoad = powerNodes.reduce((sum, node) => sum + node.currentLoad, 0);

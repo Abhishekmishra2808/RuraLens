@@ -1,7 +1,7 @@
 {
   "name": "ruralens",
   "version": "1.0.0",
-  "description": "RuraLens - Smart village infrastructure monitoring with 3D visualization and real-time analytics",
+  "description": "RuraLens - Smart infrastructure monitoring with 3D visualization and real-time analytics",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -12,8 +12,8 @@ import type {
 } from '../types/gnn';
 import type { WaterSimulationState } from '../types/water';
 
-// Extended village state that includes all infrastructure
-interface VillageState {
+// Extended infrastructure state that includes all asset types
+interface InfraState {
   // Water infrastructure
   tanks?: Array<{ id: string; name: string; position: { lat: number; lng: number }; [key: string]: any }>;
   pumps?: Array<{ id: string; name: string; position: { lat: number; lng: number }; [key: string]: any }>;
@@ -81,7 +81,7 @@ interface UseGNNReturn {
   currentPrediction: ImpactPrediction | null;
   
   // Actions
-  initializeGNN: (villageState: VillageState | WaterSimulationState) => Promise<boolean>;
+  initializeGNN: (infraState: InfraState | WaterSimulationState) => Promise<boolean>;
   predictImpact: (nodeId: string, failureType?: string, severity?: string) => Promise<ImpactPrediction | null>;
   getVulnerableNodes: () => Promise<VulnerableNode[]>;
   runWhatIfAnalysis: (scenarios: WhatIfScenario[]) => Promise<WhatIfResponse | null>;
@@ -99,7 +99,7 @@ export function useGNN(): UseGNNReturn {
   const [scenarios, setScenarios] = useState<FailureScenario[]>([]);
   const [currentPrediction, setCurrentPrediction] = useState<ImpactPrediction | null>(null);
 
-  const initializeGNN = useCallback(async (villageState: VillageState | WaterSimulationState): Promise<boolean> => {
+  const initializeGNN = useCallback(async (infraState: InfraState | WaterSimulationState): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
     
@@ -107,7 +107,7 @@ export function useGNN(): UseGNNReturn {
       const response = await fetch(`${API_URL}/api/gnn/initialize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ villageState }),
+        body: JSON.stringify({ infraState }),
       });
       
       const data = await response.json();

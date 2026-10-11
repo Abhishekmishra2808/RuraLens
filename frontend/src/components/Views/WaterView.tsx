@@ -1,8 +1,8 @@
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import { Droplet, Gauge } from 'lucide-react';
 
 export default function WaterView() {
-  const { waterTanks, setSelectedAsset } = useVillageStore();
+  const { waterTanks, setSelectedAsset } = useAppStore();
 
   const totalCapacity = waterTanks.reduce((sum, tank) => sum + tank.capacity, 0);
   const totalCurrent = waterTanks.reduce((sum, tank) => sum + (tank.capacity * tank.currentLevel / 100), 0);

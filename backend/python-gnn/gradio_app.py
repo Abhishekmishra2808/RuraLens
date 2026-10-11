@@ -609,7 +609,7 @@ def run_inference_with_added_node(
 with gr.Blocks(title="GNN Infrastructure Impact Predictor", theme=gr.themes.Soft()) as demo:
     gr.Markdown("""
     # 🏗️ GNN Infrastructure Impact Predictor
-    ### Interactive Digital Twin for Village Infrastructure
+    ### Interactive Digital Twin for Public Infrastructure
     
     Test the trained Graph Neural Network with custom infrastructure scenarios.
     Configure nodes, define connections, and predict cascade impacts in real-time.

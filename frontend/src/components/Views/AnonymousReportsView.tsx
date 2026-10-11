@@ -21,15 +21,15 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAnonymousReports } from '../../hooks/useAnonymousReports';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import AnonymousReportForm from './AnonymousReportForm';
 import AnonymousReportTracker from './AnonymousReportTracker';
 import AnonymousReportAdminPanel from './AnonymousReportAdminPanel';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 const AUTHORITY_LEVELS = {
-  0: { name: { en: 'Village Sarpanch', hi: 'ग्राम सरपंच' }, color: 'text-green-400', bg: 'bg-green-500/20' },
-  1: { name: { en: 'Block Officer', hi: 'खंड अधिकारी' }, color: 'text-blue-400', bg: 'bg-blue-500/20' },
+  0: { name: { en: 'Local Representative', hi: 'स्थानीय प्रतिनिधि' }, color: 'text-green-400', bg: 'bg-green-500/20' },
+  1: { name: { en: 'Area Officer', hi: 'क्षेत्र अधिकारी' }, color: 'text-blue-400', bg: 'bg-blue-500/20' },
   2: { name: { en: 'District Magistrate', hi: 'जिला मजिस्ट्रेट' }, color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
   3: { name: { en: 'State Authority', hi: 'राज्य प्राधिकरण' }, color: 'text-red-400', bg: 'bg-red-500/20' }
 };
@@ -59,7 +59,7 @@ const CATEGORY_CONFIG: Record<string, { label: { en: string; hi: string }; emoji
 export default function AnonymousReportsView() {
   const { lang } = useLanguage();
   const tx = (en: string, hi: string) => (lang === 'hi' ? hi : en);
-  const { userRole } = useVillageStore();
+  const { userRole } = useAppStore();
   const { reports, stats, loading, error, fetchReports, voteOnReport } = useAnonymousReports();
   const [activeTab, setActiveTab] = useState<'browse' | 'submit' | 'track' | 'admin'>('browse');
   const [filterStatus, setFilterStatus] = useState<string>('');

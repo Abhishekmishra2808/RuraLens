@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { User, Shield, Briefcase, ArrowLeft, Mail, Lock, Loader, AlertCircle } from 'lucide-react';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import { API_URL } from '../../config/api';
 import { useLanguage } from '../../i18n/LanguageContext';
 
@@ -17,7 +17,7 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const login = useVillageStore((state) => state.login);
+  const login = useAppStore((state) => state.login);
   const { lang, toggleLang } = useLanguage();
   const hi = lang === 'hi';
   const tx = (en: string, hiText: string) => (hi ? hiText : en);
@@ -158,9 +158,9 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
         <div className="mt-8">
           <p className="text-center text-xs text-slate-500 uppercase tracking-widest mb-4">{tx('Quick Demo Access', 'त्वरित डेमो एक्सेस')}</p>
           <div className="grid grid-cols-3 gap-2">
-            <DemoButton label={tx('Citizen', 'नागरिक')} onClick={() => quickLogin('citizen@village.com', 'user123', 'user')} />
-            <DemoButton label={tx('Worker', 'वर्कर')} onClick={() => quickLogin('field@village.com', 'field123', 'field_worker')} />
-            <DemoButton label={tx('Admin', 'एडमिन')} onClick={() => quickLogin('admin@village.com', 'admin123', 'admin')} />
+            <DemoButton label={tx('Citizen', 'नागरिक')} onClick={() => quickLogin('citizen@ruralens.com', 'user123', 'user')} />
+            <DemoButton label={tx('Worker', 'वर्कर')} onClick={() => quickLogin('field@ruralens.com', 'field123', 'field_worker')} />
+            <DemoButton label={tx('Admin', 'एडमिन')} onClick={() => quickLogin('admin@ruralens.com', 'admin123', 'admin')} />
           </div>
         </div>
       </div>

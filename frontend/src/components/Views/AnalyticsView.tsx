@@ -6,11 +6,11 @@ import {
   Users,
   Download
 } from 'lucide-react';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import { useAnonymousReports } from '../../hooks/useAnonymousReports';
 
 export default function AnalyticsView() {
-  const { sensors } = useVillageStore();
+  const { sensors } = useAppStore();
   const { reports: anonymousReports, stats: reportStats } = useAnonymousReports();
   const [dateRange, setDateRange] = useState('7days');
 
@@ -46,7 +46,7 @@ export default function AnalyticsView() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">Analytics Dashboard</h1>
-            <p className="text-slate-400">Comprehensive insights and trends for smart village management</p>
+            <p className="text-slate-400">Comprehensive insights and trends for smart infrastructure management</p>
           </div>
           
           <div className="flex gap-4">

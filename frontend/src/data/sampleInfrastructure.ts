@@ -1,9 +1,9 @@
 /**
- * Sample Village Infrastructure Data for GNN Impact Predictor
- * This represents a typical Indian village with roads, buildings, water, and power infrastructure
+ * Sample Infrastructure Data for GNN Impact Predictor
+ * This represents a typical Indian locality with roads, buildings, water, and power infrastructure
  */
 
-export const sampleVillageInfrastructure = {
+export const sampleInfrastructure = {
   // ============ ROADS ============
   roads: [
     {
@@ -18,7 +18,7 @@ export const sampleVillageInfrastructure = {
     },
     {
       id: 'road-main-2',
-      name: 'Village Main Road',
+      name: 'Main Road',
       type: 'main' as const,
       from: { lat: 17.3900, lng: 78.4900 },
       to: { lat: 17.3920, lng: 78.5000 },
@@ -163,8 +163,8 @@ export const sampleVillageInfrastructure = {
     },
     // Government Buildings
     {
-      id: 'govt-panchayat',
-      name: 'Gram Panchayat Office',
+      id: 'govt-office',
+      name: 'Civic Office',
       type: 'government' as const,
       position: { lat: 17.3910, lng: 78.4920 },
       occupancy: 20,
@@ -243,7 +243,7 @@ export const sampleVillageInfrastructure = {
     },
     {
       id: 'power-substation',
-      name: 'Village Substation',
+      name: 'Main Substation',
       type: 'substation' as const,
       position: { lat: 17.3890, lng: 78.4900 },
       powerCapacity: 1000,
@@ -362,14 +362,14 @@ export const sampleVillageInfrastructure = {
   clusters: [
     {
       id: 'cluster-north',
-      name: 'North Village Area',
+      name: 'North Residential Area',
       position: { lat: 17.3930, lng: 78.4950 },
       population: 450,
       demand: 150,
     },
     {
       id: 'cluster-south',
-      name: 'South Village Area',
+      name: 'South Residential Area',
       position: { lat: 17.3880, lng: 78.4890 },
       population: 380,
       demand: 120,
@@ -415,7 +415,7 @@ export const sampleFailureScenarios = [
     nodeId: 'power-transformer-main',
     failureType: 'power_outage',
     severity: 'high',
-    description: 'Main transformer failure - widespread power outage in village',
+    description: 'Main transformer failure - widespread power outage across the area',
   },
   {
     nodeId: 'tank-overhead-main',
@@ -443,4 +443,4 @@ export const sampleFailureScenarios = [
   },
 ];
 
-export default sampleVillageInfrastructure;
+export default sampleInfrastructure;

@@ -1,9 +1,9 @@
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import { Bell, AlertTriangle, Info, AlertCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function AlertsView() {
-  const { alerts, waterTanks, powerNodes } = useVillageStore();
+  const { alerts, waterTanks, powerNodes } = useAppStore();
 
   // Generate comprehensive alerts
   const criticalAlerts = alerts.filter(a => a.type === 'critical');

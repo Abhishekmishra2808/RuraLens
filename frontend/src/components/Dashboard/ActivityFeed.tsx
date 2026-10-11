@@ -1,9 +1,9 @@
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import { formatDistanceToNow } from 'date-fns';
 import { Droplet, Zap, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function ActivityFeed() {
-  const { alerts, waterTanks } = useVillageStore();
+  const { alerts, waterTanks } = useAppStore();
 
   const getActivityIcon = (category: string) => {
     switch (category) {

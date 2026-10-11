@@ -1,6 +1,6 @@
 # RuraLens
 
-RuraLens is an AI-enabled village digital twin platform for monitoring public infrastructure, analyzing scheme execution, and improving citizen service delivery.
+RuraLens is an AI-enabled digital twin platform for monitoring public infrastructure, analyzing scheme execution, and improving citizen service delivery.
 
 ## Table of Contents
 

@@ -43,7 +43,7 @@ function rankSchemeForPerformance(scheme) {
 async function buildTopSchemeResponse({ question, scheme_id, maxCitations }) {
   const filter = scheme_id ? { id: scheme_id } : {};
   const schemes = await Scheme.find(filter)
-    .select('id name category village district status overallProgress totalBudget budgetUtilized')
+    .select('id name category area district status overallProgress totalBudget budgetUtilized')
     .lean();
 
   if (!schemes || schemes.length === 0) {

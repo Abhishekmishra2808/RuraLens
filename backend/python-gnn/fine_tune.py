@@ -1,6 +1,6 @@
 """
 Fine-Tuning Engine for GNN Transfer Learning
-Bridge between synthetic physics and real village incidents
+Bridge between synthetic physics and real-world incidents
 """
 
 import torch
@@ -26,7 +26,7 @@ def fine_tune_on_real_data(
     This is TRUE TRANSFER LEARNING:
     1. Load synthetic model (general infrastructure physics)
     2. Freeze early layers (preserve structural knowledge)
-    3. Fine-tune upper layers on real incidents (village-specific behavior)
+    3. Fine-tune upper layers on real incidents (site-specific behavior)
     4. Handle class imbalance (real failures are sparse)
     5. Handle missing labels (not all nodes have known outcomes)
     

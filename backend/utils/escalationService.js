@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 
 const AUTHORITY_LEVELS = {
-  0: { name: 'sarpanch', title: 'Village Sarpanch', timeframeDays: 7 },
-  1: { name: 'block_officer', title: 'Block Development Officer', timeframeDays: 10 },
+  0: { name: 'local_representative', title: 'Local Representative', timeframeDays: 7 },
+  1: { name: 'area_officer', title: 'Area Officer', timeframeDays: 10 },
   2: { name: 'district_magistrate', title: 'District Magistrate', timeframeDays: 14 },
   3: { name: 'state_authority', title: 'State Level Authority', timeframeDays: 21 }
 };

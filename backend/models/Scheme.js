@@ -79,7 +79,7 @@ const schemeSchema = new mongoose.Schema({
     required: true
   },
   category: String,
-  village: String,
+  area: String,
   district: String,
   totalBudget: Number,
   budgetUtilized: Number,

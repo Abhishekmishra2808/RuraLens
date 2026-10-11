@@ -197,7 +197,7 @@ export async function extractSchemeFromPDFWithPathway(pdfBuffer, pdfFileName) {
               name: result.data.name,
               category: result.data.category,
               description: result.data.description,
-              village: result.data.village,
+              area: result.data.area,
               district: result.data.district,
               totalBudget: result.data.total_budget,
               startDate: result.data.start_date,
@@ -255,7 +255,7 @@ async function extractFieldsWithPathwayRAG(pdfText, pdfFileName) {
     name: '',
     category: 'Other',
     description: '',
-    village: '',
+    area: '',
     district: '',
     totalBudget: 0,
     startDate: '',
@@ -302,15 +302,15 @@ async function extractFieldsWithPathwayRAG(pdfText, pdfFileName) {
       results.totalBudget = extractBudgetNumber(budgetResult.answer, contextText);
     }
 
-    // Query 4: Extract location (village and district)
+    // Query 4: Extract location (area and district)
     console.log('📝 Extracting location...');
     const locationResult = await queryPathwayRAG(
-      `What is the village name and district name mentioned? Answer in format: Village: [name], District: [name]`,
+      `What is the area or locality name and district name mentioned? Answer in format: Area: [name], District: [name]`,
       contextText
     );
     if (locationResult.success && locationResult.answer) {
-      const { village, district } = parseLocation(locationResult.answer, contextText);
-      results.village = village;
+      const { area, district } = parseLocation(locationResult.answer, contextText);
+      results.area = area;
       results.district = district;
     }
 
@@ -365,7 +365,7 @@ async function extractFieldsWithPathwayRAG(pdfText, pdfFileName) {
     const validatedResults = validateAndFillRequiredFields(results, contextText, pdfFileName);
 
     // Calculate confidence based on how many fields were successfully extracted
-    const requiredFields = ['name', 'category', 'totalBudget', 'village', 'district', 'startDate', 'endDate'];
+    const requiredFields = ['name', 'category', 'totalBudget', 'area', 'district', 'startDate', 'endDate'];
     const filledRequired = requiredFields.filter(f => {
       const val = validatedResults[f];
       return val && val !== 'NA' && val !== 'Other' && val !== 0 && val !== '';
@@ -378,7 +378,7 @@ async function extractFieldsWithPathwayRAG(pdfText, pdfFileName) {
     console.log(`   - Name: ${validatedResults.name}`);
     console.log(`   - Category: ${validatedResults.category}`);
     console.log(`   - Budget: ₹${validatedResults.totalBudget}`);
-    console.log(`   - Location: ${validatedResults.village}, ${validatedResults.district}`);
+    console.log(`   - Location: ${validatedResults.area}, ${validatedResults.district}`);
     
     return validatedResults;
 
@@ -427,10 +427,10 @@ function validateAndFillRequiredFields(data, pdfText, pdfFileName) {
     data.category = mapCategory(data.category || '', data.name);
   }
   
-  // Ensure village and district have values
-  if (!data.village || data.village === 'NA') {
-    const villageMatch = pdfText.match(/(?:village|gram|gram panchayat|gp)[:\s]+([A-Za-z]+)/i);
-    if (villageMatch) data.village = villageMatch[1].trim();
+  // Ensure area and district have values
+  if (!data.area || data.area === 'NA') {
+    const areaMatch = pdfText.match(/(?:locality|ward|village|gram|gram panchayat|gp)[:\s]+([A-Za-z]+)/i);
+    if (areaMatch) data.area = areaMatch[1].trim();
   }
   
   if (!data.district || data.district === 'NA') {
@@ -537,7 +537,7 @@ function mapCategory(categoryText, schemeName = '') {
     { keywords: ['agriculture', 'krishi', 'farming', 'kisan', 'farmer', 'crop', 'fertilizer'], category: 'Agriculture' },
     { keywords: ['infrastructure', 'construction', 'building', 'facility'], category: 'Infrastructure' },
     { keywords: ['welfare', 'pension', 'benefit', 'subsidy', 'scheme'], category: 'Welfare' },
-    { keywords: ['rural', 'gram', 'village', 'panchayat'], category: 'Rural Development' }
+    { keywords: ['panchayat', 'municipal', 'nagar', 'gram', 'ward', 'local body'], category: 'Local Development' }
   ];
   
   for (const { keywords, category } of categoryPriority) {
@@ -625,26 +625,26 @@ function extractBudgetNumber(answer, fullText) {
  * Parse location from text
  */
 function parseLocation(answer, fullText) {
-  let village = '';
+  let area = '';
   let district = '';
   
   // Try answer first
-  const villageMatch = answer.match(/village[:\s]+([^,\n]+)/i);
+  const areaMatch = answer.match(/area[:\s]+([^,\n]+)/i);
   const districtMatch = answer.match(/district[:\s]+([^,\n]+)/i);
   
-  if (villageMatch) village = villageMatch[1].trim();
+  if (areaMatch) area = areaMatch[1].trim();
   if (districtMatch) district = districtMatch[1].trim();
   
   // If not found, search in full text
-  if (!village || !district) {
-    const textVillageMatch = fullText.match(/(?:gram|village|गाँव)[:\s]+([^\n,]+)/i);
+  if (!area || !district) {
+    const textAreaMatch = fullText.match(/(?:locality|ward|gram|village|गाँव)[:\s]+([^\n,]+)/i);
     const textDistrictMatch = fullText.match(/(?:district|जिला|zila)[:\s]+([^\n,]+)/i);
     
-    if (!village && textVillageMatch) village = textVillageMatch[1].trim();
+    if (!area && textAreaMatch) area = textAreaMatch[1].trim();
     if (!district && textDistrictMatch) district = textDistrictMatch[1].trim();
   }
   
-  return { village: village || 'NA', district: district || 'NA' };
+  return { area: area || 'NA', district: district || 'NA' };
 }
 
 /**
@@ -755,7 +755,7 @@ function extractWithRegex(text) {
     name: 'Unnamed Scheme',
     category: 'Other',
     description: '',
-    village: 'NA',
+    area: 'NA',
     district: 'NA',
     totalBudget: 0,
     startDate: new Date().toISOString().split('T')[0],
@@ -782,7 +782,7 @@ function extractWithRegex(text) {
   
   // Extract location
   const loc = parseLocation('', text);
-  results.village = loc.village;
+  results.area = loc.area;
   results.district = loc.district;
   
   // Extract dates
@@ -817,7 +817,7 @@ Return JSON:
   "category": "Sanitation|Water Supply|Housing|Employment|Power|Roads|Healthcare|Education|Agriculture|Other",
   "description": "brief 2-3 sentence description",
   "totalBudget": 7500000,
-  "village": "village name",
+  "area": "area or locality name",
   "district": "district name",
   "phases": [{"id": 1, "name": "Phase 1", "plannedWork": "description", "budget": 2500000}]
 }`;

@@ -7,13 +7,13 @@
  * To use: Import this file in main.tsx or App.tsx
  */
 
-import { useVillageStore } from '../store/villageStore';
+import { useAppStore } from '../store/appStore';
 
 export function enableDevMode() {
   console.log('🔓 DEV MODE: Auto-login enabled');
   
   // Auto-login as administrator
-  const store = useVillageStore.getState();
+  const store = useAppStore.getState();
   store.login('admin', 'dev-admin');
   
   console.log('✅ Logged in as: dev-admin (Administrator)');

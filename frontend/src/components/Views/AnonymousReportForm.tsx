@@ -23,7 +23,7 @@ const CATEGORIES = [
   { id: 'education', label: { en: 'Education', hi: 'शिक्षा' }, emoji: '📚', description: { en: 'Schools, teachers, mid-day meals', hi: 'स्कूल, शिक्षक, मध्यान्ह भोजन' } },
   { id: 'corruption', label: { en: 'Corruption', hi: 'भ्रष्टाचार' }, emoji: '⚖️', description: { en: 'Bribery, misuse of funds, irregularities', hi: 'रिश्वत, धन का दुरुपयोग, अनियमितताएं' } },
   { id: 'safety', label: { en: 'Safety', hi: 'सुरक्षा' }, emoji: '🛡️', description: { en: 'Crime, harassment, security concerns', hi: 'अपराध, उत्पीड़न, सुरक्षा चिंताएं' } },
-  { id: 'other', label: { en: 'Other', hi: 'अन्य' }, emoji: '📝', description: { en: 'Any other village-related issues', hi: 'गांव से जुड़ी अन्य समस्याएं' } }
+  { id: 'other', label: { en: 'Other', hi: 'अन्य' }, emoji: '📝', description: { en: 'Any other local issues', hi: 'अन्य स्थानीय समस्याएं' } }
 ];
 
 export default function AnonymousReportForm() {
@@ -290,7 +290,7 @@ export default function AnonymousReportForm() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
-                {tx('Area/Village', 'क्षेत्र/गांव')}
+                {tx('Area/Locality', 'क्षेत्र/इलाका')}
               </label>
               <input
                 type="text"

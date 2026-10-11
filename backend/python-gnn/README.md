@@ -49,7 +49,7 @@ print(report['summary'])
 ### 1. Install Python Dependencies
 
 ```powershell
-cd D:\dsa\village-digital-twin\backend\python-gnn
+cd backend\python-gnn
 
 # Create virtual environment
 python -m venv venv
@@ -219,7 +219,7 @@ python retrain_gate.py \
 **When to use:**
 - After collecting ≥5 real incidents with labeled outcomes
 - When failed nodes aren't crossing alert thresholds
-- To adapt gate behavior to village-specific failure patterns
+- To adapt gate behavior to site-specific failure patterns
 
 **When NOT to use:**
 - For initial model training (use `train.py` instead)

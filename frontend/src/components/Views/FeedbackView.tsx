@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { GovernmentScheme } from '../../store/villageStore';
+import { GovernmentScheme } from '../../store/appStore';
 import { API_URL } from '../../config/api';
 
 interface Feedback {

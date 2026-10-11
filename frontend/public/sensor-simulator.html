@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RuralLens - Sensor Simulator</title>
+    <title>RuraLens - Sensor Simulator</title>
     <style>
         * {
             margin: 0;
@@ -426,9 +426,9 @@
         <header>
             <h1>
                 <span class="logo">🏘️</span>
-                <span>RuralLens Sensor Simulator</span>
+                <span>RuraLens Sensor Simulator</span>
             </h1>
-            <p class="subtitle">Smart Village Infrastructure Control Panel - Real-time Monitoring & Control</p>
+            <p class="subtitle">Smart Infrastructure Control Panel - Real-time Monitoring & Control</p>
         </header>
 
         <div class="status-bar">
@@ -623,7 +623,7 @@
 
     <script>
         let ws = null;
-        let villageData = null;
+        let infraData = null;
         let reconnectInterval = null;
         let currentTab = 'overview';
 
@@ -649,13 +649,13 @@
             // Auto-detect environment: use WSS for production, WS for localhost
             const WS_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                 ? 'ws://localhost:3001'
-                : 'wss://village-digital-twin.onrender.com';
+                : 'wss://ruralens-backend-314u.onrender.com';
             
             console.log('🔌 Connecting to:', WS_URL);
             ws = new WebSocket(WS_URL);
 
             ws.onopen = () => {
-                console.log('✅ Connected to RuralLens Digital Twin');
+                console.log('✅ Connected to RuraLens Digital Twin');
                 document.getElementById('statusDot').classList.remove('disconnected');
                 const serverType = WS_URL.includes('localhost') ? 'Local Server' : 'Production Server';
                 document.getElementById('statusText').textContent = `Connected to ${serverType}`;
@@ -669,7 +669,7 @@
             ws.onmessage = (event) => {
                 const message = JSON.parse(event.data);
                 if (message.data) {
-                    villageData = message.data;
+                    infraData = message.data;
                     renderAllControls();
                     updateStats();
                     document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
@@ -716,13 +716,13 @@
 
         // Reset to normal
         function resetToNormal() {
-            if (!villageData) return;
+            if (!infraData) return;
             
-            villageData.waterTanks.forEach(tank => {
+            infraData.waterTanks.forEach(tank => {
                 sendUpdate('waterTanks', tank.id, 'currentLevel', 75);
             });
 
-            villageData.powerNodes.forEach(node => {
+            infraData.powerNodes.forEach(node => {
                 sendUpdate('powerNodes', node.id, 'currentLoad', node.capacity * 0.6);
             });
 
@@ -731,7 +731,7 @@
 
         // Render all controls
         function renderAllControls() {
-            if (!villageData) return;
+            if (!infraData) return;
             renderWaterTanks();
             renderPowerNodes();
             renderSensors();
@@ -742,7 +742,7 @@
         // Render Water Tanks
         function renderWaterTanks() {
             const container = document.getElementById('waterTanksTable');
-            if (!villageData || !villageData.waterTanks) return;
+            if (!infraData || !infraData.waterTanks) return;
             
             const html = `
                 <table>
@@ -756,7 +756,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${villageData.waterTanks.map(tank => {
+                        ${infraData.waterTanks.map(tank => {
                             const status = tank.currentLevel > 50 ? 'good' : tank.currentLevel > 30 ? 'warning' : 'critical';
                             return `
                                 <tr>
@@ -785,7 +785,7 @@
         // Render Power Nodes
         function renderPowerNodes() {
             const container = document.getElementById('powerNodesTable');
-            if (!villageData || !villageData.powerNodes) return;
+            if (!infraData || !infraData.powerNodes) return;
             
             const html = `
                 <table>
@@ -799,7 +799,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${villageData.powerNodes.map(node => {
+                        ${infraData.powerNodes.map(node => {
                             const loadPercent = (node.currentLoad / node.capacity) * 100;
                             const status = loadPercent > 95 ? 'critical' : loadPercent > 80 ? 'warning' : 'good';
                             return `
@@ -829,13 +829,13 @@
         // Render Sensors
         function renderSensors() {
             const container = document.getElementById('sensorsTable');
-            if (!villageData || !villageData.sensors) return;
+            if (!infraData || !infraData.sensors) return;
             
             const displayLimit = 12;
             const keySensors = [];
             const seenTypes = new Set();
             
-            for (const sensor of villageData.sensors) {
+            for (const sensor of infraData.sensors) {
                 if (!seenTypes.has(sensor.type) || keySensors.length < displayLimit) {
                     keySensors.push(sensor);
                     seenTypes.add(sensor.type);
@@ -992,11 +992,11 @@
 
         // Update statistics
         function updateStats() {
-            if (!villageData) return;
+            if (!infraData) return;
 
-            const tankCount = villageData.waterTanks?.length || 0;
-            const powerCount = villageData.powerNodes?.length || 0;
-            const sensorCount = villageData.sensors?.length || 0;
+            const tankCount = infraData.waterTanks?.length || 0;
+            const powerCount = infraData.powerNodes?.length || 0;
+            const sensorCount = infraData.sensors?.length || 0;
 
             document.getElementById('totalTanks').textContent = tankCount;
             document.getElementById('totalPower').textContent = powerCount;
@@ -1016,8 +1016,8 @@
                 document.getElementById('sensor-count').textContent = sensorCount + ' Sensors';
             }
 
-            if (villageData.waterTanks && villageData.waterTanks.length > 0) {
-                const avgWater = villageData.waterTanks.reduce((sum, t) => sum + t.currentLevel, 0) / villageData.waterTanks.length;
+            if (infraData.waterTanks && infraData.waterTanks.length > 0) {
+                const avgWater = infraData.waterTanks.reduce((sum, t) => sum + t.currentLevel, 0) / infraData.waterTanks.length;
                 document.getElementById('avgWater').textContent = avgWater.toFixed(1) + '%';
             }
         }

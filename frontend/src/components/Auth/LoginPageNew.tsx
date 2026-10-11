@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { User, Shield, Briefcase, ChevronRight, Lock, Mail, AlertCircle, Loader, ArrowLeft } from 'lucide-react';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import { API_URL } from '../../config/api';
 import { useLanguage } from '../../i18n/LanguageContext';
 
@@ -54,7 +54,7 @@ export default function LoginPage({ onBack }: LoginPageProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const login = useVillageStore((state) => state.login);
+  const login = useAppStore((state) => state.login);
   const { t, lang, toggleLang } = useLanguage();
   const hi = lang === 'hi';
   const tx = (en: string, hiText: string) => (hi ? hiText : en);
@@ -184,7 +184,7 @@ export default function LoginPage({ onBack }: LoginPageProps) {
             {t('appBrand', 'RuraLens')}
           </h1>
           <p className="text-base text-[#5d7466] font-light max-w-xl mx-auto tracking-wide">
-            {tx('Empowering communities and cities with ', 'समुदायों और शहरों को ')}<span className="text-[#2c6650] font-medium">AI</span> {tx('and', 'और')} <span className="text-[#3f8b60] font-medium">{tx('Transparency', 'पारदर्शिता')}</span> {tx('for better governance.', 'से सशक्त बनाना')}
+            {tx('Empowering communities with ', 'समुदायों को ')}<span className="text-[#2c6650] font-medium">AI</span> {tx('and', 'और')} <span className="text-[#3f8b60] font-medium">{tx('Transparency', 'पारदर्शिता')}</span> {tx('for better governance.', 'से सशक्त बनाना')}
           </p>
         </motion.div>
 
@@ -245,7 +245,7 @@ export default function LoginPage({ onBack }: LoginPageProps) {
               <p className="text-xs text-[#6a826f] mb-4 font-medium uppercase tracking-wider">{t('quickDemo', 'Quick Demo Access')}</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
-                  onClick={() => quickLogin('admin@village.com', 'admin123', 'admin')}
+                  onClick={() => quickLogin('admin@ruralens.com', 'admin123', 'admin')}
                   disabled={loading}
                   className="group relative overflow-hidden bg-transparent border border-purple-300 text-purple-700 py-2.5 px-4 rounded-xl hover:bg-purple-100/70 transition-all disabled:opacity-50 font-medium text-sm flex items-center justify-center gap-2"
                 >
@@ -253,7 +253,7 @@ export default function LoginPage({ onBack }: LoginPageProps) {
                   <span>{tx('Admin Demo', 'एडमिन डेमो')}</span>
                 </button>
                 <button
-                  onClick={() => quickLogin('field@village.com', 'field123', 'field_worker')}
+                  onClick={() => quickLogin('field@ruralens.com', 'field123', 'field_worker')}
                   disabled={loading}
                   className="group relative overflow-hidden bg-transparent border border-orange-300 text-orange-700 py-2.5 px-4 rounded-xl hover:bg-orange-100/70 transition-all disabled:opacity-50 font-medium text-sm flex items-center justify-center gap-2"
                 >
@@ -261,7 +261,7 @@ export default function LoginPage({ onBack }: LoginPageProps) {
                   <span>{tx('Field Demo', 'फील्ड डेमो')}</span>
                 </button>
                 <button
-                  onClick={() => quickLogin('citizen@village.com', 'user123', 'user')}
+                  onClick={() => quickLogin('citizen@ruralens.com', 'user123', 'user')}
                   disabled={loading}
                   className="group relative overflow-hidden bg-emerald-100/70 border border-emerald-300 text-emerald-800 py-2.5 px-4 rounded-xl hover:bg-emerald-200/70 transition-all disabled:opacity-50 font-medium text-sm flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(78,150,111,0.15)]"
                 >

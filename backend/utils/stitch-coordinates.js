@@ -1,5 +1,5 @@
 /**
- * Stitches a coordinate system onto the village nodes
+ * Stitches a coordinate system onto the infrastructure nodes
  * 
  * Layout Strategy:
  * - Spine: Main Roads at X=0 (central north-south axis)
@@ -10,7 +10,7 @@
  * This creates realistic spatial relationships for proximity-based edge building.
  */
 
-function stitchVillageCoordinates(villageState) {
+function stitchInfraCoordinates(infraState) {
   let roadIndex = 0;
   let buildingIndex = 0;
   let powerIndex = 0;
@@ -18,8 +18,8 @@ function stitchVillageCoordinates(villageState) {
   let clusterIndex = 0;
 
   // Process roads - central spine
-  if (villageState.roads) {
-    villageState.roads.forEach((node) => {
+  if (infraState.roads) {
+    infraState.roads.forEach((node) => {
       if (!node.coords && !node.path) {
         // Roads form a vertical spine at X=0, spaced 100m apart
         node.coords = [0, roadIndex * 0.001]; // ~100m spacing in lat/lng
@@ -29,8 +29,8 @@ function stitchVillageCoordinates(villageState) {
   }
 
   // Process buildings - East side cluster
-  if (villageState.buildings) {
-    villageState.buildings.forEach((node) => {
+  if (infraState.buildings) {
+    infraState.buildings.forEach((node) => {
       if (!node.coords) {
         // Buildings on East side, staggered pattern
         const row = Math.floor(buildingIndex / 2);
@@ -42,8 +42,8 @@ function stitchVillageCoordinates(villageState) {
   }
 
   // Process power infrastructure - West side
-  if (villageState.powerNodes) {
-    villageState.powerNodes.forEach((node) => {
+  if (infraState.powerNodes) {
+    infraState.powerNodes.forEach((node) => {
       if (!node.coords) {
         // Power nodes on West side, linear distribution
         node.coords = [-0.004, powerIndex * 0.002]; // 400m West, 200m spacing
@@ -53,8 +53,8 @@ function stitchVillageCoordinates(villageState) {
   }
 
   // Process sensors - Near power nodes
-  if (villageState.sensors) {
-    villageState.sensors.forEach((node) => {
+  if (infraState.sensors) {
+    infraState.sensors.forEach((node) => {
       if (!node.coords) {
         // Sensors near power infrastructure
         node.coords = [-0.0035, powerIndex * 0.0025]; // Close to power nodes
@@ -64,8 +64,8 @@ function stitchVillageCoordinates(villageState) {
   }
 
   // Process water infrastructure - North cluster
-  if (villageState.waterTanks || villageState.tanks) {
-    const tanks = villageState.waterTanks || villageState.tanks || [];
+  if (infraState.waterTanks || infraState.tanks) {
+    const tanks = infraState.waterTanks || infraState.tanks || [];
     tanks.forEach((node) => {
       if (!node.coords) {
         // Water tanks at the North end, elevated positions
@@ -75,8 +75,8 @@ function stitchVillageCoordinates(villageState) {
     });
   }
 
-  if (villageState.pumps) {
-    villageState.pumps.forEach((node) => {
+  if (infraState.pumps) {
+    infraState.pumps.forEach((node) => {
       if (!node.coords) {
         // Pumps near tanks
         node.coords = [-0.0025, 0.01 + (waterIndex * 0.0008)];
@@ -85,8 +85,8 @@ function stitchVillageCoordinates(villageState) {
     });
   }
 
-  if (villageState.pipes) {
-    villageState.pipes.forEach((node) => {
+  if (infraState.pipes) {
+    infraState.pipes.forEach((node) => {
       if (!node.coords && !node.fromNode) {
         // Standalone pipes in water cluster
         node.coords = [-0.003, 0.01 + (waterIndex * 0.0008)];
@@ -96,8 +96,8 @@ function stitchVillageCoordinates(villageState) {
   }
 
   // Process consumer clusters - scattered around buildings
-  if (villageState.clusters) {
-    villageState.clusters.forEach((node) => {
+  if (infraState.clusters) {
+    infraState.clusters.forEach((node) => {
       if (!node.coords && !node.geo) {
         // Clusters scattered near buildings, slight offset
         const row = Math.floor(clusterIndex / 2);
@@ -108,20 +108,20 @@ function stitchVillageCoordinates(villageState) {
     });
   }
 
-  return villageState;
+  return infraState;
 }
 
 /**
  * Add hard-coded critical infrastructure dependencies
  * These override proximity-based connections with logical dependencies
  */
-function addCriticalDependencies(graph, villageState) {
+function addCriticalDependencies(graph, infraState) {
   const dependencies = [];
 
   // Power → Pumps (critical dependency)
-  if (villageState.powerNodes && villageState.pumps) {
-    villageState.powerNodes.forEach((power, pIdx) => {
-      villageState.pumps.forEach((pump, pmIdx) => {
+  if (infraState.powerNodes && infraState.pumps) {
+    infraState.powerNodes.forEach((power, pIdx) => {
+      infraState.pumps.forEach((pump, pmIdx) => {
         if (pIdx === pmIdx) { // Match by index for demo
           dependencies.push({
             from: power.id,
@@ -137,10 +137,10 @@ function addCriticalDependencies(graph, villageState) {
   }
 
   // Power → Buildings (high priority)
-  if (villageState.powerNodes && villageState.buildings) {
-    const mainPower = villageState.powerNodes[0]; // Main transformer
+  if (infraState.powerNodes && infraState.buildings) {
+    const mainPower = infraState.powerNodes[0]; // Main transformer
     if (mainPower) {
-      villageState.buildings.forEach((building) => {
+      infraState.buildings.forEach((building) => {
         dependencies.push({
           from: mainPower.id,
           to: building.id,
@@ -154,11 +154,11 @@ function addCriticalDependencies(graph, villageState) {
   }
 
   // Tanks → Pumps → Clusters (water flow)
-  if (villageState.tanks && villageState.pumps && villageState.clusters) {
-    if (villageState.tanks[0] && villageState.pumps[0]) {
+  if (infraState.tanks && infraState.pumps && infraState.clusters) {
+    if (infraState.tanks[0] && infraState.pumps[0]) {
       dependencies.push({
-        from: villageState.tanks[0].tankId || villageState.tanks[0].id,
-        to: villageState.pumps[0].pumpId || villageState.pumps[0].id,
+        from: infraState.tanks[0].tankId || infraState.tanks[0].id,
+        to: infraState.pumps[0].pumpId || infraState.pumps[0].id,
         weight: 0.95,
         type: 'water-flow',
         relationship: 'supplies',
@@ -166,10 +166,10 @@ function addCriticalDependencies(graph, villageState) {
       });
     }
 
-    if (villageState.pumps[0] && villageState.clusters[0]) {
+    if (infraState.pumps[0] && infraState.clusters[0]) {
       dependencies.push({
-        from: villageState.pumps[0].pumpId || villageState.pumps[0].id,
-        to: villageState.clusters[0].clusterId || villageState.clusters[0].id,
+        from: infraState.pumps[0].pumpId || infraState.pumps[0].id,
+        to: infraState.clusters[0].clusterId || infraState.clusters[0].id,
         weight: 0.9,
         type: 'water-flow',
         relationship: 'supplies',
@@ -189,4 +189,4 @@ function addCriticalDependencies(graph, villageState) {
   return dependencies.length;
 }
 
-export { stitchVillageCoordinates, addCriticalDependencies };
+export { stitchInfraCoordinates, addCriticalDependencies };

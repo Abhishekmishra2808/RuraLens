@@ -26,8 +26,8 @@ const STATUS_CONFIG = {
 };
 
 const AUTHORITY_LEVELS = {
-  0: { name: { en: 'Village Sarpanch', hi: 'ग्राम सरपंच' }, color: 'text-green-400' },
-  1: { name: { en: 'Block Officer', hi: 'खंड अधिकारी' }, color: 'text-blue-400' },
+  0: { name: { en: 'Local Representative', hi: 'स्थानीय प्रतिनिधि' }, color: 'text-green-400' },
+  1: { name: { en: 'Area Officer', hi: 'क्षेत्र अधिकारी' }, color: 'text-blue-400' },
   2: { name: { en: 'District Magistrate', hi: 'जिला मजिस्ट्रेट' }, color: 'text-yellow-400' },
   3: { name: { en: 'State Authority', hi: 'राज्य प्राधिकरण' }, color: 'text-red-400' }
 };

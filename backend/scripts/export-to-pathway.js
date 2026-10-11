@@ -21,7 +21,7 @@ function schemeToDoc(scheme) {
     `Scheme ID: ${scheme.id}`,
     `Name: ${scheme.name}`,
     `Category: ${scheme.category || ''}`,
-    `Village: ${scheme.village || ''}`,
+    `Area: ${scheme.area || ''}`,
     `District: ${scheme.district || ''}`,
     `Status: ${scheme.status || ''}`,
     `Total Budget: ${scheme.totalBudget || 0}`,

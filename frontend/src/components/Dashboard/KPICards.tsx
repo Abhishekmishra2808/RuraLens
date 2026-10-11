@@ -1,8 +1,8 @@
 import { TrendingUp, TrendingDown, Activity, AlertCircle, Clock } from 'lucide-react';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 
 export default function KPICards() {
-  const { kpis } = useVillageStore();
+  const { kpis } = useAppStore();
 
   const cards = [
     {

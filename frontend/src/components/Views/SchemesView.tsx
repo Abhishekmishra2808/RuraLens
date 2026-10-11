@@ -21,7 +21,7 @@ import {
   Flag,
   Cpu
 } from 'lucide-react';
-import { useVillageStore, type GovernmentScheme } from '../../store/villageStore';
+import { useAppStore, type GovernmentScheme } from '../../store/appStore';
 import { API_URL } from '../../config/api';
 import RagQueryModal from '../Rag/RagQueryModal';
 import FeedbackView from './FeedbackView';
@@ -37,10 +37,10 @@ const LocalLLM = Capacitor.isNativePlatform() ? {
 
 export default function SchemesView() {
   // Get schemes from store instead of mock data
-  const schemes = useVillageStore((state) => state.schemes);
-  const fetchSchemes = useVillageStore((state) => state.fetchSchemes);
-  const userRole = useVillageStore((state) => state.userRole);
-  const username = useVillageStore((state) => state.username);
+  const schemes = useAppStore((state) => state.schemes);
+  const fetchSchemes = useAppStore((state) => state.fetchSchemes);
+  const userRole = useAppStore((state) => state.userRole);
+  const username = useAppStore((state) => state.username);
   
   const [selectedScheme, setSelectedScheme] = useState<GovernmentScheme | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -188,7 +188,7 @@ export default function SchemesView() {
     const matchesCategory = filterCategory === 'all' || scheme.category.toLowerCase() === filterCategory.toLowerCase();
     const matchesStatus = filterStatus === 'all' || scheme.status === filterStatus;
     const matchesSearch = scheme.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          scheme.village.toLowerCase().includes(searchQuery.toLowerCase());
+                          (scheme.area || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesStatus && matchesSearch;
   });
 
@@ -390,7 +390,7 @@ export default function SchemesView() {
                 <div className="flex items-center gap-3 text-xs text-[#728477]">
                   <div className="flex items-center gap-1">
                     <MapPin size={12} />
-                    <span className="truncate max-w-[100px]">{scheme.village}</span>
+                    <span className="truncate max-w-[100px]">{scheme.area}</span>
                   </div>
                   <div className="w-1 h-1 rounded-full bg-slate-700"></div>
                   <div className="font-mono opacity-70">{scheme.id}</div>
@@ -763,8 +763,8 @@ function SchemeDetailsModal({
   initialTab?: 'overview' | 'phases' | 'reports' | 'reviews';
 }) {
   const [activeTab, setActiveTab] = useState<'overview' | 'phases' | 'reports' | 'reviews'>(initialTab);
-  const userRole = useVillageStore((state) => state.userRole);
-  const deleteScheme = useVillageStore((state) => state.deleteScheme);
+  const userRole = useAppStore((state) => state.userRole);
+  const deleteScheme = useAppStore((state) => state.deleteScheme);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
@@ -780,7 +780,7 @@ function SchemeDetailsModal({
                 <div className="flex items-center space-x-1 text-purple-100">
                   <MapPin size={12} className="md:hidden" />
                   <MapPin size={14} className="hidden md:block" />
-                  <span className="truncate">{scheme.village}, {scheme.district}</span>
+                  <span className="truncate">{scheme.area}, {scheme.district}</span>
                 </div>
                 <div className="flex items-center space-x-1 text-purple-100">
                   <FileText size={12} className="md:hidden" />
@@ -1056,8 +1056,8 @@ function SchemeDetailsModal({
 function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
-  const userRole = useVillageStore((state) => state.userRole);
-  const fetchSchemes = useVillageStore((state) => state.fetchSchemes);
+  const userRole = useAppStore((state) => state.userRole);
+  const fetchSchemes = useAppStore((state) => state.fetchSchemes);
 
   const handleVendorReportUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -2201,7 +2201,7 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
   const [formData, setFormData] = useState({
     name: '',
     category: '',
-    village: '',
+    area: '',
     district: '',
     totalBudget: '',
     startDate: '',
@@ -2250,7 +2250,7 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
         setFormData({
           name: result.data.name || '',
           category: result.data.category || '',
-          village: result.data.village || '',
+          area: result.data.area || '',
           district: result.data.district || '',
           totalBudget: result.data.totalBudget?.toString() || '',
           startDate: result.data.startDate || '',
@@ -2319,7 +2319,7 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
           <div className="flex items-start justify-between">
             <div>
               <h2 className="text-2xl font-bold mb-1">Add New Government Scheme</h2>
-              <p className="text-sm opacity-90">Register a new rural development project</p>
+              <p className="text-sm opacity-90">Register a new public development project</p>
             </div>
             <button 
               onClick={onClose}
@@ -2416,14 +2416,14 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Village *</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Area *</label>
                 <input
                   type="text"
                   required
-                  value={formData.village}
-                  onChange={(e) => setFormData({ ...formData, village: e.target.value })}
+                  value={formData.area}
+                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                   className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                  placeholder="Village name"
+                  placeholder="Area or locality name"
                 />
               </div>
             </div>

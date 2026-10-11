@@ -10,7 +10,7 @@ const roles = [
     id: 'user' as const, 
     name: 'Citizen', 
     icon: User, 
-    description: 'View village information and services' 
+    description: 'View local information and services' 
   },
   { 
     id: 'admin' as const, 
@@ -47,7 +47,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             RuraLens
           </h1>
           <p className="text-xl text-gray-500 font-light max-w-2xl mx-auto">
-            A complete digital twin for smarter village management. Real-time insights, predictive analytics, and seamless control.
+            A complete digital twin for smarter infrastructure management. Real-time insights, predictive analytics, and seamless control.
           </p>
         </div>
 

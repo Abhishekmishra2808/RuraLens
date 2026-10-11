@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { useVillageStore, type GNNInfraNode } from '../../store/villageStore';
+import { useAppStore, type GNNInfraNode } from '../../store/appStore';
 import { Capacitor } from '@capacitor/core';
 import { API_URL } from '../../config/api';
 
-const VILLAGE_CENTER: [number, number] = [73.8567, 18.5204]; // Pune coordinates
+const MAP_CENTER: [number, number] = [73.8567, 18.5204]; // Pune coordinates
 const GNN_API_URL = API_URL;
 
 // Node types for adding
@@ -271,7 +271,7 @@ export default function Map3D() {
     addGNNNode,
     addGNNEdge,
     activeView 
-  } = useVillageStore();
+  } = useAppStore();
 
   // Handle adding a new node
   const handleAddNode = useCallback((name: string, type: string, coords: [number, number]) => {
@@ -295,7 +295,7 @@ export default function Map3D() {
     console.log('Node added, getting existing nodes...');
     
     // Auto-connect based on type and proximity
-    const existingNodes = useVillageStore.getState().gnnNodes;
+    const existingNodes = useAppStore.getState().gnnNodes;
     console.log('Existing nodes:', existingNodes.length);
     
     // Find nearby nodes by distance
@@ -367,7 +367,7 @@ export default function Map3D() {
         node_name: node.name,
         failure_type: failureType,
         severity: severity,
-        villageState: {
+        infraState: {
           waterTanks,
           waterPumps,
           waterPipes,
@@ -422,7 +422,7 @@ export default function Map3D() {
         setNodeFailed(node.id, failureType);
         
         // Get current nodes from store for matching
-        const currentGnnNodes = useVillageStore.getState().gnnNodes;
+        const currentGnnNodes = useAppStore.getState().gnnNodes;
         
         // Mark affected nodes with their impact scores
         const affectedNodes = data.affectedNodes || data.impact?.affectedNodes || [];
@@ -477,7 +477,7 @@ export default function Map3D() {
         }
         
         // Also mark connected nodes using edges (more reliable than API names)
-        const gnnEdges = useVillageStore.getState().gnnEdges;
+        const gnnEdges = useAppStore.getState().gnnEdges;
         const connectedNodeIds = gnnEdges
           .filter(e => e.source === node.id || e.target === node.id)
           .map(e => e.source === node.id ? e.target : e.source);
@@ -551,7 +551,7 @@ export default function Map3D() {
           maxzoom: 22,
         }],
       },
-      center: VILLAGE_CENTER,
+      center: MAP_CENTER,
   zoom: 16.6, // 16.6x view
       minZoom: 12,
       maxZoom: 20,
@@ -1196,7 +1196,7 @@ export default function Map3D() {
       case 'map':
         // Reset to overview when switching to map view
         map.current.flyTo({
-          center: VILLAGE_CENTER,
+          center: MAP_CENTER,
           zoom: 16.6,
           pitch: 45,
           duration: 1500,
@@ -1242,7 +1242,7 @@ export default function Map3D() {
           onClick={() => {
             if (map.current) {
               map.current.flyTo({
-                center: VILLAGE_CENTER,
+                center: MAP_CENTER,
                 zoom: 16.6,
                 pitch: 45,
                 bearing: 0,
@@ -1253,7 +1253,7 @@ export default function Map3D() {
           className={`bg-slate-900/90 hover:bg-slate-800 active:scale-95 backdrop-blur-md text-white rounded-lg shadow-lg border border-white/10 font-medium transition-all ${
             isMobile ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm'
           }`}
-          title="Reset to village center"
+          title="Reset to map center"
         >
           🏠 {isMobile ? 'Reset' : 'Reset View'}
         </button>

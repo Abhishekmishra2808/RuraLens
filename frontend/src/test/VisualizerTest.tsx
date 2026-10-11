@@ -39,7 +39,7 @@ const TEST_DATA: GraphVisualizationData = {
     // Critical Impact - Hospital
     {
       id: 'hospital-main',
-      name: 'Village Hospital',
+      name: 'District Hospital',
       type: 'hospital',
       color: '#FC8181',
       size: 12,
@@ -72,7 +72,7 @@ const TEST_DATA: GraphVisualizationData = {
     // Medium Impact - Roads
     {
       id: 'road-main',
-      name: 'Main Village Road',
+      name: 'Main Road',
       type: 'road',
       color: '#68D391',
       size: 7,

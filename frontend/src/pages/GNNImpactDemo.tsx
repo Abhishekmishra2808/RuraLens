@@ -57,7 +57,7 @@ const MOCK_VISUALIZATION_DATA: GraphVisualizationData = {
     },
     { 
       id: 'school-main', 
-      name: 'Village School', 
+      name: 'Public School', 
       type: 'school', 
       color: '#90CDF4', 
       size: 10, 
@@ -81,7 +81,7 @@ const MOCK_VISUALIZATION_DATA: GraphVisualizationData = {
     },
     { 
       id: 'market-main', 
-      name: 'Village Market', 
+      name: 'Central Market', 
       type: 'market', 
       color: '#9AE6B4', 
       size: 10, 
@@ -93,7 +93,7 @@ const MOCK_VISUALIZATION_DATA: GraphVisualizationData = {
     },
     { 
       id: 'road-main', 
-      name: 'Main Village Road', 
+      name: 'Main Road', 
       type: 'road', 
       color: '#CBD5E0', 
       size: 8, 
@@ -294,7 +294,7 @@ const GNNImpactDemo: React.FC = () => {
         color: 'white'
       }}>
         <h1 style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', marginBottom: '10px' }}>
-          🧠 Village Infrastructure Impact Brain
+          🧠 Infrastructure Impact Brain
         </h1>
         <p style={{ margin: 0, opacity: 0.9, fontSize: '16px' }}>
           Graph Neural Network powered failure prediction and impact visualization

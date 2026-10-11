@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ImpactPredictionPanel } from '../Dashboard/ImpactPredictionPanel';
-import { useVillageStore } from '../../store/villageStore';
-import { sampleVillageInfrastructure, sampleFailureScenarios } from '../../data/sampleVillageInfrastructure';
+import { useAppStore } from '../../store/appStore';
+import { sampleInfrastructure, sampleFailureScenarios } from '../../data/sampleInfrastructure';
 import { 
   Database, 
   Play, 
@@ -16,36 +16,36 @@ import {
 } from 'lucide-react';
 
 /**
- * ImpactPredictorView - Village Analyzer with GNN-based Impact Prediction
+ * ImpactPredictorView - Infrastructure Analyzer with GNN-based Impact Prediction
  * 
  * This view shows the interactive network graph for infrastructure analysis.
  * Add nodes via right-click on the Map3D view.
  * Trigger failures by clicking on nodes in the Map3D view.
  */
 const ImpactPredictorView: React.FC = () => {
-  const villageStore = useVillageStore();
+  const appStore = useAppStore();
   const [useSampleData, setUseSampleData] = useState(true);
   const [showScenarios, setShowScenarios] = useState(false);
   
-  // Build the village state - use sample data or real store data
-  const villageState = React.useMemo(() => {
+  // Build the infrastructure state - use sample data or real store data
+  const infraState = React.useMemo(() => {
     if (useSampleData) {
       // Use comprehensive sample data
-      return sampleVillageInfrastructure;
+      return sampleInfrastructure;
     }
     
     // Use real store data (may be incomplete)
     return {
-      tanks: villageStore.waterTanks || [],
+      tanks: appStore.waterTanks || [],
       pumps: [],
       pipes: [],
       clusters: [],
-      sensors: villageStore.sensors || [],
-      roads: villageStore.roads || [],
-      buildings: villageStore.buildings || [],
-      powerNodes: villageStore.powerNodes || [],
+      sensors: appStore.sensors || [],
+      roads: appStore.roads || [],
+      buildings: appStore.buildings || [],
+      powerNodes: appStore.powerNodes || [],
     };
-  }, [useSampleData, villageStore]);
+  }, [useSampleData, appStore]);
   
   const handleNodeSelect = (nodeId: string) => {
     console.log('Node selected:', nodeId);
@@ -53,13 +53,13 @@ const ImpactPredictorView: React.FC = () => {
 
   // Infrastructure summary stats
   const stats = React.useMemo(() => ({
-    roads: villageState.roads?.length || 0,
-    buildings: villageState.buildings?.length || 0,
-    powerNodes: villageState.powerNodes?.length || 0,
-    waterNodes: (villageState.tanks?.length || 0) + (villageState.pumps?.length || 0),
-    sensors: villageState.sensors?.length || 0,
-    clusters: villageState.clusters?.length || 0,
-  }), [villageState]);
+    roads: infraState.roads?.length || 0,
+    buildings: infraState.buildings?.length || 0,
+    powerNodes: infraState.powerNodes?.length || 0,
+    waterNodes: (infraState.tanks?.length || 0) + (infraState.pumps?.length || 0),
+    sensors: infraState.sensors?.length || 0,
+    clusters: infraState.clusters?.length || 0,
+  }), [infraState]);
 
   return (
     <div className="h-full overflow-y-auto">
@@ -68,12 +68,12 @@ const ImpactPredictorView: React.FC = () => {
         <div className="flex items-center gap-4 mb-2">
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
             <Network className="w-6 h-6 text-cyan-400" />
-            Village Analyzer
+            Infrastructure Analyzer
           </h1>
         </div>
         
         <p className="text-slate-400 text-sm pb-4">
-          Analyze village infrastructure network and predict cascading failures with GNN
+          Analyze the infrastructure network and predict cascading failures with GNN
         </p>
       </div>
       
@@ -204,7 +204,7 @@ const ImpactPredictorView: React.FC = () => {
 
         {/* Main Impact Prediction Panel */}
         <ImpactPredictionPanel 
-          villageState={villageState}
+          infraState={infraState}
           onNodeSelect={handleNodeSelect}
         />
       </div>

@@ -37,7 +37,7 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: ADMIN_EMAIL
-        value: admin@village.com
+        value: admin@ruralens.com
       - key: ADMIN_PASSWORD
         sync: false
       - key: ADMIN_NAME

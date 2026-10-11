@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'field_worker', 'user'],
     default: 'user'
   },
-  village: {
+  area: {
     type: String,
     default: 'Ramgarh'
   },

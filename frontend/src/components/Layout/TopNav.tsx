@@ -1,11 +1,11 @@
 import { Bell, Search, Menu, User, LogOut } from 'lucide-react';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import { Capacitor } from '@capacitor/core';
 import { useState } from 'react';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function TopNav() {
-  const { toggleSidebar, username, userRole, logout } = useVillageStore();
+  const { toggleSidebar, username, userRole, logout } = useAppStore();
   const isMobile = Capacitor.isNativePlatform();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { t, lang, toggleLang } = useLanguage();

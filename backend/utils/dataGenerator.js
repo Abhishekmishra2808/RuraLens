@@ -1,6 +1,6 @@
-﻿// Realistic data generation for Sundarpur Village Digital Twin
+﻿// Realistic data generation for the Sundarpur digital twin
 
-export function generateVillageData() {
+export function generateInfraData() {
   return {
     waterTanks: [
       { id: 'wt001', name: 'Central Water Tank', coords: [73.8567, 18.5204], elevation: 665, capacity: 50000, currentLevel: 85.5, status: 'good', flowRate: -125, lastRefill: '2026-10-08', nextService: '2026-10-25' },
@@ -12,9 +12,9 @@ export function generateVillageData() {
     
     buildings: [
       { id: 'b001', name: 'Sundarpur Primary School', type: 'school', coords: [73.8567, 18.5214], height: 8.5, floors: 2, color: '#3b82f6', occupancy: 245 },
-      { id: 'b002', name: 'Village Temple', type: 'temple', coords: [73.8577, 18.5194], height: 15.2, floors: 1, color: '#f97316', occupancy: 0 },
+      { id: 'b002', name: 'Central Temple', type: 'temple', coords: [73.8577, 18.5194], height: 15.2, floors: 1, color: '#f97316', occupancy: 0 },
       { id: 'b003', name: 'Primary Health Center', type: 'health', coords: [73.8587, 18.5204], height: 6.0, floors: 1, color: '#10b981', occupancy: 18 },
-      { id: 'b004', name: 'Gram Panchayat Office', type: 'government', coords: [73.8562, 18.5209], height: 7.5, floors: 2, color: '#8b5cf6', occupancy: 12 },
+      { id: 'b004', name: 'Civic Office', type: 'government', coords: [73.8562, 18.5209], height: 7.5, floors: 2, color: '#8b5cf6', occupancy: 12 },
       { id: 'b005', name: 'Community Hall', type: 'community', coords: [73.8572, 18.5199], height: 5.0, floors: 1, color: '#06b6d4', occupancy: 0 },
       { id: 'b006', name: 'Anganwadi Center', type: 'childcare', coords: [73.8582, 18.5189], height: 4.5, floors: 1, color: '#ec4899', occupancy: 32 },
       { id: 'b007', name: 'Post Office', type: 'service', coords: [73.8552, 18.5214], height: 5.5, floors: 1, color: '#eab308', occupancy: 5 },
@@ -41,7 +41,7 @@ export function generateVillageData() {
       { id: 'r002', name: 'School Road', path: [[73.8567, 18.5204], [73.8567, 18.5214]], width: 6, condition: 'fair', potholes: 3, lastMaintenance: '2026-06-20' },
       { id: 'r003', name: 'Temple Road', path: [[73.8567, 18.5204], [73.8577, 18.5194]], width: 7, condition: 'good', potholes: 0, lastMaintenance: '2026-09-10' },
       { id: 'r004', name: 'Health Center Road', path: [[73.8567, 18.5204], [73.8587, 18.5204]], width: 6, condition: 'good', potholes: 1, lastMaintenance: '2026-07-25' },
-      { id: 'r005', name: 'Village Circle', path: [[73.8562, 18.5209], [73.8572, 18.5209], [73.8572, 18.5199], [73.8562, 18.5199], [73.8562, 18.5209]], width: 8, condition: 'fair', potholes: 2, lastMaintenance: '2026-05-12' },
+      { id: 'r005', name: 'Main Circle', path: [[73.8562, 18.5209], [73.8572, 18.5209], [73.8572, 18.5199], [73.8562, 18.5199], [73.8562, 18.5209]], width: 8, condition: 'fair', potholes: 2, lastMaintenance: '2026-05-12' },
       { id: 'r006', name: 'Farm Access Road', path: [[73.8580, 18.5190], [73.8592, 18.5219]], width: 5, condition: 'poor', potholes: 7, lastMaintenance: '2026-03-08' }
     ],
     
@@ -96,7 +96,7 @@ export function generateVillageData() {
       { id: 'cr002', category: 'water', title: 'Water leakage near temple', coords: [73.8575, 18.5194], status: 'pending', priority: 'medium', createdAt: '2026-10-09T14:15:00Z', assignedTo: null, photos: 1, description: 'Continuous water leakage from pipeline' },
       { id: 'cr003', category: 'power', title: 'Street light not working', coords: [73.8555, 18.5200], status: 'completed', priority: 'low', createdAt: '2026-10-07T19:45:00Z', assignedTo: 'Electrician #5', photos: 0, description: 'Street light pole #23 not functioning' },
       { id: 'cr004', category: 'waste', title: 'Garbage accumulation', coords: [73.8580, 18.5190], status: 'pending', priority: 'high', createdAt: '2026-10-09T08:20:00Z', assignedTo: null, photos: 3, description: 'Garbage not collected for 3 days' },
-      { id: 'cr005', category: 'road', title: 'Road markings faded', coords: [73.8565, 18.5209], status: 'pending', priority: 'low', createdAt: '2026-10-08T16:00:00Z', assignedTo: null, photos: 1, description: 'Road markings need repainting at village circle' }
+      { id: 'cr005', category: 'road', title: 'Road markings faded', coords: [73.8565, 18.5209], status: 'pending', priority: 'low', createdAt: '2026-10-08T16:00:00Z', assignedTo: null, photos: 1, description: 'Road markings need repainting at main circle' }
     ],
     
     schemes: [
@@ -104,7 +104,7 @@ export function generateVillageData() {
         id: 'sch001',
         name: 'Swachh Bharat Abhiyan - Phase 2',
         category: 'Sanitation',
-        village: 'Sundarpur',
+        area: 'Sundarpur',
         district: 'Pune',
         totalBudget: 2500000,
         budgetUtilized: 1875000,
@@ -132,7 +132,7 @@ export function generateVillageData() {
         id: 'sch002',
         name: 'Jal Jeevan Mission - Pipeline Extension',
         category: 'Water Supply',
-        village: 'Sundarpur',
+        area: 'Sundarpur',
         district: 'Pune',
         totalBudget: 4200000,
         budgetUtilized: 2940000,
@@ -161,7 +161,7 @@ export function generateVillageData() {
         id: 'sch003',
         name: 'PMAY - Affordable Housing',
         category: 'Housing',
-        village: 'Sundarpur',
+        area: 'Sundarpur',
         district: 'Pune',
         totalBudget: 8500000,
         budgetUtilized: 7225000,
@@ -186,9 +186,9 @@ export function generateVillageData() {
       },
       {
         id: 'sch004',
-        name: 'MGNREGA - Rural Road Development',
+        name: 'Public Works Employment - Road Development',
         category: 'Employment',
-        village: 'Sundarpur',
+        area: 'Sundarpur',
         district: 'Pune',
         totalBudget: 1800000,
         budgetUtilized: 540000,
@@ -196,7 +196,7 @@ export function generateVillageData() {
         endDate: '2026-03-31',
         overallProgress: 30,
         status: 'on-track',
-        description: 'Rural road construction and maintenance providing employment to 150 households',
+        description: 'Road construction and maintenance providing employment to 150 households',
         phases: [
           { id: 1, name: 'Worker Registration', progress: 100, status: 'completed', startDate: '2026-06-01', endDate: '2026-06-30', budget: 50000, spent: 48000 },
           { id: 2, name: 'Road Survey & Marking', progress: 100, status: 'completed', startDate: '2026-07-01', endDate: '2026-07-31', budget: 100000, spent: 95000 },
@@ -204,7 +204,7 @@ export function generateVillageData() {
           { id: 4, name: 'Road Construction Phase 2', progress: 0, status: 'not-started', startDate: '2026-01-01', endDate: '2026-03-31', budget: 750000, spent: 0 }
         ],
         vendorReports: [
-          { id: 1, vendorName: 'Village Panchayat (Self)', submittedDate: '2026-09-30', phase: 3, workCompleted: '1.8 km road constructed, 145 workers employed', expenseClaimed: 350000, verificationStatus: 'verified', documents: ['attendance-sheets.pdf', 'wage-disbursement.pdf'] }
+          { id: 1, vendorName: 'Local Body (Self)', submittedDate: '2026-09-30', phase: 3, workCompleted: '1.8 km road constructed, 145 workers employed', expenseClaimed: 350000, verificationStatus: 'verified', documents: ['attendance-sheets.pdf', 'wage-disbursement.pdf'] }
         ],
         discrepancies: [],
         citizenRating: 4.1,
@@ -213,9 +213,9 @@ export function generateVillageData() {
       },
       {
         id: 'sch005',
-        name: 'Village Electrification - Solar Street Lights',
+        name: 'Street Electrification - Solar Street Lights',
         category: 'Power',
-        village: 'Sundarpur',
+        area: 'Sundarpur',
         district: 'Pune',
         totalBudget: 1500000,
         budgetUtilized: 1650000,
@@ -223,7 +223,7 @@ export function generateVillageData() {
         endDate: '2026-09-30',
         overallProgress: 95,
         status: 'discrepant',
-        description: 'Installation of 75 solar-powered LED street lights across the village',
+        description: 'Installation of 75 solar-powered LED street lights across the area',
         phases: [
           { id: 1, name: 'Site Identification', progress: 100, status: 'completed', startDate: '2026-03-01', endDate: '2026-03-31', budget: 100000, spent: 95000 },
           { id: 2, name: 'Equipment Procurement', progress: 100, status: 'completed', startDate: '2026-04-01', endDate: '2026-05-31', budget: 900000, spent: 1050000 },
@@ -463,7 +463,7 @@ export function updateSensorData(state) {
         const randomPhase = ongoingPhases[Math.floor(Math.random() * ongoingPhases.length)];
         const newReportId = (scheme.vendorReports.length || 0) + 1;
         
-        const vendors = ['Green Build Contractors', 'AquaTech Infrastructure', 'Shree Constructions', 'ElectroTech Services', 'Village Panchayat (Self)'];
+        const vendors = ['Green Build Contractors', 'AquaTech Infrastructure', 'Shree Constructions', 'ElectroTech Services', 'Local Body (Self)'];
         const randomVendor = vendors[Math.floor(Math.random() * vendors.length)];
         
         const expenseClaimed = Math.round(randomPhase.budget * 0.1 * (0.8 + Math.random() * 0.4));

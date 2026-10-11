@@ -15,14 +15,14 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { useState } from 'react';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import RagQueryModal from '../Rag/RagQueryModal';
 import type { Citation } from '../../hooks/useRagQuery';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function AdminDashboard() {
-  const schemes = useVillageStore((state) => state.schemes);
-  const setActiveView = useVillageStore((state) => state.setActiveView);
+  const schemes = useAppStore((state) => state.schemes);
+  const setActiveView = useAppStore((state) => state.setActiveView);
   const [showRagModal, setShowRagModal] = useState(false);
   const { lang } = useLanguage();
   const hi = lang === 'hi';
@@ -251,7 +251,7 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <div className="font-medium text-white group-hover:text-purple-400 transition-colors">{scheme.name}</div>
-                      <div className="text-xs text-slate-500">{scheme.village} • ID: {scheme.id}</div>
+                      <div className="text-xs text-slate-500">{scheme.area} • ID: {scheme.id}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">

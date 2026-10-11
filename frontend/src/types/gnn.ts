@@ -1,4 +1,4 @@
-// GNN Impact Prediction Types for Village Infrastructure
+// GNN Impact Prediction Types for Infrastructure
 
 export type InfrastructureType = 
   | 'tank' 

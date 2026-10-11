@@ -1,25 +1,25 @@
 ﻿/**
- * Demo Village Data for offline/development mode
- * Uses Pune coordinates (Village Center: 73.8567, 18.5204)
+ * Demo infrastructure data for offline/development mode
+ * Uses Pune coordinates (Map Center: 73.8567, 18.5204)
  * 
  * REDUCED TO 8 NODES for clean visualization:
  * 1. Main Water Tank (North)
  * 2. Main Pump Station (North-West)
  * 3. Main Transformer (Center)
- * 4. Village School (East)
+ * 4. Public School (East)
  * 5. Primary Health Center (South)
- * 6. Village Market (South-East)
- * 7. Main Village Road (West)
+ * 6. Central Market (South-East)
+ * 7. Main Road (West)
  * 8. Flow Sensor (Center-East)
  */
 
-export const demoVillageData = {
+export const demoInfraData = {
   // Water Infrastructure - 1 Tank only
   waterTanks: [
     {
       id: 'tank-main',
       name: 'Main Water Tank',
-      coords: [73.8567, 18.5240], // North of village center
+      coords: [73.8567, 18.5240], // North of map center
       capacity: 50000,
       currentLevel: 75,
       status: 'operational',
@@ -46,7 +46,7 @@ export const demoVillageData = {
   buildings: [
     {
       id: 'school-main',
-      name: 'Village School',
+      name: 'Public School',
       type: 'school',
       coords: [73.8607, 18.5220], // East
       occupancy: 250,
@@ -62,7 +62,7 @@ export const demoVillageData = {
     },
     {
       id: 'market-main',
-      name: 'Village Market',
+      name: 'Central Market',
       type: 'market',
       coords: [73.8597, 18.5178], // South-East
       occupancy: 500,
@@ -76,7 +76,7 @@ export const demoVillageData = {
       id: 'power-main',
       name: 'Main Transformer',
       type: 'transformer',
-      coords: [73.8567, 18.5204], // Center of village
+      coords: [73.8567, 18.5204], // Map center
       capacity: 500,
       currentLoad: 380,
       status: 'operational',
@@ -100,7 +100,7 @@ export const demoVillageData = {
   roads: [
     {
       id: 'road-main',
-      name: 'Main Village Road',
+      name: 'Main Road',
       coords: [73.8527, 18.5204], // West side - use coords instead of from/to
       from: [73.8507, 18.5204],
       to: [73.8627, 18.5204],
@@ -124,5 +124,5 @@ export const demoVillageData = {
   },
 };
 
-export default demoVillageData;
+export default demoInfraData;
 

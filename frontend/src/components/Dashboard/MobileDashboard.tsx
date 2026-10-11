@@ -1,9 +1,9 @@
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import { Activity, ArrowRight, ShieldAlert } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function MobileDashboard() {
-  const { kpis, setActiveView, userRole } = useVillageStore();
+  const { kpis, setActiveView, userRole } = useAppStore();
   const { lang } = useLanguage();
   const hi = lang === 'hi';
   const tx = (en: string, hiText: string) => (hi ? hiText : en);

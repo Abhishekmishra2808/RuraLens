@@ -39,8 +39,8 @@ import type { WaterSimulationState } from '../../types/water';
 import ImpactGraphVisualizer from '../ImpactGraphVisualizer';
 import type { GraphVisualizationData, GraphNode, GraphLink, SeverityLevel } from '../../types/graph-visualization';
 
-// Extended village state interface for all infrastructure
-interface VillageState {
+// Extended state interface for all infrastructure
+interface InfraState {
   tanks?: any[];
   pumps?: any[];
   pipes?: any[];
@@ -54,7 +54,7 @@ interface VillageState {
 
 interface ImpactPredictionPanelProps {
   waterState?: WaterSimulationState;
-  villageState?: VillageState;
+  infraState?: InfraState;
   onNodeSelect?: (nodeId: string) => void;
 }
 
@@ -109,7 +109,7 @@ const nodeTypeLabels: Record<string, string> = {
 
 export const ImpactPredictionPanel: React.FC<ImpactPredictionPanelProps> = ({
   waterState,
-  villageState,
+  infraState,
   onNodeSelect,
 }) => {
   const {
@@ -134,10 +134,10 @@ export const ImpactPredictionPanel: React.FC<ImpactPredictionPanelProps> = ({
   const [nodeTypeFilter, setNodeTypeFilter] = useState<string>('all');
   const [selectedNodeForDetails, setSelectedNodeForDetails] = useState<AffectedNode | null>(null);
 
-  // Get combined state - prefer villageState, fall back to waterState
+  // Get combined state - prefer infraState, fall back to waterState
   const combinedState = useMemo(() => {
-    return villageState || waterState;
-  }, [villageState, waterState]);
+    return infraState || waterState;
+  }, [infraState, waterState]);
 
   // Initialize GNN when state changes
   useEffect(() => {
@@ -193,7 +193,7 @@ export const ImpactPredictionPanel: React.FC<ImpactPredictionPanelProps> = ({
       <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
         <div className="flex items-center gap-3 mb-4">
           <Network className="w-6 h-6 text-cyan-400" />
-          <h2 className="text-xl font-bold text-white">Village Infrastructure Impact Predictor</h2>
+          <h2 className="text-xl font-bold text-white">Infrastructure Impact Predictor</h2>
         </div>
         <p className="text-slate-400 mb-4">
           Initialize the Graph Neural Network to predict cascading effects of failures across roads, buildings, water, power, and other infrastructure.
@@ -221,7 +221,7 @@ export const ImpactPredictionPanel: React.FC<ImpactPredictionPanelProps> = ({
               <Network className="w-6 h-6 text-cyan-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Village Infrastructure Impact Predictor</h2>
+              <h2 className="text-xl font-bold text-white">Infrastructure Impact Predictor</h2>
               <p className="text-sm text-slate-400">
                 Predict cascading effects across roads, buildings, power, and water systems
               </p>

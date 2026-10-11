@@ -74,7 +74,7 @@ def _scheme_to_doc(scheme: dict[str, Any]) -> str:
             f"Scheme ID: {_safe_text(scheme.get('id'))}",
             f"Name: {_safe_text(scheme.get('name'))}",
             f"Category: {_safe_text(scheme.get('category'))}",
-            f"Village: {_safe_text(scheme.get('village'))}",
+            f"Area: {_safe_text(scheme.get('area'))}",
             f"District: {_safe_text(scheme.get('district'))}",
             f"Status: {_safe_text(scheme.get('status'))}",
             f"Total Budget: {_safe_text(scheme.get('totalBudget', 0))}",
@@ -116,14 +116,14 @@ def _resolve_db_name() -> str:
         return MONGODB_DB
 
     if not MONGODB_URI:
-        return "villagetwin"
+        return "ruralens"
 
     try:
         parsed = parse_uri(MONGODB_URI)
         db_name = parsed.get("database")
-        return db_name or "villagetwin"
+        return db_name or "ruralens"
     except Exception:
-        return "villagetwin"
+        return "ruralens"
 
 
 def _fetch_docs_from_db(db) -> list[dict[str, Any]]:

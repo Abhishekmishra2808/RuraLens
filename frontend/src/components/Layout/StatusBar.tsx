@@ -1,8 +1,8 @@
 ﻿import { Wifi, Activity, Server, ShieldCheck } from 'lucide-react';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 
 export default function StatusBar() {
-  const { userRole } = useVillageStore();
+  const { userRole } = useAppStore();
 
   return (
     <footer className="h-8 bg-slate-950 border-t border-white/10 flex items-center justify-between px-4 text-[10px] text-slate-500 select-none z-50">

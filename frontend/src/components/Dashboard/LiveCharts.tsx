@@ -1,8 +1,8 @@
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 
 export default function LiveCharts() {
   // Keep store reference to avoid linting errors
-  useVillageStore();
+  useAppStore();
 
   return (
     <div className="space-y-4">

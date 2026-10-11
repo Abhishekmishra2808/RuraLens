@@ -1,9 +1,9 @@
 import { Home, Briefcase, CloudSun, Map, Menu, Shield } from 'lucide-react';
-import { useVillageStore } from '../../store/villageStore';
+import { useAppStore } from '../../store/appStore';
 import { useLanguage } from '../../i18n/LanguageContext';
 
 export default function MobileNav() {
-  const { activeView, setActiveView, toggleSidebar } = useVillageStore();
+  const { activeView, setActiveView, toggleSidebar } = useAppStore();
   const { lang } = useLanguage();
   const hi = lang === 'hi';
 

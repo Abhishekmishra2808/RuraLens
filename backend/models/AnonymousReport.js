@@ -9,7 +9,7 @@ const escalationSchema = new mongoose.Schema({
   authority: {
     type: String,
     required: true,
-    enum: ['sarpanch', 'block_officer', 'district_magistrate', 'state_authority']
+    enum: ['local_representative', 'area_officer', 'district_magistrate', 'state_authority']
   },
   authorityName: {
     type: String,
@@ -42,7 +42,7 @@ const statusUpdateSchema = new mongoose.Schema({
   },
   updatedByRole: {
     type: String,
-    enum: ['admin', 'field_worker', 'sarpanch', 'system']
+    enum: ['admin', 'field_worker', 'local_representative', 'system']
   },
   message: {
     type: String,
@@ -308,12 +308,12 @@ anonymousReportSchema.methods.needsEscalation = function() {
 // Method to get authority name for escalation level
 anonymousReportSchema.statics.getAuthorityForLevel = function(level) {
   const authorities = {
-    0: 'sarpanch',
-    1: 'block_officer',
+    0: 'local_representative',
+    1: 'area_officer',
     2: 'district_magistrate',
     3: 'state_authority'
   };
-  return authorities[level] || 'sarpanch';
+  return authorities[level] || 'local_representative';
 };
 
 export default mongoose.model('AnonymousReport', anonymousReportSchema);

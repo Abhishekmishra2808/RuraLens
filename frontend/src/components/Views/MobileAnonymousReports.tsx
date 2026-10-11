@@ -50,8 +50,8 @@ const STATUS_CONFIG: Record<string, { label: { en: string; hi: string }; color: 
 };
 
 const AUTHORITY_LEVELS: Record<number, { name: { en: string; hi: string }; color: string }> = {
-  0: { name: { en: 'Sarpanch', hi: 'सरपंच' }, color: 'text-green-400' },
-  1: { name: { en: 'Block Officer', hi: 'खंड अधिकारी' }, color: 'text-blue-400' },
+  0: { name: { en: 'Local Representative', hi: 'स्थानीय प्रतिनिधि' }, color: 'text-green-400' },
+  1: { name: { en: 'Area Officer', hi: 'क्षेत्र अधिकारी' }, color: 'text-blue-400' },
   2: { name: { en: 'District Magistrate', hi: 'जिला मजिस्ट्रेट' }, color: 'text-yellow-400' },
   3: { name: { en: 'State Authority', hi: 'राज्य प्राधिकरण' }, color: 'text-red-400' }
 };
@@ -600,7 +600,7 @@ export default function MobileAnonymousReports() {
               type="text"
               value={formData.location}
               onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-              placeholder={tx('Village/Area', 'गांव/क्षेत्र')}
+              placeholder={tx('Area/Locality', 'क्षेत्र/इलाका')}
               className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500"
             />
           </div>

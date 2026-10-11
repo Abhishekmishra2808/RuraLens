@@ -14,14 +14,14 @@ import {
   ShoppingCart,
   XCircle,
 } from 'lucide-react';
-import { useVillageStore, type GNNInfraNode } from '../store/villageStore';
+import { useAppStore, type GNNInfraNode } from '../store/appStore';
 import { API_URL } from '../config/api';
 
 // API base URL for backend GNN routes
 const GNN_API_URL = API_URL;
 
-// Village center coordinates (Pune)
-const VILLAGE_CENTER: [number, number] = [73.8567, 18.5204];
+// Map center coordinates (Pune)
+const MAP_CENTER: [number, number] = [73.8567, 18.5204];
 
 // Constants matching the infrastructure network
 const NODE_TYPES = [
@@ -36,13 +36,13 @@ const NODE_TYPES = [
   { value: 'Market', label: 'Market', icon: ShoppingCart, color: 'bg-emerald-500' },
 ];
 
-// Generate random coordinates near village center
+// Generate random coordinates near map center
 const generateCoords = (index: number): [number, number] => {
   const angle = (index * 72) * (Math.PI / 180); // Spread nodes in a circle
   const radius = 0.002 + (index * 0.0005); // Increasing radius
   return [
-    VILLAGE_CENTER[0] + radius * Math.cos(angle),
-    VILLAGE_CENTER[1] + radius * Math.sin(angle),
+    MAP_CENTER[0] + radius * Math.cos(angle),
+    MAP_CENTER[1] + radius * Math.sin(angle),
   ];
 };
 
@@ -60,7 +60,7 @@ export const ImpactGenerator: React.FC = () => {
     clearAllFailures,
     clearNodeImpacts,
     initializeRealNetwork,
-  } = useVillageStore();
+  } = useAppStore();
   
   // Form state for adding nodes
   const [newNodeName, setNewNodeName] = useState('');
@@ -77,7 +77,7 @@ export const ImpactGenerator: React.FC = () => {
   useEffect(() => {
     if (gnnNodes.length === 0 && (waterTanks.length > 0 || powerNodes.length > 0 || buildings.length > 0)) {
       initializeRealNetwork();
-      setStatusMessage('✅ Loaded real village infrastructure network - visible on 3D Map!');
+      setStatusMessage('✅ Loaded real infrastructure network - visible on 3D Map!');
     }
   }, [waterTanks, powerNodes, buildings, gnnNodes.length, initializeRealNetwork]);
 
@@ -181,12 +181,12 @@ export const ImpactGenerator: React.FC = () => {
     setNewNodeName('');
   }, [newNodeName, newNodeType, newNodeHealth, gnnNodes, addGNNNode, addGNNEdge]);
 
-  // Reset network to original village infrastructure
+  // Reset network to original infrastructure
   const resetNetwork = () => {
     initializeRealNetwork();
     clearAllFailures();
     clearNodeImpacts();
-    setStatusMessage('🔄 Reset to real village infrastructure');
+    setStatusMessage('🔄 Reset to real infrastructure');
   };
 
   // Get node icon component
@@ -222,7 +222,7 @@ export const ImpactGenerator: React.FC = () => {
             )}
           </div>
           <p className="text-slate-400">
-            Real village infrastructure network • Add nodes • Simulate failures • See impacts on 3D map
+            Real infrastructure network • Add nodes • Simulate failures • See impacts on 3D map
           </p>
         </div>
 
@@ -309,7 +309,7 @@ export const ImpactGenerator: React.FC = () => {
                   className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  Reset to Village Infrastructure
+                  Reset to Original Infrastructure
                 </button>
                 {failedNodes.length > 0 && (
                   <button
@@ -331,7 +331,7 @@ export const ImpactGenerator: React.FC = () => {
             <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
               <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <Network className="w-5 h-5 text-cyan-400" />
-                Village Network
+                Infrastructure Network
                 {gnnNodes.length > 0 && (
                   <span className="ml-auto text-xs bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded">
                     🗺️ Live on Map
@@ -340,7 +340,7 @@ export const ImpactGenerator: React.FC = () => {
               </h2>
               
               {gnnNodes.length === 0 ? (
-                <p className="text-slate-400 text-sm italic">Loading village infrastructure...</p>
+                <p className="text-slate-400 text-sm italic">Loading infrastructure...</p>
               ) : (
                 <>
                   <div className="mb-4">
