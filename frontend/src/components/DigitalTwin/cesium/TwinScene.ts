@@ -25,6 +25,7 @@ import {
   HeightReference,
   ImageryLayer,
   Ion,
+  JulianDate,
   IonWorldImageryStyle,
   LabelStyle,
   Math as CesiumMath,
@@ -86,6 +87,12 @@ const MAX_ANIMATED_LINKS = 40;
 /** Matches screenSpaceCameraController.minimumZoomDistance plus a small margin. */
 const ZOOM_MIN_DISTANCE = 40;
 const ZOOM_MAX_DISTANCE = 2_000_000;
+/** Camera distance (m) beyond which labels of non-emphasized assets are hidden. */
+const LABEL_RANGE = 5000;
+/** Ground footprint drawn under each point asset so it reads from overview zoom. */
+const HALO_RADIUS_M = 28;
+/** 11:00 IST on the March equinox. */
+const FIXED_SUN_TIME = '2026-03-20T05:30:00Z';
 
 const STATE_PRIORITY: AssetVisualState[] = [
   'failed',
@@ -102,6 +109,17 @@ const STATE_PRIORITY: AssetVisualState[] = [
 const css = (hex: string, alpha = 1) => Color.fromCssColorString(hex).withAlpha(alpha);
 const pointKey = (p: LngLat) => `${p[0].toFixed(6)},${p[1].toFixed(6)}`;
 
+function circlePositions(center: LngLat, radiusM: number, segments = 48): Cartesian3[] {
+  const dLat = radiusM / 111_320;
+  const dLon = dLat / Math.cos((center[1] * Math.PI) / 180);
+  const out: Cartesian3[] = [];
+  for (let i = 0; i <= segments; i++) {
+    const t = (i / segments) * Math.PI * 2;
+    out.push(Cartesian3.fromDegrees(center[0] + dLon * Math.cos(t), center[1] + dLat * Math.sin(t)));
+  }
+  return out;
+}
+
 export class TwinScene {
   private readonly viewer: Viewer;
   private readonly handler: ScreenSpaceEventHandler;
@@ -116,6 +134,7 @@ export class TwinScene {
   private assets = new Map<string, TwinAsset>();
   private assetEntities = new Map<string, Entity>();
   private physicalEntities = new Map<string, Entity>();
+  private haloEntities = new Map<string, Entity>();
   private edges: TwinEdge[] = [];
   private edgeEntities = new Map<string, Entity>();
   private propagation = new Map<string, { entity: Entity; start: number }>();
@@ -174,9 +193,19 @@ export class TwinScene {
       requestRenderMode: true,
       maximumRenderTimeChange: Infinity,
       creditContainer: options.creditContainer,
+      // Render in device pixels; the CSS-pixel default makes labels and imagery blurry on HiDPI screens.
+      useBrowserRecommendedResolution: false,
     });
+    // Cap the effective pixel ratio at 2 so 3x phone screens don't render 9x the pixels.
+    this.viewer.resolutionScale = Math.min(1, 2 / (window.devicePixelRatio || 1));
+
+    // Light buildings with a fixed late-morning sun over India; the real clock leaves them dark after sunset.
+    this.viewer.clock.shouldAnimate = false;
+    this.viewer.clock.currentTime = JulianDate.fromIso8601(FIXED_SUN_TIME);
 
     const { scene } = this.viewer;
+    // Default is 2; a lower error loads one level sharper imagery so baked-in street names stay legible.
+    scene.globe.maximumScreenSpaceError = 1.5;
     scene.globe.baseColor = css('#e9e9e7');
     scene.globe.depthTestAgainstTerrain = true;
     scene.globe.showWaterEffect = true;
@@ -421,6 +450,13 @@ export class TwinScene {
         this.pickIndex.delete(entity);
       }
     }
+    for (const [id, entity] of this.haloEntities) {
+      if (!this.assets.has(id)) {
+        this.physicalDS.entities.remove(entity);
+        this.haloEntities.delete(id);
+        this.pickIndex.delete(entity);
+      }
+    }
     this.styleKeys.clear();
 
     for (const a of assets) {
@@ -439,25 +475,51 @@ export class TwinScene {
           },
           label: {
             text: a.name,
-            font: '500 12px Geist, system-ui, sans-serif',
+            font: '600 13px Geist, system-ui, sans-serif',
             fillColor: css('#18181b'),
             style: LabelStyle.FILL,
             showBackground: true,
-            backgroundColor: css('#ffffff', 0.92),
-            backgroundPadding: new Cartesian2(7, 4),
+            backgroundColor: css('#ffffff', 0.96),
+            backgroundPadding: new Cartesian2(8, 5),
             verticalOrigin: VerticalOrigin.BOTTOM,
-            pixelOffset: new Cartesian2(0, -(MARKER_HEIGHT + 4)),
+            pixelOffset: new Cartesian2(0, -(MARKER_HEIGHT + 6)),
             heightReference: HeightReference.CLAMP_TO_TERRAIN,
             disableDepthTestDistance: Number.POSITIVE_INFINITY,
-            distanceDisplayCondition: new DistanceDisplayCondition(0, 2200),
+            distanceDisplayCondition: new DistanceDisplayCondition(0, LABEL_RANGE),
           },
         });
         this.assetEntities.set(a.id, entity);
         this.pickIndex.set(entity, a.id);
+
+        if (!a.path) {
+          const halo = this.physicalDS.entities.add({
+            id: `halo:${a.id}`,
+            position: Cartesian3.fromDegrees(a.position[0], a.position[1]),
+            ellipse: {
+              semiMajorAxis: HALO_RADIUS_M,
+              semiMinorAxis: HALO_RADIUS_M,
+              material: css(STATE_META[a.condition].color, 0.4),
+            },
+            // Ground ellipses can't draw outlines, so the white edge is a clamped polyline.
+            polyline: {
+              positions: circlePositions(a.position, HALO_RADIUS_M),
+              clampToGround: true,
+              width: 2.5,
+              material: css('#ffffff', 0.95),
+            },
+          });
+          this.haloEntities.set(a.id, halo);
+          this.pickIndex.set(halo, a.id);
+        }
       } else {
         const entity = this.assetEntities.get(a.id)!;
         entity.position = new ConstantPositionProperty(Cartesian3.fromDegrees(a.position[0], a.position[1]));
         if (entity.label) entity.label.text = new ConstantProperty(a.name);
+        const halo = this.haloEntities.get(a.id);
+        if (halo) {
+          halo.position = new ConstantPositionProperty(Cartesian3.fromDegrees(a.position[0], a.position[1]));
+          if (halo.polyline) halo.polyline.positions = new ConstantProperty(circlePositions(a.position, HALO_RADIUS_M));
+        }
       }
 
       if (a.path && (a.type === 'road' || a.type === 'pipe') && !this.physicalEntities.has(a.id)) {
@@ -466,7 +528,7 @@ export class TwinScene {
           polyline: {
             positions: Cartesian3.fromDegreesArray(a.path.flat()),
             clampToGround: true,
-            width: a.type === 'road' ? 7 : 4,
+            width: a.type === 'road' ? 7 : 5,
             material: this.physicalMaterial(a.type, null),
           },
         });
@@ -509,12 +571,12 @@ export class TwinScene {
   private physicalMaterial(type: 'road' | 'pipe', state: AssetVisualState | null): MaterialProperty {
     const affected = state && isAffectedState(state);
     if (type === 'road') {
-      return new ColorMaterialProperty(affected ? css(STATE_META[state!].color, 0.9) : css(EDGE_COLORS.road, 0.55));
+      return new ColorMaterialProperty(affected ? css(STATE_META[state!].color, 0.9) : css(EDGE_COLORS.road, 0.75));
     }
     return new PolylineDashMaterialProperty({
-      color: affected ? css(STATE_META[state!].color, 0.95) : css(EDGE_COLORS.pipe, 0.9),
+      color: affected ? css(STATE_META[state!].color, 0.95) : css(EDGE_COLORS.pipe, 1),
       gapColor: Color.TRANSPARENT,
-      dashLength: 14,
+      dashLength: 16,
     });
   }
 
@@ -561,8 +623,13 @@ export class TwinScene {
       if (entity.label) {
         entity.label.show = new ConstantProperty(labelVisible);
         entity.label.distanceDisplayCondition = new ConstantProperty(
-          new DistanceDisplayCondition(0, emphasized ? 15000 : 2200),
+          new DistanceDisplayCondition(0, emphasized ? 15000 : LABEL_RANGE),
         );
+      }
+      const halo = this.haloEntities.get(id);
+      if (halo?.ellipse) {
+        halo.show = visible;
+        halo.ellipse.material = new ColorMaterialProperty(css(STATE_META[state].color, selected ? 0.55 : 0.4));
       }
     }
 
@@ -579,7 +646,7 @@ export class TwinScene {
       if (entity.polyline) {
         entity.polyline.material = this.physicalMaterial(asset.type, state);
         entity.polyline.width = new ConstantProperty(
-          (asset.type === 'road' ? 7 : 4) + (id === selectedId ? 3 : 0),
+          (asset.type === 'road' ? 7 : 5) + (id === selectedId ? 3 : 0),
         );
       }
     }

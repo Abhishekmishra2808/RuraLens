@@ -6,8 +6,10 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { ASSET_TYPE_META, STATE_META } from '../twinVisuals';
 import type { AssetVisualState, TwinAssetType } from '../../../types/twin';
 
-export const MARKER_WIDTH = 36;
-export const MARKER_HEIGHT = 46;
+export const MARKER_WIDTH = 44;
+export const MARKER_HEIGHT = 56;
+/** Billboards are sized in CSS pixels, so rasterize at 2x to stay sharp on HiDPI screens. */
+const MARKER_RASTER_SCALE = 2;
 
 const markerCache = new Map<string, string>();
 const glyphCache = new Map<TwinAssetType, string>();
@@ -32,10 +34,13 @@ export function markerIcon(type: TwinAssetType, state: AssetVisualState, selecte
 
   const color = STATE_META[state].color;
   const failed = state === 'failed' || state === 'predicted-failure';
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${MARKER_WIDTH}" height="${MARKER_HEIGHT}" viewBox="0 0 36 46">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${MARKER_WIDTH * MARKER_RASTER_SCALE}" height="${MARKER_HEIGHT * MARKER_RASTER_SCALE}" viewBox="0 0 36 46">
+  <defs><filter id="s" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="0.8" stdDeviation="0.9" flood-color="#000000" flood-opacity="0.45"/></filter></defs>
+  <g filter="url(#s)">
   ${selected ? '<circle cx="18" cy="18" r="17.5" fill="#18181b"/>' : ''}
   <path d="M12.5 31 L18 44 L23.5 31 Z" fill="${color}" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
   <circle cx="18" cy="18" r="${selected ? 15 : 14}" fill="${color}" stroke="#ffffff" stroke-width="2"/>
+  </g>
   ${glyph(type)}
   ${
     failed

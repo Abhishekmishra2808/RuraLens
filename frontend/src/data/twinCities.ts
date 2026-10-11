@@ -40,8 +40,8 @@ export const TWIN_CITIES: CityConfig[] = [
     id: 'delhi',
     name: 'New Delhi',
     region: 'Delhi, India',
-    center: { lon: 77.2135, lat: 28.6268 },
-    overview: { range: 4200, pitchDeg: -38, headingDeg: 12 },
+    center: { lon: 77.2190, lat: 28.6322 },
+    overview: { range: 1450, pitchDeg: -45, headingDeg: 0 },
     defaultDatasetId: 'delhi-demo',
   },
   {
