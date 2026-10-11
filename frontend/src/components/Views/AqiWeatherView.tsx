@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { CloudSun, Wind, Droplets, Activity, RefreshCw, MapPin } from 'lucide-react';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
-import { useAppStore } from '../../store/appStore';
+import { DEFAULT_CITY_ID, getCity } from '../../data/twinCities';
+
+const CITY = getCity(DEFAULT_CITY_ID);
 
 type WeatherCurrent = {
   temperature_2m?: number;
@@ -55,7 +57,7 @@ function weatherCodeLabel(code?: number) {
 }
 
 export default function AqiWeatherView() {
-  const { waterTanks, sensors, powerNodes } = useAppStore();
+  const coords = CITY.center;
   const [weather, setWeather] = useState<WeatherCurrent | null>(null);
   const [air, setAir] = useState<AirCurrent | null>(null);
   const [tempSeries, setTempSeries] = useState<SeriesPoint[]>([]);
@@ -63,21 +65,6 @@ export default function AqiWeatherView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-
-  const coords = useMemo(() => {
-    const points: Array<[number, number]> = [];
-    waterTanks.forEach((t) => Array.isArray(t.coords) && points.push(t.coords));
-    sensors.forEach((s) => Array.isArray(s.coords) && points.push(s.coords));
-    powerNodes.forEach((p) => Array.isArray(p.coords) && points.push(p.coords));
-
-    if (points.length === 0) {
-      return { lon: 73.8567, lat: 18.5204 }; // Pune fallback
-    }
-
-    const lon = points.reduce((acc, c) => acc + c[0], 0) / points.length;
-    const lat = points.reduce((acc, c) => acc + c[1], 0) / points.length;
-    return { lon, lat };
-  }, [waterTanks, sensors, powerNodes]);
 
   const fetchLiveData = async () => {
     try {
@@ -207,7 +194,7 @@ export default function AqiWeatherView() {
             <h1 className="text-2xl font-bold text-white">AQI & Temperature</h1>
             <p className="text-slate-400 text-sm flex items-center gap-1 mt-1">
               <MapPin size={14} />
-              Live data for {coords.lat.toFixed(4)}, {coords.lon.toFixed(4)} (Open-Meteo)
+              {CITY.name} ({coords.lat.toFixed(4)}, {coords.lon.toFixed(4)}) · Open-Meteo
             </p>
           </div>
           <button

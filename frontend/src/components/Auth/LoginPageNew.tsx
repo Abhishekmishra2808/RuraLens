@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/appStore';
 import { API_URL } from '@/config/api';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { ServerWakeNotice, useSlowRequest } from './ServerWakeNotice';
 
 type Role = 'admin' | 'field_worker' | 'user';
 type Bilingual = { en: string; hi: string };
@@ -46,6 +47,7 @@ export default function LoginPage({ onBack }: LoginPageProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const slowRequest = useSlowRequest();
 
   const login = useAppStore((s) => s.login);
   const { t, lang, toggleLang } = useLanguage();
@@ -56,6 +58,7 @@ export default function LoginPage({ onBack }: LoginPageProps) {
   const authenticate = async (endpoint: '/api/auth/login' | '/api/auth/register', body: Record<string, string>) => {
     setError('');
     setLoading(true);
+    slowRequest.start();
     try {
       const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
@@ -87,6 +90,7 @@ export default function LoginPage({ onBack }: LoginPageProps) {
           : message || tx('Something went wrong', 'कुछ गलत हो गया'),
       );
     } finally {
+      slowRequest.stop();
       setLoading(false);
     }
   };
@@ -243,9 +247,13 @@ export default function LoginPage({ onBack }: LoginPageProps) {
           {loading && <Loader2 aria-hidden className="size-4 animate-spin" />}
           {isRegister ? tx('Create account', 'खाता बनाएं') : tx('Sign in', 'साइन इन')}
         </Button>
-        <span role="status" className="sr-only">
-          {loading ? tx('Signing in', 'साइन इन हो रहा है') : ''}
-        </span>
+        {loading && slowRequest.slow ? (
+          <ServerWakeNotice />
+        ) : (
+          <span role="status" className="sr-only">
+            {loading ? tx('Signing in', 'साइन इन हो रहा है') : ''}
+          </span>
+        )}
       </form>
 
       <div style={stagger(5)} className={cn(ENTER, 'space-y-4')}>

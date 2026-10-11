@@ -3,6 +3,7 @@ import { User, Shield, Briefcase, ArrowLeft, Mail, Lock, Loader, AlertCircle } f
 import { useAppStore } from '../../store/appStore';
 import { API_URL } from '../../config/api';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { ServerWakeNotice, useSlowRequest } from './ServerWakeNotice';
 
 interface MobileLoginPageProps {
   onBack?: () => void;
@@ -16,7 +17,8 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+  const slowRequest = useSlowRequest();
+
   const login = useAppStore((state) => state.login);
   const { lang, toggleLang } = useLanguage();
   const hi = lang === 'hi';
@@ -26,6 +28,7 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
     e.preventDefault();
     setError('');
     setLoading(true);
+    slowRequest.start();
 
     try {
       const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
@@ -44,8 +47,6 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
       console.log('Response status:', response.status);
 
       const text = await response.text();
-      console.log('Response text:', text);
-      
       const data = text ? JSON.parse(text) : {};
 
       if (!response.ok) {
@@ -62,6 +63,7 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
       console.error('Login error:', err);
       setError(err.message || 'An error occurred');
     } finally {
+      slowRequest.stop();
       setLoading(false);
     }
   };
@@ -73,6 +75,7 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
     setIsRegister(false);
     setError('');
     setLoading(true);
+    slowRequest.start();
 
     try {
       console.log('Quick login:', { url: `${API_URL}/api/auth/login`, email: demoEmail });
@@ -86,8 +89,6 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
       console.log('Quick login response:', response.status);
 
       const text = await response.text();
-      console.log('Quick login response text:', text);
-      
       const data = text ? JSON.parse(text) : {};
 
       if (!response.ok) {
@@ -104,6 +105,7 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
       console.error('Quick login error:', err);
       setError(err.message || 'Demo login failed');
     } finally {
+      slowRequest.stop();
       setLoading(false);
     }
   };
@@ -250,6 +252,7 @@ export default function MobileLoginPage({ onBack }: MobileLoginPageProps) {
           >
             {loading ? <Loader size={20} className="animate-spin" /> : (isRegister ? tx('Create Account', 'खाता बनाएं') : tx('Sign In', 'साइन इन'))}
           </button>
+          {loading && slowRequest.slow && <ServerWakeNotice />}
         </form>
 
         <div className="mt-6 text-center">
