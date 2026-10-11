@@ -926,4 +926,5 @@ router.get('/vulnerable-nodes', (req, res) => {
   });
 });
 
+export { predictImpactWithModelOrFallback, syncGraphFromRequestState };
 export default router;

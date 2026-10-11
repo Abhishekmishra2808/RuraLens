@@ -22,9 +22,22 @@ const CITATION_ICONS: Record<string, typeof FileText> = {
   'sensor-event': Activity,
 };
 
+const CITATION_LABELS: Record<string, string> = {
+  prediction: 'Impact prediction',
+  asset: 'Twin asset',
+  unknown: 'Record',
+};
+
 function citationTypeLabel(type: string) {
-  const label = type.replace(/-/g, ' ');
+  if (CITATION_LABELS[type]) return CITATION_LABELS[type];
+  const label = type.replace(/[-_]/g, ' ');
   return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function formatGeneratedAt(value?: string) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : format(date, 'MMM dd, yyyy, HH:mm');
 }
 
 export default function RagQueryModal({ isOpen, onClose, schemeId = null, onHighlightCitation }: RagQueryModalProps) {
@@ -55,7 +68,7 @@ export default function RagQueryModal({ isOpen, onClose, schemeId = null, onHigh
   return (
     <Modal
       title="Ask a question"
-      description="Answers cite the schemes, reports and sensor events they draw on."
+      description="Answers cite the scheme and report records the AI Copilot read to write them."
       onClose={handleClose}
       size="lg"
     >
@@ -99,7 +112,7 @@ export default function RagQueryModal({ isOpen, onClose, schemeId = null, onHigh
               </span>
               <Button type="submit" disabled={loading || !question.trim()} className="gap-2">
                 {loading && <Loader2 size={16} className="animate-spin" />}
-                {loading ? 'Searching' : 'Ask'}
+                {loading ? 'Thinking' : 'Ask'}
               </Button>
             </div>
           </form>
@@ -123,12 +136,18 @@ export default function RagQueryModal({ isOpen, onClose, schemeId = null, onHigh
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Question</p>
               <p className="mt-1 text-[15px] font-medium text-zinc-900">{question}</p>
-              {data.cached && <p className="mt-1 text-xs text-zinc-500">Served from cache</p>}
             </div>
 
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Answer</p>
               <p className="mt-1 whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-800">{data.answer}</p>
+              <p className="mt-2 text-xs text-zinc-500">
+                {data.answerSource === 'database-ranking'
+                  ? 'Calculated from scheme records, not written by a language model'
+                  : `Written by ${data.model?.modelId ?? 'the AI Copilot'} via Amazon Bedrock`}
+                {formatGeneratedAt(data.generatedAt) && ` · generated ${formatGeneratedAt(data.generatedAt)}`}
+                {data.cached && ' · saved answer, not regenerated for this request'}
+              </p>
             </div>
 
             {data.citations && data.citations.length > 0 && (
@@ -144,9 +163,11 @@ export default function RagQueryModal({ isOpen, onClose, schemeId = null, onHigh
                         <div className="flex items-center gap-2 text-sm">
                           <Icon size={15} className="shrink-0 text-zinc-500" />
                           <span className="font-medium text-zinc-900">{citationTypeLabel(citation.type)}</span>
-                          <span className="ml-auto text-xs tabular-nums text-zinc-500">
-                            {(citation.score * 100).toFixed(0)}% match
-                          </span>
+                          {typeof citation.score === 'number' && (
+                            <span className="ml-auto text-xs tabular-nums text-zinc-500" title="Ranking score from scheme progress, status and budget use">
+                              Score {citation.score.toFixed(1)}
+                            </span>
+                          )}
                         </div>
                         <p className="border-l-2 border-zinc-200 pl-3 text-sm leading-relaxed text-zinc-600">
                           {citation.snippet}

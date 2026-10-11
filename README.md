@@ -33,12 +33,12 @@ The platform focuses on:
 
 ## Core Capabilities
 
-### 1. RAG Knowledge Engine
+### 1. Copilot (Amazon Bedrock)
 
-- Natural language querying over schemes, reports, and related documents
-- Citation-backed answers
-- Caching and rate limiting for stable response behavior
-- PII sanitization before model requests
+- Natural language questions about schemes, vendor report findings and the infrastructure twin
+- Answers cite the records the Copilot's typed, role-checked tools actually read
+- Proposes failure simulations on the 3D twin that you confirm before they run
+- Caching and rate limiting; PII sanitization before model requests
 
 ### 2. GNN Impact Forecaster
 
@@ -48,8 +48,9 @@ The platform focuses on:
 
 ### 3. Discrepancy Detection
 
-- Cross-checks between planned milestones and submitted progress artifacts
-- Highlights timeline drift, budget variance, and evidence mismatches
+- Budget, date and quantity checks calculated in code against the approved plan
+- AI-assisted comparison of the plan and the vendor's progress report via Amazon Bedrock, with quoted evidence and page numbers verified against the documents
+- Every finding goes to an officer for review; findings are leads, not proof of wrongdoing
 
 ### 4. Anonymous Issue Reporting
 
@@ -70,7 +71,7 @@ flowchart LR
                 U[Users: Admin, Field Worker, Citizen] --> FE[Frontend: React + Vite]
                 FE --> BE[Backend API: Node.js + Express]
                 BE --> DB[(MongoDB)]
-                BE --> RAG[Pathway-Compatible RAG Service]
+                BE --> LLM[Amazon Bedrock: Copilot + Vendor Report Comparison]
                 BE --> GNN[Python GNN Services]
                 BE --> EXT[External APIs: Weather and AQI]
 ```
@@ -91,43 +92,57 @@ flowchart TB
                 subgraph Backend
                         AUTH[Auth and Role Access]
                         ROUTES[API Routes]
-                        RAGCLIENT[RAG Client + Cache + PII Sanitizer]
+                        COPILOT[Copilot Agent: Strands + typed tools + PII Sanitizer]
+                        VENDOR[Vendor Report Comparison: deterministic checks + AI review]
                         SERVICES[AI and Utility Services]
                         RINGG[Calling Agent Persistence]
                 end
 
                 subgraph AI_Services
-                        PATHWAY[Pathway-Compatible Service]
+                        BEDROCK[Amazon Bedrock Converse API]
                         HF[Hugging Face Models]
                         GNNPY[Python GNN Endpoints]
                 end
 
                 Frontend --> Backend
                 Backend --> DB[(MongoDB)]
-                RAGCLIENT --> PATHWAY
+                COPILOT --> BEDROCK
+                VENDOR --> BEDROCK
                 SERVICES --> HF
                 ROUTES --> GNNPY
 ```
 
 ## Data and Request Flows
 
-### RAG Query Flow
+### Copilot Query Flow
 
 ```mermaid
 sequenceDiagram
                 participant UI as Frontend UI
-                participant API as Backend /api/rag-query
+                participant API as Backend /api/copilot/chat or /api/rag-query
                 participant SAN as PII Sanitizer
-                participant RAG as Pathway-Compatible Service
-                participant DB as MongoDB
+                participant AG as Strands Agent
+                participant BR as Amazon Bedrock
+                participant DB as MongoDB / GNN
 
-                UI->>API: POST question
+                UI->>API: POST question (JWT)
                 API->>SAN: sanitize and normalize
-                API->>RAG: retrieve and answer
-                RAG-->>API: answer + sources
-                API->>DB: optional enrichment lookup
-                API-->>UI: answer + citations + trace_id
+                API->>AG: run turn with role-checked tools
+                AG->>BR: Converse (tool use)
+                AG->>DB: typed tool calls (schemes, findings, assets, predictions)
+                AG-->>API: answer + sources + proposed map simulations
+                API-->>UI: answer + citations + model + generatedAt
 ```
+
+The model can only call a fixed set of typed, read-only tools. It cannot run code, database queries or HTTP requests. Map simulations are returned as proposals; the user confirms them and the frontend runs them through `POST /api/gnn/predict-structured`.
+
+### Vendor Report Comparison Flow
+
+1. An admin uploads a vendor progress report PDF. It is stored in MongoDB GridFS and de-duplicated by SHA-256.
+2. Text is extracted page by page. Scanned, empty, malformed and oversized PDFs are reported explicitly; there is no OCR.
+3. Budget, date, schedule and quantity checks are calculated in code against the scheme record and plan document.
+4. Only relevant excerpts are sent to Bedrock, which returns schema-validated findings. Quotes, page numbers and values are verified against the document text, and unverifiable findings are discarded.
+5. Every finding (calculated or AI) is stored as `pending` review. An AI finding is a lead for review, not proof of wrongdoing.
 
 ### Failure Impact Flow
 
@@ -157,7 +172,7 @@ sequenceDiagram
 
 ### Backend
 
-- Node.js (>=18)
+- Node.js (>=22)
 - Express
 - MongoDB + Mongoose
 - JWT-based auth
@@ -165,7 +180,7 @@ sequenceDiagram
 
 ### AI and Data Science Layer
 
-- Pathway-compatible RAG service (Dockerized option available)
+- Amazon Bedrock (Converse API) via the AWS SDK for JavaScript v3 and Strands Agents, backend only
 - Hugging Face inference integrations
 - Python GNN services
 
@@ -177,10 +192,13 @@ sequenceDiagram
 │  ├─ config/
 │  ├─ models/
 │  ├─ routes/
+│  ├─ middleware/
 │  ├─ scripts/
+│  ├─ services/       # ai (Bedrock), copilot, documents, vendorComparison
+│  ├─ test/
 │  ├─ utils/
-│  ├─ python-gnn/
-│  └─ pathway-rag/
+│  └─ python-gnn/
+├─ docs/
 ├─ frontend/
 │  ├─ src/
 │  │  ├─ components/
@@ -189,7 +207,6 @@ sequenceDiagram
 │  │  └─ store/
 │  └─ assets/
 ├─ schemes/
-├─ docker-compose.pathway.yml
 └─ README.md
 ```
 
@@ -197,7 +214,7 @@ sequenceDiagram
 
 ### Prerequisites
 
-- Node.js 18 or later
+- Node.js 22 or later
 - npm
 - Python 3.11 or later
 - MongoDB (local or Atlas)
@@ -228,11 +245,17 @@ cd backend
 npm run dev
 ```
 
-### Optional: Run Pathway-Compatible RAG via Docker
+### Configure Amazon Bedrock
+
+The Copilot and the AI part of vendor report comparison call Amazon Bedrock from the backend. Set `AWS_REGION` and `BEDROCK_MODEL_ID` in `backend/.env` and provide AWS credentials through the AWS SDK credential chain. Model access, the IAM policy, Render setup, costs and troubleshooting are covered in [docs/BEDROCK.md](docs/BEDROCK.md).
+
+Without Bedrock configured the app still runs: the Copilot reports that it is not configured, and vendor reports get only the calculated checks.
+
+### Backend Tests
 
 ```bash
-# From repository root
-docker compose --env-file backend/.env -f docker-compose.pathway.yml up -d --build
+cd backend
+npm test   # mocked; makes no paid Bedrock calls
 ```
 
 ## 3D Digital Twin (CesiumJS)
@@ -262,7 +285,7 @@ Without a token the twin still runs: it uses OpenStreetMap imagery on a flat glo
   
   Nodes the backend promoted through its rule-based "policy guidance" are flagged per node.
 - **Timeline playback is a snapshot.** It replays one prediction, ordered by predicted time-to-impact. It is not a time-stepped simulation.
-- **The copilot is a rule-based interpreter.** It turns a request into a typed scenario that you confirm before anything runs. No language model is connected, and all results come from the prediction backend. `ScenarioInterpreter` in `frontend/src/services/scenarioInterpreter.ts` is the integration point for an LLM-backed interpreter.
+- **The copilot uses Amazon Bedrock with typed tools.** It answers from schemes, vendor findings, twin assets, dependencies and GNN predictions, and lists the sources it used. When it suggests a failure simulation, the twin shows the proposed scenario for you to confirm; nothing runs until you do, and the results come from the prediction backend, not the model. If Bedrock is not configured, the panel falls back to the local rule-based interpreter and says so.
 
 ### Attribution
 
@@ -283,9 +306,11 @@ Create `backend/.env` from `backend/.env.example` and configure at minimum:
 - `PORT`
 - `MONGODB_URI`
 - `JWT_SECRET`
-- `PATHWAY_MCP_URL`
-- `PATHWAY_MCP_TOKEN` (required for authenticated RAG service calls)
-- `HUGGINGFACE_API_KEY` (if using HF-backed model calls)
+- `AWS_REGION` and `BEDROCK_MODEL_ID` (Copilot and vendor report AI comparison); optionally `BEDROCK_API=openai` with `AWS_BEARER_TOKEN_BEDROCK` to use Bedrock's OpenAI-compatible endpoint
+- AWS credentials via the AWS SDK credential chain (`AWS_PROFILE` locally; see [docs/BEDROCK.md](docs/BEDROCK.md))
+- `HUGGINGFACE_API_KEY` (scheme PDF field extraction and feedback analysis)
+
+AWS values belong only in the backend environment. Never put them in `VITE_` variables, which are compiled into the public browser bundle.
 
 ## API Overview
 
@@ -293,7 +318,9 @@ Create `backend/.env` from `backend/.env.example` and configure at minimum:
 
 - `POST /api/auth/login`
 - `GET /api/schemes`
-- `POST /api/rag-query`
+- `POST /api/rag-query` (authenticated; answered by the Bedrock Copilot)
+- `GET /api/copilot/status`, `POST /api/copilot/chat` (authenticated)
+- `POST /api/schemes/:id/vendor-report` and review routes under `/api/schemes/:id/vendor-reports/*` (admin)
 - `POST /api/gnn/*` (impact and graph-related routes)
 - `GET /api/anonymous-reports/*`
 - `GET /health`
@@ -317,13 +344,19 @@ Create `backend/.env` from `backend/.env.example` and configure at minimum:
                 {
                         "doc_id": "sch002",
                         "snippet": "...",
-                        "score": 0.91
+                        "score": null,
+                        "timestamp": "2026-10-11T09:30:00.000Z"
                 }
         ],
+        "answerSource": "amazon-bedrock",
+        "model": { "provider": "amazon-bedrock", "modelId": "..." },
+        "generatedAt": "2026-10-11T09:30:00.000Z",
         "trace_id": "trace_...",
         "cached": false
 }
 ```
+
+Citations come from the records the Copilot's tools actually read. `score` is `null` because no similarity ranking is involved. A response with `cached: true` is a stored earlier answer; `generatedAt` is when it was originally generated.
 
 ## Security and Access Control
 
@@ -357,9 +390,9 @@ cd backend
 npm run dev
 ```
 
-### PATHWAY_MCP_TOKEN not set warning
+### Copilot says "not configured" or AI comparison failed
 
-Set `PATHWAY_MCP_TOKEN` in `backend/.env` to match your RAG service configuration.
+At startup the backend logs whether Bedrock is configured and which credential sources it found (names only, never values). See the troubleshooting section of [docs/BEDROCK.md](docs/BEDROCK.md) for error codes such as `access_denied`, `model_not_found` and `throttled`.
 
 ## Contributing
 

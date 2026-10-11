@@ -3,10 +3,9 @@
  *
  * Interpretation is separate from execution: an interpreter only proposes a
  * typed scenario that the user must confirm; the simulation engine produces
- * all results. `ruleBasedInterpreter` is a transparent keyword matcher. A
- * language-model interpreter can implement the same interface later (e.g. via
- * a backend endpoint that returns this JSON shape, validated with
- * `validateInterpretation`) without changing the UI.
+ * all results. `ruleBasedInterpreter` is a transparent keyword matcher used
+ * when the backend Copilot is unavailable; Copilot proposals are converted to
+ * this shape in `copilotClient.ts` and checked with `validateInterpretation`.
  */
 import type { FailureScenarioOption, FailureSeverity, TwinAsset, TwinAssetType } from '../types/twin';
 
@@ -102,7 +101,7 @@ function nameTokens(prompt: string): string[] {
 export const ruleBasedInterpreter: ScenarioInterpreter = {
   id: 'rule-based',
   label: 'Rule-based interpreter',
-  description: 'Keyword matching in the browser. No language model is connected yet.',
+  description: 'Keyword matching in the browser. No language model is involved.',
   async interpret(prompt, ctx) {
     const text = prompt.toLowerCase();
     const base: InterpretedScenario = {
@@ -204,7 +203,7 @@ export const ruleBasedInterpreter: ScenarioInterpreter = {
   },
 };
 
-/** Validates an interpretation (e.g. from a future LLM endpoint) against the active dataset. */
+/** Validates an interpretation (rule-based or proposed by the Copilot) against the active dataset. */
 export function validateInterpretation(
   value: InterpretedScenario,
   ctx: InterpretationContext,

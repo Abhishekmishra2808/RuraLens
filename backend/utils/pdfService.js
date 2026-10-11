@@ -1,5 +1,5 @@
 import pdfParse from 'pdf-parse-new';
-import { extractSchemeWithLLM, analyzeVendorReport as analyzeWithHF } from './huggingfaceService.js';
+import { extractSchemeWithLLM } from './huggingfaceService.js';
 
 /**
  * Extract structured data using improved regex patterns
@@ -393,45 +393,6 @@ export async function extractSchemeFromPDF(pdfBuffer) {
       success: false,
       error: error.message,
       data: null
-    };
-  }
-}
-
-// Removed - now using Hugging Face Llama 3.1-8B in huggingfaceService.js
-
-/**
- * Analyze vendor report against government plan using Hugging Face Llama
- */
-export async function analyzeVendorReport(pdfBuffer, governmentPlan) {
-  try {
-    // Extract text from vendor report PDF
-    const pdfData = await pdfParse(pdfBuffer);
-    const vendorReportText = pdfData.text;
-
-    console.log('📄 Vendor Report PDF Length:', vendorReportText.length, 'characters');
-
-    // Use Hugging Face Llama 3.1-8B for analysis
-    const analysisData = await analyzeWithHF(vendorReportText, governmentPlan);
-
-    return {
-      success: true,
-      analysis: analysisData,
-      aiProcessed: true
-    };
-
-  } catch (error) {
-    console.error('❌ Vendor Report Analysis Error:', error.message);
-    return {
-      success: false,
-      error: error.message,
-      analysis: {
-        overallCompliance: 0,
-        matchingItems: [],
-        discrepancies: [],
-        overdueWork: [],
-        aiSummary: 'AI analysis failed. Manual review required.',
-        aiProcessed: false
-      }
     };
   }
 }

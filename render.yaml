@@ -45,6 +45,26 @@ services:
         value: Administrator
       - key: PYTHON_GNN_API_URL
         value: https://ruralens-gnn-api-mfss.onrender.com
+      # Strands Agents SDK requires Node >= 22.
+      - key: NODE_VERSION
+        value: "22"
+      # Amazon Bedrock (Copilot + vendor report comparison); see docs/BEDROCK.md.
+      # Render has no AWS role attached, so credentials come from a least-privilege
+      # IAM user's access key set in the dashboard. Never add these to the frontend.
+      - key: AWS_REGION
+        sync: false
+      - key: BEDROCK_MODEL_ID
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      # Alternative to the access keys: a Bedrock API key, with BEDROCK_API=openai
+      # to use the OpenAI-compatible endpoint (see docs/BEDROCK.md)
+      - key: BEDROCK_API
+        sync: false
+      - key: AWS_BEARER_TOKEN_BEDROCK
+        sync: false
 
   # ─── Frontend Static Site (React/Vite) ──────────────────────────────────────
   - type: web

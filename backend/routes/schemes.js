@@ -1,36 +1,17 @@
 import express from 'express';
 import crypto from 'crypto';
-import multer from 'multer';
 import Scheme from '../models/Scheme.js';
 import Feedback from '../models/Feedback.js';
 // Switched from Gemini to Hugging Face Llama 3.1-8B-Instruct
 import { processFeedbackWithAI } from '../utils/huggingfaceService.js';
-import { extractSchemeFromPDF, analyzeVendorReport } from '../utils/pdfService.js';
-// Import Pathway-enhanced extraction services
-import { 
-  extractSchemeFromPDFWithPathway, 
-  analyzeVendorReportWithPathway 
-} from '../utils/pathwayPdfService.js';
+import { extractSchemeFromPDF } from '../utils/pdfService.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
+import { documentStore } from '../services/documents/documentStore.js';
+import { createVendorReportRouter, pdfUpload as upload } from './vendorReports.js';
 
 const router = express.Router();
 
-// Use Pathway extraction when available
-const USE_PATHWAY = process.env.USE_PATHWAY_EXTRACTION !== 'false';
-
-// Configure multer for PDF uploads (memory storage)
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
-      cb(null, true);
-    } else {
-      cb(new Error('Only PDF files are allowed'));
-    }
-  }
-});
+router.use(createVendorReportRouter());
 
 // Get all schemes
 router.get('/', async (req, res) => {
@@ -57,6 +38,7 @@ router.post('/', async (req, res) => {
       totalBudget,
       startDate,
       endDate,
+      planDocumentId,
     } = req.body;
 
     // Validate required fields
@@ -102,6 +84,17 @@ router.post('/', async (req, res) => {
       lastUpdated: new Date().toISOString()
     });
 
+    // Link the plan PDF stored during extraction so vendor reports can be compared with it.
+    let planDocumentWarning = null;
+    if (planDocumentId) {
+      try {
+        const doc = await documentStore.assignScheme(String(planDocumentId), schemeId);
+        newScheme.planDocument = { fileId: doc.fileId, fileName: doc.filename, sha256: doc.sha256, uploadedAt: new Date() };
+      } catch (error) {
+        planDocumentWarning = `The scheme was created without its plan PDF: ${error.message}`;
+      }
+    }
+
     const savedScheme = await newScheme.save();
     console.log('✅ Scheme created successfully:', savedScheme.id);
 
@@ -121,7 +114,8 @@ router.post('/', async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Scheme created successfully',
-      scheme: savedScheme
+      scheme: savedScheme,
+      warnings: planDocumentWarning ? [planDocumentWarning] : []
     });
   } catch (error) {
     console.error('❌ Error creating scheme:', error);
@@ -325,240 +319,57 @@ router.get('/:id/feedback', async (req, res) => {
   }
 });
 
-// Extract scheme details from PDF using Pathway AI (enhanced)
-router.post('/extract-from-pdf', upload.single('pdf'), async (req, res) => {
+// Extract scheme details from a plan PDF (Hugging Face extraction) and keep the
+// original PDF in GridFS so later vendor reports can be compared with it.
+router.post('/extract-from-pdf', requireAuth, requireRole('admin'), upload.single('pdf'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No PDF file uploaded' });
     }
 
-    console.log('📄 Processing scheme PDF:', req.file.originalname, 'Size:', req.file.size);
+    console.log('📄 Processing scheme PDF, size:', req.file.size);
 
-    let result;
-    
-    // Try Pathway extraction first (more accurate for complex documents)
-    if (USE_PATHWAY) {
-      console.log('🚀 Using Pathway-enhanced extraction...');
-      try {
-        result = await extractSchemeFromPDFWithPathway(req.file.buffer, req.file.originalname);
-      } catch (pathwayError) {
-        console.warn('⚠️ Pathway extraction failed, falling back to standard:', pathwayError.message);
-        result = await extractSchemeFromPDF(req.file.buffer);
-      }
-    } else {
-      // Use standard extraction
-      result = await extractSchemeFromPDF(req.file.buffer);
+    let planDocument = null;
+    let storageWarning = null;
+    try {
+      planDocument = await documentStore.storePdf({
+        buffer: req.file.buffer,
+        filename: req.file.originalname,
+        kind: 'scheme-plan',
+        schemeId: null,
+        uploadedBy: req.user.userId
+      });
+    } catch (error) {
+      storageWarning = `The plan PDF could not be stored (${error.message}); vendor reports will be compared with the scheme record only.`;
     }
 
+    const result = await extractSchemeFromPDF(req.file.buffer);
+
     if (result.success) {
-      console.log('✅ Successfully extracted scheme data from PDF');
-      console.log(`   Method: ${result.extractionMethod || 'standard'}`);
-      console.log(`   Confidence: ${result.data?.extractionConfidence || 'N/A'}`);
-      
       res.json({
         success: true,
         data: result.data,
         extractionMethod: result.extractionMethod || 'standard',
         confidence: result.data?.extractionConfidence || 'Medium',
-        message: 'Scheme data extracted successfully using Pathway AI. Please review and submit.'
+        planDocumentId: planDocument?.fileId ?? null,
+        warnings: storageWarning ? [storageWarning] : [],
+        message: 'Scheme data extracted. Please review and submit.'
       });
     } else {
       console.error('❌ Failed to extract scheme data:', result.error);
       res.status(500).json({
         success: false,
         error: result.error,
+        planDocumentId: planDocument?.fileId ?? null,
         message: 'Failed to extract data from PDF. Please fill manually.'
       });
     }
   } catch (error) {
-    console.error('❌ PDF extraction error:', error);
+    console.error('❌ PDF extraction error:', error.message);
     res.status(500).json({ error: 'Failed to process PDF file' });
   }
 });
 
-// Upload and analyze vendor report against government plan (Pathway-enhanced)
-router.post('/:id/vendor-report', upload.single('pdf'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No PDF file uploaded' });
-    }
-
-    const schemeId = req.params.id;
-    
-    // Get the government scheme plan
-    const scheme = await Scheme.findOne({ id: schemeId });
-    if (!scheme) {
-      return res.status(404).json({ error: 'Scheme not found' });
-    }
-
-    console.log('📊 Analyzing vendor report for scheme:', scheme.name);
-    console.log('📄 Vendor PDF:', req.file.originalname, 'Size:', req.file.size);
-
-    let result;
-    
-    // Try Pathway-enhanced analysis first (more accurate discrepancy detection)
-    if (USE_PATHWAY) {
-      console.log('🚀 Using Pathway-enhanced vendor analysis...');
-      try {
-        result = await analyzeVendorReportWithPathway(req.file.buffer, req.file.originalname, scheme);
-      } catch (pathwayError) {
-        console.warn('⚠️ Pathway analysis failed, falling back to standard:', pathwayError.message);
-        result = await analyzeVendorReport(req.file.buffer, scheme);
-      }
-    } else {
-      // Use standard analysis
-      result = await analyzeVendorReport(req.file.buffer, scheme);
-    }
-
-    if (result.success) {
-      // Create vendor report entry with enhanced discrepancy data
-      const vendorReport = {
-        id: `VR-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-        vendorName: result.analysis.vendorName || 'Unknown Vendor',
-        submittedDate: result.analysis.reportDate ? new Date(result.analysis.reportDate) : new Date(),
-        phase: result.analysis.phase || 1,
-        workCompleted: result.analysis.workCompleted || 'Not specified',
-        expenseClaimed: result.analysis.expenseClaimed || 0,
-        expenseBreakdown: result.analysis.expenseBreakdown || {},
-        verificationStatus: result.analysis.overallCompliance >= 80 ? 'approved' : 
-                           result.analysis.overallCompliance >= 60 ? 'under-review' : 'rejected',
-        pdfFileName: req.file.originalname,
-        analysisMethod: result.analysisMethod || 'standard',
-        complianceAnalysis: {
-          overallCompliance: result.analysis.overallCompliance,
-          budgetCompliance: result.analysis.budgetCompliance || result.analysis.overallCompliance,
-          timelineCompliance: result.analysis.timelineCompliance || result.analysis.overallCompliance,
-          scopeCompliance: result.analysis.scopeCompliance || result.analysis.overallCompliance,
-          qualityCompliance: result.analysis.qualityCompliance || result.analysis.overallCompliance,
-          riskLevel: result.analysis.riskLevel || 'medium',
-          matchingItems: result.analysis.matchingItems || [],
-          discrepancies: result.analysis.discrepancies || [],
-          overdueWork: result.analysis.overdueWork || [],
-          budgetAnalysis: result.analysis.budgetAnalysis || {},
-          recommendations: result.analysis.recommendations || [],
-          aiSummary: result.analysis.aiSummary,
-          aiProcessed: result.aiProcessed
-        }
-      };
-
-      // Add to scheme's vendor reports
-      if (!scheme.vendorReports) {
-        scheme.vendorReports = [];
-      }
-      scheme.vendorReports.push(vendorReport);
-
-      // ===== UPDATE SCHEME METRICS BASED ON VENDOR REPORT =====
-      
-      // 1. UPDATE BUDGET UTILIZED
-      const claimedExpense = result.analysis.expenseClaimed || 0;
-      if (claimedExpense > 0) {
-        // Add the claimed expense to budget utilized
-        scheme.budgetUtilized = (scheme.budgetUtilized || 0) + claimedExpense;
-        console.log(`💰 Budget Updated: +₹${claimedExpense} → Total: ₹${scheme.budgetUtilized}`);
-      }
-
-      // 2. UPDATE OVERALL PROGRESS
-      // Calculate progress based on phases and vendor reports
-      const totalPhases = scheme.phases.length || 4;
-      const reportedPhase = result.analysis.phase || 1;
-      
-      // Update the specific phase progress if provided in analysis
-      if (scheme.phases && scheme.phases.length > 0) {
-        const phaseIndex = scheme.phases.findIndex(p => p.id === reportedPhase);
-        if (phaseIndex !== -1) {
-          // Estimate phase progress from compliance score - ensure valid number
-          const complianceScore = parseFloat(result.analysis.overallCompliance) || 0;
-          const phaseProgress = Math.min(100, Math.max(0, Math.round(complianceScore)));
-          scheme.phases[phaseIndex].progress = phaseProgress;
-          
-          // Update phase status
-          if (phaseProgress >= 100) {
-            scheme.phases[phaseIndex].status = 'completed';
-          } else if (phaseProgress > 0) {
-            scheme.phases[phaseIndex].status = result.analysis.overallCompliance >= 70 ? 'on-track' : 'delayed';
-          }
-          
-          // Update phase budget spent
-          if (claimedExpense > 0) {
-            scheme.phases[phaseIndex].spent = (scheme.phases[phaseIndex].spent || 0) + claimedExpense;
-          }
-        }
-      }
-      
-      // Calculate overall progress as average of all phases
-      let totalProgress = 0;
-      if (scheme.phases && scheme.phases.length > 0) {
-        const validPhases = scheme.phases.filter(p => typeof p.progress === 'number' && !isNaN(p.progress));
-        if (validPhases.length > 0) {
-          totalProgress = validPhases.reduce((sum, phase) => sum + phase.progress, 0) / validPhases.length;
-        }
-      } else {
-        // Fallback: estimate from reported phase and compliance
-        const complianceScore = parseFloat(result.analysis.overallCompliance) || 0;
-        totalProgress = ((reportedPhase - 1) / totalPhases) * 100 + (complianceScore / totalPhases);
-      }
-      
-      scheme.overallProgress = Math.min(100, Math.max(0, Math.round(totalProgress)));
-      console.log(`📊 Progress Updated: ${scheme.overallProgress}%`);
-
-      // 3. UPDATE SCHEME STATUS
-      if (result.analysis.discrepancies && result.analysis.discrepancies.length > 0) {
-        const hasCritical = result.analysis.discrepancies.some(d => d.severity === 'critical');
-        if (hasCritical) {
-          scheme.status = 'discrepant';
-        } else if (result.analysis.overallCompliance < 70) {
-          scheme.status = 'delayed';
-        }
-      } else if (scheme.overallProgress >= 100) {
-        scheme.status = 'completed';
-      } else if (result.analysis.overallCompliance >= 70) {
-        scheme.status = 'on-track';
-      }
-
-      await scheme.save();
-
-      // Broadcast update via WebSocket
-      const broadcast = req.app.get('broadcast');
-      if (broadcast) {
-        // Fetch updated scheme list to reflect changes
-        const allSchemes = await Scheme.find().sort({ lastUpdated: -1 });
-        broadcast({
-          type: 'vendor_report_added',
-          schemeId: scheme.id,
-          report: vendorReport,
-          allSchemes: allSchemes, // Send updated schemes list
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      console.log('✅ Vendor report analyzed and saved');
-      console.log(`📈 Scheme Updated - Progress: ${scheme.overallProgress}%, Budget: ₹${scheme.budgetUtilized}, Status: ${scheme.status}`);
-      
-      res.json({
-        success: true,
-        report: vendorReport,
-        message: 'Vendor report analyzed successfully',
-        updatedScheme: {
-          id: scheme.id,
-          overallProgress: scheme.overallProgress,
-          budgetUtilized: scheme.budgetUtilized,
-          status: scheme.status,
-          phases: scheme.phases
-        }
-      });
-    } else {
-      console.error('❌ Failed to analyze vendor report:', result.error);
-      res.status(500).json({
-        success: false,
-        error: result.error,
-        message: 'Failed to analyze vendor report. Please review manually.'
-      });
-    }
-  } catch (error) {
-    console.error('❌ Vendor report processing error:', error);
-    res.status(500).json({ error: 'Failed to process vendor report' });
-  }
-});
 // Delete a scheme (admin only)
 router.delete('/:id', async (req, res) => {
   try {

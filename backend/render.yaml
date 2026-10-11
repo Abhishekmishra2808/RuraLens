@@ -44,3 +44,19 @@ services:
         value: Administrator
       - key: PYTHON_GNN_API_URL
         value: https://ruralens-gnn-api.onrender.com
+      # Strands Agents SDK requires Node >= 22.
+      - key: NODE_VERSION
+        value: "22"
+      # Amazon Bedrock; see docs/BEDROCK.md. The repository-root render.yaml is the maintained blueprint.
+      - key: AWS_REGION
+        sync: false
+      - key: BEDROCK_MODEL_ID
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: BEDROCK_API
+        sync: false
+      - key: AWS_BEARER_TOKEN_BEDROCK
+        sync: false

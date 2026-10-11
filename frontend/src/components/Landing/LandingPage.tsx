@@ -12,7 +12,7 @@ const HERO_VIDEO_URL =
   'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260403_050628_c4e32401-fab4-4a27-b7a8-6e9291cd5959.mp4';
 
 const NAV_LINKS = [
-  { sectionId: 'rag', label: { en: 'RAG Engine', hi: 'RAG इंजन' } },
+  { sectionId: 'rag', label: { en: 'AI Copilot', hi: 'AI कोपायलट' } },
   { sectionId: 'gnn', label: { en: 'GNN Forecast', hi: 'GNN पूर्वानुमान' } },
   { sectionId: 'discrepancy', label: { en: 'Discrepancy', hi: 'डिस्क्रेपेंसी' } },
   { sectionId: 'kavya', label: { en: 'Kavya AI', hi: 'काव्या AI' } },

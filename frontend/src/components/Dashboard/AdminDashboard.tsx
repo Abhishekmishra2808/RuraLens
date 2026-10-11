@@ -393,7 +393,7 @@ export default function AdminDashboard() {
           onClose={() => setShowRagModal(false)}
           onHighlightCitation={(citation: Citation) => {
             console.log('Admin Dashboard - Highlight citation:', citation);
-            alert(hi ? `एआई संदर्भ:\n\nप्रकार: ${citation.type}\nअंश: ${citation.snippet}\nस्कोर: ${citation.score}` : `Citation from AI:\n\nType: ${citation.type}\nSnippet: ${citation.snippet}\nScore: ${citation.score}`);
+            alert(hi ? `एआई संदर्भ:\n\nप्रकार: ${citation.type}\nअंश: ${citation.snippet}\nस्कोर: ${citation.score ?? '—'}` : `Citation from AI:\n\nType: ${citation.type}\nSnippet: ${citation.snippet}\nScore: ${citation.score ?? '—'}`);
           }}
         />
       )}

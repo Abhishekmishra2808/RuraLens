@@ -62,9 +62,9 @@ export const DOC_GROUPS: DocGroup[] = [
           {
             kind: 'list',
             items: [
-              L('**RAG Knowledge Engine** answers questions about schemes and documents, citing its sources.', '**RAG ज्ञान इंजन** योजनाओं और दस्तावेज़ों से जुड़े प्रश्नों के उत्तर स्रोतों के हवाले के साथ देता है।'),
+              L('**AI Copilot** answers questions about schemes, vendor findings and infrastructure, citing the records it used, and can propose simulations on the 3D twin.', '**AI कोपायलट** योजनाओं, वेंडर निष्कर्षों और इंफ्रास्ट्रक्चर से जुड़े प्रश्नों के उत्तर उपयोग किए गए रिकॉर्ड के हवाले के साथ देता है, और 3D ट्विन पर सिमुलेशन का प्रस्ताव दे सकता है।'),
               L('**GNN Impact Forecaster** predicts how a failure spreads through connected infrastructure.', '**GNN प्रभाव पूर्वानुमान** बताता है कि एक विफलता जुड़े हुए इंफ्रास्ट्रक्चर में कैसे फैलती है।'),
-              L('**Discrepancy Detector** checks vendor progress reports against the approved scheme plan.', '**डिस्क्रेपेंसी डिटेक्टर** वेंडर प्रगति रिपोर्ट की स्वीकृत योजना से जांच करता है।'),
+              L('**Discrepancy Detector** checks vendor progress reports against the approved scheme plan and sends every finding for review.', '**डिस्क्रेपेंसी डिटेक्टर** वेंडर प्रगति रिपोर्ट की स्वीकृत योजना से जांच करता है और हर निष्कर्ष समीक्षा के लिए भेजता है।'),
               L('**Kavya** takes complaints over an ordinary phone call for areas with poor internet.', '**काव्या** कमजोर इंटरनेट वाले क्षेत्रों के लिए सामान्य फोन कॉल पर शिकायतें लेती है।'),
             ],
           },
@@ -74,8 +74,8 @@ export const DOC_GROUPS: DocGroup[] = [
         id: 'architecture',
         title: L('Architecture', 'आर्किटेक्चर'),
         summary: L(
-          'RuraLens is made of a web frontend, an API backend, a document retrieval service and a graph neural network service.',
-          'RuraLens एक वेब फ्रंटएंड, एक API बैकएंड, एक दस्तावेज़ रिट्रीवल सेवा और एक ग्राफ न्यूरल नेटवर्क सेवा से मिलकर बना है।'
+          'RuraLens is made of a web frontend, an API backend that calls Amazon Bedrock for language tasks, and a graph neural network service.',
+          'RuraLens एक वेब फ्रंटएंड, भाषा संबंधी कार्यों के लिए Amazon Bedrock को कॉल करने वाले API बैकएंड, और एक ग्राफ न्यूरल नेटवर्क सेवा से मिलकर बना है।'
         ),
         blocks: [
           {
@@ -84,7 +84,7 @@ export const DOC_GROUPS: DocGroup[] = [
             rows: [
               [L('Frontend', 'फ्रंटएंड'), 'React 18, TypeScript, Vite, Tailwind CSS, MapLibre GL', L('Dashboards, 3D map, forms and the bilingual English and Hindi interface.', 'डैशबोर्ड, 3D मैप, फॉर्म और द्विभाषी अंग्रेज़ी व हिंदी इंटरफ़ेस।')],
               [L('Backend API', 'बैकएंड API'), 'Node.js, Express, MongoDB, JWT', L('Authentication, role-based access, schemes, reports, call records and coordination of AI services.', 'प्रमाणीकरण, भूमिका-आधारित पहुंच, योजनाएं, रिपोर्ट, कॉल रिकॉर्ड और AI सेवाओं का समन्वय।')],
-              [L('RAG service', 'RAG सेवा'), L('Pathway-compatible service (Docker)', 'Pathway-संगत सेवा (Docker)'), L('Indexes scheme documents and returns answers with source passages.', 'योजना दस्तावेज़ों को इंडेक्स करती है और स्रोत अंशों के साथ उत्तर देती है।')],
+              [L('Language model', 'भाषा मॉडल'), 'Amazon Bedrock, Strands Agents', L('Copilot answers through typed tools, and AI comparison of vendor reports with scheme plans. Called only by the backend.', 'टाइप किए गए टूल के ज़रिए कोपायलट के उत्तर, और योजना दस्तावेज़ों से वेंडर रिपोर्ट की AI तुलना। केवल बैकएंड से कॉल किया जाता है।')],
               [L('GNN service', 'GNN सेवा'), 'Python, FastAPI, PyTorch Geometric', L('Predicts the cascading impact of infrastructure failures.', 'इंफ्रास्ट्रक्चर विफलताओं के फैलते प्रभाव का पूर्वानुमान लगाती है।')],
               [L('External services', 'बाहरी सेवाएं'), 'Open-Meteo, Hugging Face, Google Gemini, Ringg AI', L('Weather and air quality, language models, and voice calls.', 'मौसम और वायु गुणवत्ता, भाषा मॉडल और वॉइस कॉल।')],
             ],
@@ -96,7 +96,7 @@ export const DOC_GROUPS: DocGroup[] = [
               L('The browser loads the frontend, which calls the backend at the address set in `VITE_API_URL`.', 'ब्राउज़र फ्रंटएंड लोड करता है, जो `VITE_API_URL` में दिए पते पर बैकएंड को कॉल करता है।'),
               L('The backend checks the user\'s token and role.', 'बैकएंड उपयोगकर्ता के टोकन और भूमिका की जांच करता है।'),
               L('It reads and writes infrastructure, scheme and report data in MongoDB.', 'यह MongoDB में इंफ्रास्ट्रक्चर, योजना और रिपोर्ट का डेटा पढ़ता और लिखता है।'),
-              L('For AI features it calls the RAG service, the GNN service or a language model, and returns one structured response to the browser.', 'AI सुविधाओं के लिए यह RAG सेवा, GNN सेवा या भाषा मॉडल को कॉल करता है और ब्राउज़र को एक संरचित उत्तर लौटाता है।'),
+              L('For AI features it calls Amazon Bedrock, the GNN service or another language model, and returns one structured response to the browser.', 'AI सुविधाओं के लिए यह Amazon Bedrock, GNN सेवा या किसी अन्य भाषा मॉडल को कॉल करता है और ब्राउज़र को एक संरचित उत्तर लौटाता है।'),
             ],
           },
         ],
@@ -134,17 +134,24 @@ export const DOC_GROUPS: DocGroup[] = [
     sections: [
       {
         id: 'rag',
-        title: L('RAG Knowledge Engine', 'RAG ज्ञान इंजन'),
+        title: L('AI Copilot', 'AI कोपायलट'),
         summary: L(
-          'Ask questions about schemes, circulars and reports in plain language, and get answers that cite their sources.',
-          'योजनाओं, परिपत्रों और रिपोर्टों के बारे में साधारण भाषा में प्रश्न पूछें और स्रोतों के हवाले के साथ उत्तर पाएं।'
+          'Ask questions about schemes, vendor report findings and infrastructure in plain language, and get answers that cite the records they used.',
+          'योजनाओं, वेंडर रिपोर्ट के निष्कर्षों और इंफ्रास्ट्रक्चर के बारे में साधारण भाषा में प्रश्न पूछें और उपयोग किए गए रिकॉर्ड के हवाले के साथ उत्तर पाएं।'
         ),
         blocks: [
           {
             kind: 'p',
             text: L(
-              'Retrieval-Augmented Generation (RAG) first finds the most relevant passages in the indexed documents, then writes an answer using only those passages. Every answer comes with citations, so an officer can check it against the original record. When the documents do not contain enough information, the engine says so instead of guessing.',
-              'Retrieval-Augmented Generation (RAG) पहले इंडेक्स किए गए दस्तावेज़ों में सबसे प्रासंगिक अंश खोजता है, फिर केवल उन्हीं अंशों से उत्तर लिखता है। हर उत्तर के साथ स्रोत दिए जाते हैं ताकि अधिकारी मूल रिकॉर्ड से उसकी जांच कर सकें। जब दस्तावेज़ों में पर्याप्त जानकारी नहीं होती, तो इंजन अनुमान लगाने के बजाय यह साफ़ बता देता है।'
+              'The Copilot runs on Amazon Bedrock and is called only from the backend. The model cannot query the database or run code. It can only call a fixed set of read-only tools: search schemes, read scheme details, read vendor report findings (administrators and field workers only), list twin assets and their dependencies, and request impact predictions from the GNN service. Citations are built from the records those tools returned, not from text the model wrote. When the records do not contain an answer, the Copilot says so.',
+              'कोपायलट Amazon Bedrock पर चलता है और केवल बैकएंड से कॉल किया जाता है। मॉडल न डेटाबेस में क्वेरी कर सकता है, न कोड चला सकता है। वह केवल कुछ तय, केवल-पढ़ने वाले टूल कॉल कर सकता है: योजनाएं खोजना, योजना का विवरण पढ़ना, वेंडर रिपोर्ट के निष्कर्ष पढ़ना (केवल प्रशासक और फील्ड कर्मचारी), ट्विन की संपत्तियां और उनकी निर्भरताएं देखना, और GNN सेवा से प्रभाव का पूर्वानुमान मांगना। स्रोत उन्हीं रिकॉर्ड से बनते हैं जो इन टूल ने लौटाए, न कि मॉडल के लिखे पाठ से। जब रिकॉर्ड में उत्तर नहीं होता, तो कोपायलट यह साफ़ बता देता है।'
+            ),
+          },
+          {
+            kind: 'p',
+            text: L(
+              'In the 3D map, the Copilot can propose a failure simulation. The proposal is shown for you to confirm, and nothing runs until you do. The results come from the prediction backend, not from the language model.',
+              '3D मैप में कोपायलट विफलता सिमुलेशन का प्रस्ताव दे सकता है। प्रस्ताव पुष्टि के लिए दिखाया जाता है, और आपकी पुष्टि के बिना कुछ नहीं चलता। परिणाम पूर्वानुमान बैकएंड से आते हैं, भाषा मॉडल से नहीं।'
             ),
           },
           { kind: 'h3', text: L('Where to find it', 'यह कहां मिलेगा') },
@@ -159,12 +166,12 @@ export const DOC_GROUPS: DocGroup[] = [
           {
             kind: 'steps',
             items: [
-              L('The question (up to 500 characters) is sent to `POST /api/rag-query`. It can be limited to one scheme with `scheme_id`.', 'प्रश्न (अधिकतम 500 अक्षर) `POST /api/rag-query` पर भेजा जाता है। `scheme_id` से इसे किसी एक योजना तक सीमित किया जा सकता है।'),
-              L('If the same question was asked in the last two minutes, the cached answer is returned immediately.', 'अगर यही प्रश्न पिछले दो मिनट में पूछा गया था, तो कैश किया गया उत्तर तुरंत लौटा दिया जाता है।'),
+              L('You must be signed in. The question (up to 500 characters) is sent to `POST /api/rag-query`. It can be limited to one scheme with `scheme_id`.', 'साइन-इन होना ज़रूरी है। प्रश्न (अधिकतम 500 अक्षर) `POST /api/rag-query` पर भेजा जाता है। `scheme_id` से इसे किसी एक योजना तक सीमित किया जा सकता है।'),
+              L('If the same question was asked in the last two minutes by someone with the same role, the stored answer is returned and marked as cached, with the time it was originally generated.', 'अगर यही प्रश्न पिछले दो मिनट में उसी भूमिका वाले किसी व्यक्ति ने पूछा था, तो सहेजा गया उत्तर लौटाया जाता है, उसे कैश्ड के रूप में चिह्नित किया जाता है और उसके मूल रूप से बनने का समय दिखाया जाता है।'),
               L('Personal data is redacted before the question leaves the backend: email addresses, phone numbers, Aadhaar numbers and PAN numbers.', 'प्रश्न बैकएंड से बाहर जाने से पहले व्यक्तिगत जानकारी हटा दी जाती है: ईमेल पते, फोन नंबर, आधार नंबर और PAN नंबर।'),
               L('Ranking questions, such as which scheme is performing best, are answered from live scheme metrics in the database.', 'रैंकिंग वाले प्रश्न, जैसे कौन सी योजना सबसे अच्छा प्रदर्शन कर रही है, डेटाबेस के लाइव योजना आंकड़ों से उत्तर दिए जाते हैं।'),
-              L('Other questions go to the retrieval service, which returns an answer of at most 250 words and the passages it used.', 'बाकी प्रश्न रिट्रीवल सेवा को जाते हैं, जो अधिकतम 250 शब्दों का उत्तर और उसमें इस्तेमाल हुए अंश लौटाती है।'),
-              L('The backend attaches scheme details to each citation and returns the answer, up to 10 citations (5 by default) and a `trace_id` for support.', 'बैकएंड हर स्रोत के साथ योजना का विवरण जोड़ता है और उत्तर, अधिकतम 10 स्रोत (डिफ़ॉल्ट 5) और सहायता के लिए एक `trace_id` लौटाता है।'),
+              L('Other questions go to the Copilot on Amazon Bedrock, which calls its tools and writes an answer from what they returned.', 'बाकी प्रश्न Amazon Bedrock पर चलने वाले कोपायलट को जाते हैं, जो अपने टूल कॉल करता है और उनसे मिली जानकारी से उत्तर लिखता है।'),
+              L('The backend returns the answer, up to 10 citations (5 by default), the model used, the generation time and a `trace_id` for support. If Bedrock fails, you get a clear error instead of an invented answer.', 'बैकएंड उत्तर, अधिकतम 10 स्रोत (डिफ़ॉल्ट 5), उपयोग किया गया मॉडल, उत्तर बनने का समय और सहायता के लिए एक `trace_id` लौटाता है। अगर Bedrock विफल होता है, तो गढ़े हुए उत्तर के बजाय स्पष्ट त्रुटि मिलती है।'),
             ],
           },
           {
@@ -182,8 +189,11 @@ export const DOC_GROUPS: DocGroup[] = [
             code: `{
   "answer": "...",
   "citations": [
-    { "doc_id": "sch002", "snippet": "...", "score": 0.91 }
+    { "doc_id": "scheme-sch002", "snippet": "...", "score": null, "timestamp": "..." }
   ],
+  "answerSource": "amazon-bedrock",
+  "model": { "provider": "amazon-bedrock", "modelId": "..." },
+  "generatedAt": "...",
   "trace_id": "trace_...",
   "cached": false
 }`,
@@ -191,24 +201,9 @@ export const DOC_GROUPS: DocGroup[] = [
           {
             kind: 'note',
             text: L(
-              'Signed-in users can ask up to 10 questions per minute.',
-              'साइन-इन किए हुए उपयोगकर्ता प्रति मिनट अधिकतम 10 प्रश्न पूछ सकते हैं।'
+              'Signed-in users can ask up to 10 questions per minute. The Copilot reads the database directly through its tools, so there is no separate index to rebuild.',
+              'साइन-इन किए हुए उपयोगकर्ता प्रति मिनट अधिकतम 10 प्रश्न पूछ सकते हैं। कोपायलट अपने टूल के ज़रिए सीधे डेटाबेस पढ़ता है, इसलिए कोई अलग इंडेक्स दोबारा बनाने की ज़रूरत नहीं है।'
             ),
-          },
-          { kind: 'h3', text: L('Updating the document index', 'दस्तावेज़ इंडेक्स अपडेट करना') },
-          {
-            kind: 'p',
-            text: L(
-              'Export the latest scheme documents from MongoDB, then ask the running retrieval service to reload its index.',
-              'MongoDB से नवीनतम योजना दस्तावेज़ एक्सपोर्ट करें, फिर चल रही रिट्रीवल सेवा से इंडेक्स दोबारा लोड करवाएं।'
-            ),
-          },
-          {
-            kind: 'code',
-            label: 'Terminal',
-            code: `cd backend
-npm run export-pathway
-curl -X POST http://localhost:8000/v1/index/reload`,
           },
         ],
       },
@@ -307,61 +302,59 @@ curl -X POST http://localhost:8000/v1/index/reload`,
         id: 'discrepancy',
         title: L('Discrepancy Detector', 'डिस्क्रेपेंसी डिटेक्टर'),
         summary: L(
-          'Compare what vendors report against the approved scheme plan, and flag budget, timeline and scope mismatches automatically.',
-          'वेंडर की रिपोर्ट की स्वीकृत योजना से तुलना करें और बजट, समय-सीमा व कार्यक्षेत्र की असंगतियों को स्वचालित रूप से चिह्नित करें।'
+          'Compare what vendors report against the approved scheme plan. Budget and schedule checks are calculated; AI suggests further findings for an officer to review.',
+          'वेंडर की रिपोर्ट की स्वीकृत योजना से तुलना करें। बजट और समय-सारणी की जांच गणना से होती है; AI अधिकारी की समीक्षा के लिए अतिरिक्त निष्कर्ष सुझाता है।'
         ),
         blocks: [
           {
             kind: 'p',
             text: L(
-              'Each government scheme in RuraLens has an approved plan made up of phases, a budget and a timeline. When a vendor submits a progress report, the detector reads the PDF and checks each claim against that plan.',
-              'RuraLens में हर सरकारी योजना की एक स्वीकृत योजना होती है, जिसमें चरण, बजट और समय-सीमा होती है। जब वेंडर प्रगति रिपोर्ट जमा करता है, तो डिटेक्टर PDF पढ़कर हर दावे की उस योजना से जांच करता है।'
+              'Each government scheme in RuraLens has an approved plan made up of phases, a budget and a timeline. When a vendor submits a progress report, the detector reads the PDF and compares its claims with the scheme record and, when one was uploaded, the scheme\'s plan document.',
+              'RuraLens में हर सरकारी योजना की एक स्वीकृत योजना होती है, जिसमें चरण, बजट और समय-सीमा होती है। जब वेंडर प्रगति रिपोर्ट जमा करता है, तो डिटेक्टर PDF पढ़कर उसके दावों की तुलना योजना के रिकॉर्ड से और, अगर अपलोड किया गया हो, तो योजना दस्तावेज़ से करता है।'
             ),
           },
           { kind: 'h3', text: L('Submitting a vendor report', 'वेंडर रिपोर्ट जमा करना') },
           {
             kind: 'steps',
             items: [
-              L('Open **Government Schemes** and choose the scheme.', '**सरकारी योजनाएं** खोलें और योजना चुनें।'),
-              L('Under **Upload Vendor Progress Report**, upload the vendor\'s report as a PDF.', '**Upload Vendor Progress Report** के अंतर्गत वेंडर की रिपोर्ट PDF के रूप में अपलोड करें।'),
-              L('The analysis is saved to the scheme\'s report history, and the scheme\'s budget, progress and status are updated.', 'विश्लेषण योजना के रिपोर्ट इतिहास में सहेजा जाता है, और योजना का बजट, प्रगति व स्थिति अपडेट हो जाती है।'),
+              L('Sign in as an administrator, open **Government Schemes** and choose the scheme.', 'प्रशासक के रूप में साइन-इन करें, **सरकारी योजनाएं** खोलें और योजना चुनें।'),
+              L('Under **Upload Vendor Progress Report**, upload the vendor\'s report as a PDF (up to 10 MB). The file is stored in the database. Uploading the same file again does not create a second report.', '**Upload Vendor Progress Report** के अंतर्गत वेंडर की रिपोर्ट PDF (अधिकतम 10 MB) के रूप में अपलोड करें। फ़ाइल डेटाबेस में सहेजी जाती है। वही फ़ाइल दोबारा अपलोड करने पर दूसरी रिपोर्ट नहीं बनती।'),
+              L('Scanned PDFs without a text layer, empty files and damaged files are rejected with an explanation. There is no OCR.', 'बिना टेक्स्ट लेयर वाली स्कैन की गई PDF, खाली फ़ाइलें और खराब फ़ाइलें कारण बताकर अस्वीकार कर दी जाती हैं। OCR उपलब्ध नहीं है।'),
+              L('The findings are saved to the scheme\'s report history with the status **Pending review**.', 'निष्कर्ष योजना के रिपोर्ट इतिहास में **समीक्षा लंबित** स्थिति के साथ सहेजे जाते हैं।'),
             ],
           },
-          { kind: 'h3', text: L('What the analysis contains', 'विश्लेषण में क्या होता है') },
+          { kind: 'h3', text: L('How findings are produced', 'निष्कर्ष कैसे बनते हैं') },
           {
             kind: 'list',
             items: [
-              L('An overall compliance score, plus separate scores for budget, timeline, scope and quality.', 'कुल अनुपालन स्कोर, साथ में बजट, समय-सीमा, कार्यक्षेत्र और गुणवत्ता के अलग-अलग स्कोर।'),
-              L('A risk level and a list of discrepancies, each with a severity.', 'जोखिम स्तर और असंगतियों की सूची, हर एक की गंभीरता के साथ।'),
-              L('Overdue work, a budget breakdown, the items that match the plan, and recommendations.', 'लंबित कार्य, बजट विवरण, योजना से मेल खाने वाले मद और सुझाव।'),
+              L('**Calculated checks.** Budget overruns, overdue phases, schedule slips and quantity mismatches are computed in code from the numbers and dates found in the documents. They are always available, even when AI is not.', '**गणना आधारित जांच।** बजट से अधिक खर्च, लंबित चरण, समय-सारणी में देरी और मात्रा का अंतर दस्तावेज़ों में मिली संख्याओं और तिथियों से कोड में गणना करके निकाले जाते हैं। ये हमेशा उपलब्ध रहते हैं, AI उपलब्ध न होने पर भी।'),
+              L('**AI interpretation.** Relevant excerpts of the plan and the report are sent to Amazon Bedrock, which suggests further findings such as scope or specification differences. Each quote is checked against the document text; the page number is taken from where the quote actually appears; values not found in a verified quote are removed; and findings with no verifiable evidence are discarded.', '**AI व्याख्या।** योजना और रिपोर्ट के प्रासंगिक अंश Amazon Bedrock को भेजे जाते हैं, जो कार्यक्षेत्र या विनिर्देश जैसे अंतरों पर अतिरिक्त निष्कर्ष सुझाता है। हर उद्धरण की दस्तावेज़ के पाठ से जांच होती है; पृष्ठ संख्या वहीं से ली जाती है जहां उद्धरण वास्तव में है; सत्यापित उद्धरण में न मिलने वाले मान हटा दिए जाते हैं; और बिना सत्यापन योग्य प्रमाण वाले निष्कर्ष हटा दिए जाते हैं।'),
+              L('Each finding shows its type, severity, description, plan and vendor evidence with page or section, planned and reported values, variance, confidence (AI only), whether it was calculated or AI-generated, the model used and when it was produced. Missing evidence is shown as unavailable rather than filled in.', 'हर निष्कर्ष में उसका प्रकार, गंभीरता, विवरण, पृष्ठ या खंड सहित योजना और वेंडर का प्रमाण, नियोजित और रिपोर्ट किए गए मान, अंतर, विश्वसनीयता (केवल AI), वह गणना से बना या AI से, उपयोग किया गया मॉडल और बनने का समय दिखता है। अनुपलब्ध प्रमाण को भरा नहीं जाता, बल्कि अनुपलब्ध दिखाया जाता है।'),
+              L('If the AI step fails, the report is saved with the calculated findings and a clear notice. An administrator can select **Re-run analysis** later; earlier AI findings keep their original timestamps.', 'अगर AI चरण विफल होता है, तो रिपोर्ट गणना आधारित निष्कर्षों और स्पष्ट सूचना के साथ सहेजी जाती है। प्रशासक बाद में **Re-run analysis** चुन सकते हैं; पहले के AI निष्कर्ष अपने मूल समय के साथ बने रहते हैं।'),
             ],
           },
-          { kind: 'h3', text: L('Verification status', 'सत्यापन स्थिति') },
+          { kind: 'h3', text: L('Review and status', 'समीक्षा और स्थिति') },
           {
             kind: 'table',
-            columns: [L('Overall compliance', 'कुल अनुपालन'), L('Report status', 'रिपोर्ट स्थिति')],
+            columns: [L('Action', 'कार्रवाई'), L('Effect', 'प्रभाव')],
             rows: [
-              [L('80% or more', '80% या अधिक'), L('Approved', 'स्वीकृत')],
-              [L('60% to 79%', '60% से 79%'), L('Under review', 'समीक्षाधीन')],
-              [L('Below 60%', '60% से कम'), L('Rejected', 'अस्वीकृत')],
-            ],
-          },
-          { kind: 'h3', text: L('Scheme status', 'योजना स्थिति') },
-          {
-            kind: 'table',
-            columns: [L('Condition', 'स्थिति'), L('Scheme becomes', 'योजना की नई स्थिति')],
-            rows: [
-              [L('Any critical discrepancy', 'कोई भी गंभीर असंगति'), L('Discrepant', 'असंगत')],
-              [L('Discrepancies found and compliance below 70%', 'असंगतियां मिलीं और अनुपालन 70% से कम'), L('Delayed', 'विलंबित')],
-              [L('No discrepancies and all phases at 100%', 'कोई असंगति नहीं और सभी चरण 100%'), L('Completed', 'पूर्ण')],
-              [L('No discrepancies and compliance of 70% or more', 'कोई असंगति नहीं और अनुपालन 70% या अधिक'), L('On track', 'सही दिशा में')],
+              [L('Confirm a finding', 'निष्कर्ष की पुष्टि करें'), L('Recorded with the reviewer and time. Confirming a high or critical finding adds it to the scheme\'s discrepancies and marks the scheme Discrepant.', 'समीक्षक और समय के साथ दर्ज होता है। उच्च या गंभीर निष्कर्ष की पुष्टि करने पर वह योजना की असंगतियों में जुड़ता है और योजना असंगत चिह्नित होती है।')],
+              [L('Dismiss a finding', 'निष्कर्ष खारिज करें'), L('Recorded with the reviewer and time; the finding stays visible in the history.', 'समीक्षक और समय के साथ दर्ज होता है; निष्कर्ष इतिहास में दिखता रहता है।')],
+              [L('Approve or reject the report', 'रिपोर्ट स्वीकृत या अस्वीकृत करें'), L('Sets the report\'s verification status. Only an administrator\'s decision sets Approved or Rejected.', 'रिपोर्ट की सत्यापन स्थिति तय करता है। केवल प्रशासक का निर्णय ही स्वीकृत या अस्वीकृत तय करता है।')],
             ],
           },
           {
             kind: 'p',
             text: L(
-              'The expense claimed in the report is added to the scheme\'s utilised budget and to the phase\'s spend. The phase\'s progress is set from the compliance score, and the scheme\'s overall progress is the average of its phases.',
-              'रिपोर्ट में दावा किया गया खर्च योजना के उपयोग किए गए बजट और चरण के खर्च में जोड़ा जाता है। चरण की प्रगति अनुपालन स्कोर से तय होती है, और योजना की कुल प्रगति उसके सभी चरणों का औसत होती है।'
+              'The expense claimed in the report is added once to the scheme\'s utilised budget and to the phase\'s spend. Findings do not change a scheme\'s progress or status on their own.',
+              'रिपोर्ट में दावा किया गया खर्च योजना के उपयोग किए गए बजट और चरण के खर्च में एक बार जोड़ा जाता है। निष्कर्ष अपने आप योजना की प्रगति या स्थिति नहीं बदलते।'
+            ),
+          },
+          {
+            kind: 'note',
+            text: L(
+              'An AI-generated finding is a lead that needs review, not proof of fraud or wrongdoing.',
+              'AI द्वारा बनाया गया निष्कर्ष समीक्षा की ज़रूरत वाला एक संकेत है, धोखाधड़ी या गलत काम का प्रमाण नहीं।'
             ),
           },
           {
@@ -498,7 +491,10 @@ curl -X POST http://localhost:8000/v1/index/reload`,
               [c('GET'), c('/api/schemes/:id'), L('Get one scheme.', 'एक योजना का विवरण।')],
               [c('DELETE'), c('/api/schemes/:id'), L('Delete a scheme.', 'योजना हटाएं।')],
               [c('POST'), c('/api/schemes/extract-from-pdf'), L('Create scheme details from a PDF.', 'PDF से योजना विवरण बनाएं।')],
-              [c('POST'), c('/api/schemes/:id/vendor-report'), L('Upload and analyse a vendor report PDF.', 'वेंडर रिपोर्ट PDF अपलोड और विश्लेषण करें।')],
+              [c('POST'), c('/api/schemes/:id/vendor-report'), L('Upload and analyse a vendor report PDF. Administrators only.', 'वेंडर रिपोर्ट PDF अपलोड और विश्लेषण करें। केवल प्रशासक।')],
+              [c('POST'), c('/api/schemes/:id/vendor-reports/:reportId/reanalyze'), L('Re-run the analysis on the stored PDF.', 'सहेजी गई PDF पर विश्लेषण दोबारा चलाएं।')],
+              [c('PATCH'), c('/api/schemes/:id/vendor-reports/:reportId/findings/:findingId'), L('Confirm or dismiss a finding.', 'किसी निष्कर्ष की पुष्टि करें या उसे खारिज करें।')],
+              [c('PATCH'), c('/api/schemes/:id/vendor-reports/:reportId'), L('Approve or reject a vendor report.', 'वेंडर रिपोर्ट स्वीकृत या अस्वीकृत करें।')],
               [c('GET'), c('/api/schemes/:id/feedback'), L('List citizen feedback for a scheme.', 'योजना पर नागरिक प्रतिक्रियाओं की सूची।')],
               [c('POST'), c('/api/schemes/:id/feedback'), L('Submit feedback on a scheme.', 'योजना पर प्रतिक्रिया दें।')],
             ],
@@ -508,7 +504,9 @@ curl -X POST http://localhost:8000/v1/index/reload`,
             kind: 'table',
             columns: [L('Method', 'मेथड'), L('Endpoint', 'एंडपॉइंट'), L('Description', 'विवरण')],
             rows: [
-              [c('POST'), c('/api/rag-query'), L('Ask the RAG Knowledge Engine a question.', 'RAG ज्ञान इंजन से प्रश्न पूछें।')],
+              [c('POST'), c('/api/rag-query'), L('Ask the AI Copilot a question about schemes.', 'AI कोपायलट से योजनाओं के बारे में प्रश्न पूछें।')],
+              [c('POST'), c('/api/copilot/chat'), L('Multi-turn Copilot chat, including proposed twin simulations.', 'कई चरणों वाली कोपायलट बातचीत, जिसमें ट्विन सिमुलेशन के प्रस्ताव शामिल हैं।')],
+              [c('GET'), c('/api/copilot/status'), L('Whether the Copilot is configured.', 'कोपायलट कॉन्फ़िगर है या नहीं।')],
               [c('GET'), c('/api/gnn/status'), L('Check whether the impact model is ready.', 'जांचें कि प्रभाव मॉडल तैयार है या नहीं।')],
               [c('GET'), c('/api/gnn/graph'), L('Return the current infrastructure graph.', 'वर्तमान इंफ्रास्ट्रक्चर ग्राफ लौटाएं।')],
               [c('POST'), c('/api/gnn/predict-structured'), L('Predict the impact of a failure on one node.', 'किसी नोड की विफलता का प्रभाव अनुमानित करें।')],
@@ -555,6 +553,7 @@ curl -X POST http://localhost:8000/v1/index/reload`,
               L('Sign-in uses signed JSON Web Tokens, and each account has a role that limits what it can see and change.', 'साइन-इन में हस्ताक्षरित JSON Web Tokens का उपयोग होता है, और हर खाते की भूमिका तय करती है कि वह क्या देख और बदल सकता है।'),
               L('Email addresses, phone numbers, Aadhaar numbers and PAN numbers are redacted before a question is sent to an AI model.', 'किसी AI मॉडल को प्रश्न भेजने से पहले ईमेल पते, फोन नंबर, आधार नंबर और PAN नंबर हटा दिए जाते हैं।'),
               L('AI questions are rate-limited and cached to protect the services from overload.', 'सेवाओं को अधिक भार से बचाने के लिए AI प्रश्नों पर दर-सीमा और कैश लागू है।'),
+              L('AWS credentials stay on the backend. The browser never calls Bedrock directly, and document text is not written to the logs.', 'AWS क्रेडेंशियल केवल बैकएंड पर रहते हैं। ब्राउज़र कभी सीधे Bedrock को कॉल नहीं करता, और दस्तावेज़ का पाठ लॉग में नहीं लिखा जाता।'),
               L('Anonymous reports are stripped of personal details, keep only a hash of the original text, and store approximate locations.', 'गुमनाम रिपोर्टों से व्यक्तिगत विवरण हटाए जाते हैं, मूल पाठ का केवल hash रखा जाता है, और स्थान अनुमानित रूप में सहेजा जाता है।'),
               L('The backend only accepts browser requests from the frontend address set in `FRONTEND_URL`.', 'बैकएंड केवल `FRONTEND_URL` में दिए फ्रंटएंड पते से आने वाले ब्राउज़र अनुरोध स्वीकार करता है।'),
             ],
@@ -587,8 +586,9 @@ curl -X POST http://localhost:8000/v1/index/reload`,
               [c('JWT_SECRET'), L('Backend', 'बैकएंड'), L('Secret used to sign sign-in tokens.', 'साइन-इन टोकन पर हस्ताक्षर करने की गुप्त कुंजी।')],
               [c('FRONTEND_URL'), L('Backend', 'बैकएंड'), L('Frontend address allowed to call the API.', 'API को कॉल करने की अनुमति वाला फ्रंटएंड पता।')],
               [c('PYTHON_GNN_API_URL'), L('Backend', 'बैकएंड'), L('Address of the GNN service.', 'GNN सेवा का पता।')],
-              [c('PATHWAY_MCP_URL'), L('Backend', 'बैकएंड'), L('Address of the RAG retrieval service.', 'RAG रिट्रीवल सेवा का पता।')],
-              [c('PATHWAY_MCP_TOKEN'), L('Backend', 'बैकएंड'), L('Token for the RAG service, if it requires one.', 'RAG सेवा का टोकन, अगर आवश्यक हो।')],
+              [c('AWS_REGION'), L('Backend', 'बैकएंड'), L('AWS Region where Bedrock model access is enabled.', 'वह AWS Region जहां Bedrock मॉडल एक्सेस सक्षम है।')],
+              [c('BEDROCK_MODEL_ID'), L('Backend', 'बैकएंड'), L('Bedrock model or inference profile ID used by the Copilot and vendor report comparison.', 'कोपायलट और वेंडर रिपोर्ट तुलना में उपयोग होने वाला Bedrock मॉडल या inference profile ID।')],
+              [c('AWS_ACCESS_KEY_ID'), L('Backend', 'बैकएंड'), L('With `AWS_SECRET_ACCESS_KEY`, credentials for a least-privilege IAM user on Render. Locally, prefer `AWS_PROFILE`. Never use `VITE_` variables for these.', '`AWS_SECRET_ACCESS_KEY` के साथ, Render पर न्यूनतम अधिकार वाले IAM उपयोगकर्ता के क्रेडेंशियल। लोकल रूप से `AWS_PROFILE` बेहतर है। इनके लिए कभी `VITE_` वेरिएबल का उपयोग न करें।')],
               [c('GEMINI_API_KEY'), L('Backend', 'बैकएंड'), L('Google Gemini, used for document analysis.', 'Google Gemini, दस्तावेज़ विश्लेषण के लिए।')],
               [c('HUGGINGFACE_API_KEY'), L('Backend', 'बैकएंड'), L('Hugging Face model calls.', 'Hugging Face मॉडल कॉल।')],
               [c('RINGG_API_KEY'), L('Backend', 'बैकएंड'), L('Ringg AI key for Kavya call records, used with `RINGG_ASSISTANT_ID`.', 'काव्या कॉल रिकॉर्ड के लिए Ringg AI कुंजी, `RINGG_ASSISTANT_ID` के साथ।')],
@@ -601,8 +601,8 @@ curl -X POST http://localhost:8000/v1/index/reload`,
           {
             kind: 'p',
             text: L(
-              'You need Node.js 18 or later, Python 3.11 or later, and a MongoDB database. Copy `backend/.env.example` to `backend/.env` and fill in the variables above.',
-              'आपको Node.js 18 या बाद का संस्करण, Python 3.11 या बाद का संस्करण और एक MongoDB डेटाबेस चाहिए। `backend/.env.example` को `backend/.env` में कॉपी करें और ऊपर दिए वेरिएबल भरें।'
+              'You need Node.js 22 or later, Python 3.11 or later, and a MongoDB database. Copy `backend/.env.example` to `backend/.env` and fill in the variables above. AWS setup for Bedrock is described in `docs/BEDROCK.md`.',
+              'आपको Node.js 22 या बाद का संस्करण, Python 3.11 या बाद का संस्करण और एक MongoDB डेटाबेस चाहिए। `backend/.env.example` को `backend/.env` में कॉपी करें और ऊपर दिए वेरिएबल भरें। Bedrock के लिए AWS सेटअप `docs/BEDROCK.md` में बताया गया है।'
             ),
           },
           {
@@ -620,10 +620,7 @@ npm run dev
 # GNN service
 cd backend/python-gnn
 pip install -r requirements-render.txt
-uvicorn api_server:app --port 8001
-
-# RAG service (optional, Docker)
-docker compose --env-file backend/.env -f docker-compose.pathway.yml up -d --build`,
+uvicorn api_server:app --port 8001`,
           },
         ],
       },
@@ -663,12 +660,12 @@ docker compose --env-file backend/.env -f docker-compose.pathway.yml up -d --bui
   Select-Object -ExpandProperty OwningProcess -Unique |
   ForEach-Object { taskkill /PID $_ /F }`,
           },
-          { kind: 'h3', text: L('RAG answers fail with "service temporarily unavailable"', 'RAG उत्तर "service temporarily unavailable" के साथ विफल') },
+          { kind: 'h3', text: L('Copilot or AI comparison reports an error', 'कोपायलट या AI तुलना त्रुटि दिखा रही है') },
           {
             kind: 'p',
             text: L(
-              'The retrieval service is not running or rejected the request. Start it, and check that `PATHWAY_MCP_URL` and `PATHWAY_MCP_TOKEN` match its configuration.',
-              'रिट्रीवल सेवा नहीं चल रही है या उसने अनुरोध अस्वीकार कर दिया। उसे शुरू करें, और जांचें कि `PATHWAY_MCP_URL` और `PATHWAY_MCP_TOKEN` उसके कॉन्फ़िगरेशन से मेल खाते हैं।'
+              'The error message names the cause. `not_configured` means `AWS_REGION` or `BEDROCK_MODEL_ID` is missing; `credentials_unavailable` or `access_denied` means the backend has no AWS credentials or lacks `bedrock:InvokeModel`; `model_not_found` means model access is not enabled in that Region; `throttled` means the account quota was reached, so wait and retry. The backend logs its Bedrock configuration at startup without printing secret values. See `docs/BEDROCK.md`.',
+              'त्रुटि संदेश कारण बताता है। `not_configured` का अर्थ है `AWS_REGION` या `BEDROCK_MODEL_ID` नहीं है; `credentials_unavailable` या `access_denied` का अर्थ है बैकएंड के पास AWS क्रेडेंशियल नहीं हैं या `bedrock:InvokeModel` अनुमति नहीं है; `model_not_found` का अर्थ है उस Region में मॉडल एक्सेस सक्षम नहीं है; `throttled` का अर्थ है खाते का कोटा पूरा हो गया, इसलिए रुककर दोबारा कोशिश करें। बैकएंड शुरू होते समय गुप्त मान दिखाए बिना अपना Bedrock कॉन्फ़िगरेशन लॉग करता है। `docs/BEDROCK.md` देखें।'
             ),
           },
         ],

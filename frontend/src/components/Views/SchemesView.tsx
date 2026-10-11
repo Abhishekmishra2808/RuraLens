@@ -18,8 +18,8 @@ import {
   ClipboardList,
   type LucideIcon
 } from 'lucide-react';
-import { useAppStore, type GovernmentScheme } from '../../store/appStore';
-import { API_URL } from '../../config/api';
+import { useAppStore, type GovernmentScheme, type VendorReportFinding, type FindingEvidence } from '../../store/appStore';
+import { API_URL, authHeaders } from '../../config/api';
 import RagQueryModal from '../Rag/RagQueryModal';
 import FeedbackView, { CitizenReviews } from './FeedbackView';
 import type { Citation } from '../../hooks/useRagQuery';
@@ -27,7 +27,7 @@ import { motion } from 'framer-motion';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { SPRING_SNAPPY } from '@/lib/motion';
-import { BAR_COLOR, ProgressBar, STATUS_META, StatusLabel, type SchemeStatus } from '../Schemes/schemeUi';
+import { BAR_COLOR, ProgressBar, StatusLabel } from '../Schemes/schemeUi';
 import { SchemeFeedbackModal, canRateScheme } from '../Schemes/SchemeFeedbackModal';
 
 const lakh = (rupees: number, digits = 1) => `${rupees < 0 ? '−' : ''}₹${(Math.abs(rupees) / 100000).toFixed(digits)}L`;
@@ -643,10 +643,13 @@ function SchemeDetailsModal({
 }
 
 // Vendor Reports Tab Component
-function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
+function VendorReportsTab({ scheme: initialScheme }: { scheme: GovernmentScheme }) {
+  const liveScheme = useAppStore((state) => state.schemes.find((s) => s.id === initialScheme.id));
+  const scheme = liveScheme ?? initialScheme;
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [uploadNotice, setUploadNotice] = useState('');
+  const [uploadWarnings, setUploadWarnings] = useState<string[]>([]);
   const [openReportId, setOpenReportId] = useState<string | number | null>(scheme.vendorReports?.[0]?.id ?? null);
   const userRole = useAppStore((state) => state.userRole);
   const fetchSchemes = useAppStore((state) => state.fetchSchemes);
@@ -663,33 +666,38 @@ function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
     setIsUploading(true);
     setUploadError('');
     setUploadNotice('');
+    setUploadWarnings([]);
 
     try {
-      console.log('Uploading vendor report for analysis:', file.name);
-      
       const formData = new FormData();
       formData.append('pdf', file);
 
-      const response = await fetch(`${API_URL}/api/schemes/${scheme.id}/vendor-report`, {
+      const response = await fetch(`${API_URL}/api/schemes/${encodeURIComponent(scheme.id)}/vendor-report`, {
         method: 'POST',
+        headers: authHeaders(),
         body: formData,
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || `Upload failed (HTTP ${response.status}).`);
+      }
 
-      if (result.success) {
-        console.log('Vendor report analyzed:', result.report);
-        console.log('Scheme metrics updated:', result.updatedScheme);
-        
-        // Refresh the schemes data to get updated information
-        await fetchSchemes();
-        
-        const updatedScheme = result.updatedScheme;
-        setUploadNotice(
-          `Report analysed. Progress is now ${updatedScheme.overallProgress}%, ${lakh(updatedScheme.budgetUtilized, 2)} spent, status ${STATUS_META[updatedScheme.status as SchemeStatus]?.label.toLowerCase() ?? updatedScheme.status}.`,
-        );
+      await fetchSchemes();
+      if (result.report?.id != null) setOpenReportId(result.report.id);
+
+      if (result.duplicate) {
+        setUploadNotice(result.message || 'This PDF was already uploaded for this scheme.');
       } else {
-        throw new Error(result.error || 'Failed to analyze vendor report');
+        const findings = activeFindings(result.report).length;
+        const spent = result.updatedScheme?.budgetUtilized;
+        setUploadNotice(
+          [
+            findings === 0 ? 'Report analysed. No findings.' : `Report analysed. ${findings} finding${findings === 1 ? '' : 's'} awaiting review.`,
+            typeof spent === 'number' ? `Utilised budget is now ${lakh(spent, 2)}.` : '',
+          ].filter(Boolean).join(' '),
+        );
+        setUploadWarnings(Array.isArray(result.warnings) ? result.warnings : []);
       }
     } catch (err: any) {
       console.error('Vendor report upload error:', err);
@@ -710,7 +718,7 @@ function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
             <div className="min-w-0">
               <p className="text-sm font-medium text-zinc-900">Upload a vendor report</p>
               <p className="mt-0.5 text-xs text-zinc-500">
-                PDF only. It is compared with the scheme plan for discrepancies, overdue work and budget variance.
+                PDF with a text layer (scanned PDFs can't be read). Budget and dates are checked in code; AI suggests further findings for review.
               </p>
             </div>
             <label
@@ -739,12 +747,18 @@ function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
               {uploadNotice}
             </p>
           )}
+          {uploadWarnings.map((warning) => (
+            <p key={warning} className="flex gap-2 text-sm text-amber-800">
+              <AlertTriangle size={15} className="mt-0.5 shrink-0" aria-hidden />
+              {warning}
+            </p>
+          ))}
         </div>
       )}
 
       {reports.length === 0 ? (
         <p className="py-8 text-center text-sm text-zinc-500">
-          No vendor reports yet.{userRole === 'admin' && ' Upload a PDF to get a compliance analysis.'}
+          No vendor reports yet.{userRole === 'admin' && ' Upload a PDF to compare it with the scheme plan.'}
         </p>
       ) : (
         <div className="-mx-5 overflow-x-auto md:-mx-6">
@@ -755,7 +769,7 @@ function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
                 <th scope="col" className="px-3 py-2 font-medium">Submitted</th>
                 <th scope="col" className="px-3 py-2 font-medium">Status</th>
                 <th scope="col" className="px-3 py-2 text-right font-medium">Claimed</th>
-                <th scope="col" className="px-3 py-2 text-right font-medium">Compliance</th>
+                <th scope="col" className="px-3 py-2 text-right font-medium">Findings</th>
                 <th scope="col" className="w-10 px-5 py-2 md:px-6">
                   <span className="sr-only">Details</span>
                 </th>
@@ -767,6 +781,9 @@ function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
                 const open = openReportId === report.id;
                 const verification = VERIFICATION_META[report.verificationStatus] ?? VERIFICATION_META.pending;
                 const risk = analysis?.riskLevel as string | undefined;
+                const legacyScore = toNumber(analysis?.overallCompliance);
+                const findings = activeFindings(report);
+                const toReview = findings.filter((f) => (f.reviewStatus ?? 'pending-review') === 'pending-review').length;
                 const toggle = () => setOpenReportId(open ? null : report.id);
                 return (
                   <Fragment key={report.id}>
@@ -802,9 +819,16 @@ function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
                         {lakhOrDash(report.expenseClaimed ?? analysis?.budgetAnalysis?.claimedExpense)}
                       </td>
                       <td className="px-3 py-3 text-right">
-                        <p className={`tabular-nums ${complianceTone(analysis?.overallCompliance)}`}>
-                          {percentOrDash(analysis?.overallCompliance)}
-                        </p>
+                        {legacyScore !== null ? (
+                          <p className={`tabular-nums ${complianceTone(legacyScore)}`} title="Compliance score from the earlier analyser">
+                            {percentOrDash(legacyScore)}
+                          </p>
+                        ) : (
+                          <p className="tabular-nums text-zinc-900">{findings.length}</p>
+                        )}
+                        {legacyScore === null && toReview > 0 && (
+                          <p className="mt-0.5 text-xs text-amber-700">{toReview} to review</p>
+                        )}
                         {risk && (
                           <p className={`mt-0.5 text-xs ${SEVERITY_TONE[risk] ?? 'text-zinc-500'}`}>
                             {risk.charAt(0).toUpperCase() + risk.slice(1)} risk
@@ -818,7 +842,12 @@ function VendorReportsTab({ scheme }: { scheme: GovernmentScheme }) {
                     {open && (
                       <tr>
                         <td colSpan={6} className="border-t border-zinc-100 bg-zinc-50/60 px-5 py-5 md:px-6">
-                          <ReportDetails report={report} />
+                          <ReportDetails
+                            report={report}
+                            schemeId={scheme.id}
+                            canReview={userRole === 'admin'}
+                            onChanged={fetchSchemes}
+                          />
                         </td>
                       </tr>
                     )}
@@ -870,10 +899,350 @@ const complianceTone = (value: unknown) => {
   return 'font-medium text-red-600';
 };
 
-function ReportDetails({ report }: { report: any }) {
-  const analysis = report.complianceAnalysis;
+const CURRENT_ANALYSIS_METHOD = 'deterministic+bedrock';
 
-  if (!analysis?.aiProcessed) {
+function activeFindings(report: any): VendorReportFinding[] {
+  const all: VendorReportFinding[] = report?.complianceAnalysis?.discrepancies ?? [];
+  return all.filter((f) => !f.supersededAt);
+}
+
+const EVIDENCE_SOURCE_LABEL: Record<string, string> = {
+  'plan-document': 'Plan document',
+  'scheme-record': 'Scheme record',
+  'vendor-report': 'Vendor report',
+};
+
+const REVIEW_META: Record<string, { label: string; tone: string }> = {
+  'pending-review': { label: 'Awaiting review', tone: 'text-amber-700' },
+  confirmed: { label: 'Confirmed', tone: 'text-red-600' },
+  dismissed: { label: 'Dismissed', tone: 'text-zinc-500' },
+};
+
+const dateTimeOrDash = (value: unknown) =>
+  typeof value === 'string' && !Number.isNaN(new Date(value).getTime())
+    ? new Date(value).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : '—';
+
+function formatVariance(f: VendorReportFinding) {
+  if (f.variance == null) return null;
+  const sign = f.variance > 0 ? '+' : '';
+  const amount = f.varianceUnit === 'INR' ? `${sign}${lakh(f.variance, 2)}` : `${sign}${f.variance.toLocaleString('en-IN')}${f.varianceUnit ? ` ${f.varianceUnit}` : ''}`;
+  return f.variancePercentage != null ? `${amount} (${f.variancePercentage}%)` : amount;
+}
+
+function EvidenceBlock({ label, evidence }: { label: string; evidence?: FindingEvidence | null }) {
+  const location = evidence
+    ? [evidence.page != null ? `p. ${evidence.page}` : null, evidence.section].filter(Boolean).join(' · ')
+    : '';
+  const hasAny = !!evidence && (!!evidence.quote || !!location);
+  return (
+    <div className="min-w-0">
+      <p className="text-xs text-zinc-500">
+        {label}
+        {evidence?.source && ` · ${EVIDENCE_SOURCE_LABEL[evidence.source] ?? evidence.source}`}
+      </p>
+      {!hasAny ? (
+        <p className="mt-0.5 text-xs text-zinc-400">Not available</p>
+      ) : (
+        <>
+          {evidence?.quote && <p className="mt-0.5 break-words text-xs italic leading-relaxed text-zinc-700">“{evidence.quote}”</p>}
+          <p className="mt-0.5 text-xs text-zinc-500">{location || 'Page not identified'}</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+function FindingItem({
+  finding,
+  canReview,
+  busy,
+  onReview,
+}: {
+  finding: VendorReportFinding;
+  canReview: boolean;
+  busy: boolean;
+  onReview: (finding: VendorReportFinding, status: 'pending-review' | 'confirmed' | 'dismissed') => void;
+}) {
+  const isAi = finding.source === 'ai';
+  const review = REVIEW_META[finding.reviewStatus ?? 'pending-review'] ?? REVIEW_META['pending-review'];
+  const variance = formatVariance(finding);
+  const reported = finding.reportedValue ?? finding.actualValue ?? null;
+  return (
+    <li className={`px-4 py-3 ${finding.supersededAt ? 'opacity-70' : ''}`}>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+        <span className={`font-medium capitalize ${SEVERITY_TONE[finding.severity] ?? 'text-zinc-500'}`}>{finding.severity}</span>
+        {finding.type && <span className="text-zinc-500">· {finding.type.replace(/_/g, ' ')}</span>}
+        <span
+          className={`rounded-full px-2 py-0.5 ${isAi ? 'bg-violet-50 text-violet-700' : 'bg-zinc-100 text-zinc-700'}`}
+          title={isAi ? 'Suggested by the language model; evidence quotes were checked against the documents.' : 'Calculated in code from the documents and scheme record.'}
+        >
+          {isAi ? 'AI interpretation' : finding.source === 'deterministic' ? 'Calculated check' : 'Earlier analyser'}
+        </span>
+        <span className={`ml-auto ${review.tone}`}>{review.label}</span>
+      </div>
+      {finding.title && <p className="mt-1 font-medium text-zinc-900">{finding.title}</p>}
+      <p className="mt-0.5 leading-relaxed text-zinc-600">{finding.description}</p>
+
+      <dl className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-xs">
+        <div className="flex gap-1.5">
+          <dt className="text-zinc-500">Planned</dt>
+          <dd className="text-zinc-900">{finding.plannedValue ?? '—'}</dd>
+        </div>
+        <div className="flex gap-1.5">
+          <dt className="text-zinc-500">Reported</dt>
+          <dd className="text-zinc-900">{reported ?? '—'}</dd>
+        </div>
+        {variance && (
+          <div className="flex gap-1.5">
+            <dt className="text-zinc-500">Variance</dt>
+            <dd className="tabular-nums text-zinc-900">{variance}</dd>
+          </div>
+        )}
+        {isAi && (
+          <div className="flex gap-1.5">
+            <dt className="text-zinc-500">Model confidence</dt>
+            <dd className="tabular-nums text-zinc-900">{finding.confidence != null ? `${Math.round(finding.confidence * 100)}%` : '—'}</dd>
+          </div>
+        )}
+      </dl>
+
+      <div className="mt-2 grid gap-3 rounded-lg bg-zinc-50 px-3 py-2 sm:grid-cols-2">
+        <EvidenceBlock label="Plan evidence" evidence={finding.planEvidence} />
+        <EvidenceBlock label="Vendor evidence" evidence={finding.vendorEvidence} />
+      </div>
+
+      <p className="mt-2 text-xs text-zinc-500">
+        {isAi && finding.modelSource ? `${finding.modelSource.modelId} via Amazon Bedrock · ` : ''}
+        Generated {dateTimeOrDash(finding.generatedAt)}
+        {finding.reviewedAt && ` · Reviewed ${dateTimeOrDash(finding.reviewedAt)}`}
+        {finding.supersededAt && ` · Not found in the analysis of ${dateTimeOrDash(finding.supersededAt)}`}
+      </p>
+      {finding.reviewNote && <p className="mt-1 text-xs text-zinc-600">Note: {finding.reviewNote}</p>}
+
+      {canReview && finding.id && !finding.supersededAt && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {finding.reviewStatus !== 'confirmed' && (
+            <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => onReview(finding, 'confirmed')}>
+              Confirm
+            </Button>
+          )}
+          {finding.reviewStatus !== 'dismissed' && (
+            <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => onReview(finding, 'dismissed')}>
+              Dismiss
+            </Button>
+          )}
+          {finding.reviewStatus && finding.reviewStatus !== 'pending-review' && (
+            <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={() => onReview(finding, 'pending-review')}>
+              Reopen
+            </Button>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
+
+function ReportDetails({
+  report,
+  schemeId,
+  canReview,
+  onChanged,
+}: {
+  report: any;
+  schemeId: string;
+  canReview: boolean;
+  onChanged: () => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [notices, setNotices] = useState<string[]>([]);
+
+  if (report.analysisMethod !== CURRENT_ANALYSIS_METHOD) {
+    return <ReportFacts report={report} legacy />;
+  }
+
+  const base = `${API_URL}/api/schemes/${encodeURIComponent(schemeId)}/vendor-reports/${encodeURIComponent(String(report.id))}`;
+  const call = async (path: string, method: 'POST' | 'PATCH', body?: unknown) => {
+    setBusy(true);
+    setError('');
+    setNotices([]);
+    try {
+      const response = await fetch(`${base}${path}`, {
+        method,
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) throw new Error(result.error || `Request failed (HTTP ${response.status}).`);
+      await onChanged();
+      return result;
+    } catch (err: any) {
+      setError(err.message || 'Request failed.');
+      return null;
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const ai = report.aiAnalysis ?? {};
+  const findings: VendorReportFinding[] = report.complianceAnalysis?.discrepancies ?? [];
+  const current = findings.filter((f) => !f.supersededAt);
+  const superseded = findings.filter((f) => f.supersededAt);
+  const lastAi = ai.lastSuccess;
+  const decision = report.verificationDecision;
+  const aiFailed = ai.status === 'failed' || ai.status === 'not_configured';
+
+  const reanalyze = async () => {
+    const result = await call('/reanalyze', 'POST');
+    if (result) setNotices(['Analysis re-run.', ...(result.warnings ?? [])]);
+  };
+  const reviewFinding = (finding: VendorReportFinding, reviewStatus: 'pending-review' | 'confirmed' | 'dismissed') =>
+    call(`/findings/${encodeURIComponent(finding.id!)}`, 'PATCH', { reviewStatus });
+  const decide = (verificationStatus: 'approved' | 'rejected' | 'under-review') => call('', 'PATCH', { verificationStatus });
+
+  return (
+    <div className="space-y-6 text-sm">
+      <p className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs leading-relaxed text-zinc-600">
+        Findings are leads for an officer to review, not proof of fraud or wrongdoing. Calculated checks use the numbers and dates found in the documents;
+        AI interpretations are suggestions whose quoted evidence was matched against the document text.
+      </p>
+
+      <section className="space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-xs text-zinc-500">
+            <p>
+              Analysed {dateTimeOrDash(report.analyzedAt)} · plan source:{' '}
+              {report.planEvidenceSource === 'plan-document' ? 'uploaded plan document' : 'scheme record'}
+              {report.textExtraction?.truncated &&
+                ` · first ${report.textExtraction.pagesAnalyzed} of ${report.textExtraction.numPages} pages read`}
+            </p>
+            {ai.status === 'succeeded' && ai.modelSource && (
+              <p>
+                AI comparison: {ai.modelSource.modelId} via Amazon Bedrock, {dateTimeOrDash(ai.generatedAt)}
+                {ai.discardedUnverified > 0 &&
+                  ` · ${ai.discardedUnverified} AI finding${ai.discardedUnverified === 1 ? '' : 's'} discarded because the quoted evidence was not found in the documents`}
+              </p>
+            )}
+          </div>
+          {canReview && report.documentFileId && (
+            <Button type="button" size="sm" variant="outline" className="gap-2" disabled={busy} onClick={reanalyze}>
+              {busy && <Loader size={14} className="animate-spin" />}
+              Re-run analysis
+            </Button>
+          )}
+        </div>
+
+        {aiFailed && (
+          <div role="status" className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden />
+            <div>
+              <p>
+                {ai.status === 'not_configured' ? 'AI comparison is not configured.' : 'AI comparison failed.'} {ai.error?.message}
+              </p>
+              <p className="mt-0.5">
+                Only calculated checks are from this run.
+                {lastAi?.generatedAt && ` The AI summary and AI findings shown are from the earlier run of ${dateTimeOrDash(lastAi.generatedAt)}.`}
+                {ai.error?.retryable && canReview && ' This error is temporary; try Re-run analysis later.'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <p role="alert" className="text-xs text-red-600">
+            {error}
+          </p>
+        )}
+        {notices.map((notice) => (
+          <p key={notice} role="status" className="text-xs text-zinc-600">
+            {notice}
+          </p>
+        ))}
+      </section>
+
+      <section className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-3">
+        <div className="text-xs text-zinc-600">
+          <p className="text-sm font-medium text-zinc-900">Verification</p>
+          {decision?.by ? (
+            <p className="mt-0.5">
+              {report.verificationStatus === 'approved' ? 'Approved' : 'Rejected'} by an official on {dateTimeOrDash(decision.at)}
+              {decision.note && ` · ${decision.note}`}
+            </p>
+          ) : (
+            <p className="mt-0.5">No decision yet. Approval or rejection is recorded only when an official decides.</p>
+          )}
+        </div>
+        {canReview && (
+          <div className="flex flex-wrap gap-2">
+            {report.verificationStatus !== 'approved' && (
+              <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => decide('approved')}>
+                Approve report
+              </Button>
+            )}
+            {report.verificationStatus !== 'rejected' && (
+              <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => decide('rejected')}>
+                Reject report
+              </Button>
+            )}
+            {decision?.by && (
+              <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={() => decide('under-review')}>
+                Clear decision
+              </Button>
+            )}
+          </div>
+        )}
+      </section>
+
+      {lastAi?.summary && (
+        <section>
+          <h4 className="font-semibold text-zinc-900">AI summary</h4>
+          <p className="mt-1 leading-relaxed text-zinc-600">{lastAi.summary}</p>
+          <p className="mt-1 text-xs text-zinc-500">
+            {lastAi.modelSource?.modelId} via Amazon Bedrock, {dateTimeOrDash(lastAi.generatedAt)}. Not verified line by line; check the findings below.
+          </p>
+        </section>
+      )}
+
+      <section>
+        <h4 className="font-semibold text-zinc-900">
+          Findings <span className="font-normal text-zinc-500">({current.length})</span>
+        </h4>
+        {current.length === 0 ? (
+          <p className="mt-1 text-zinc-500">No findings in this analysis.</p>
+        ) : (
+          <ul className="mt-2 divide-y divide-zinc-100 overflow-hidden rounded-xl border border-zinc-200 bg-white">
+            {current.map((finding, idx) => (
+              <FindingItem key={finding.id ?? idx} finding={finding} canReview={canReview} busy={busy} onReview={reviewFinding} />
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {superseded.length > 0 && (
+        <section>
+          <h4 className="font-semibold text-zinc-900">
+            Reviewed earlier, not found in the latest analysis <span className="font-normal text-zinc-500">({superseded.length})</span>
+          </h4>
+          <ul className="mt-2 divide-y divide-zinc-100 overflow-hidden rounded-xl border border-zinc-200 bg-white">
+            {superseded.map((finding, idx) => (
+              <FindingItem key={finding.id ?? idx} finding={finding} canReview={false} busy={busy} onReview={reviewFinding} />
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <ReportFacts report={report} legacy={false} />
+    </div>
+  );
+}
+
+// Overdue work, budget and expenses for every report; for reports from the earlier
+// analyser it also renders their stored scores and discrepancies.
+function ReportFacts({ report, legacy }: { report: any; legacy: boolean }) {
+  const analysis = report.complianceAnalysis ?? {};
+
+  if (legacy && !analysis?.aiProcessed) {
     return (
       <div className="space-y-4 text-sm">
         <section>
@@ -891,14 +1260,16 @@ function ReportDetails({ report }: { report: any }) {
     ['Scope', analysis.scopeCompliance],
     ['Quality', analysis.qualityCompliance],
   ];
-  const hasBreakdown = breakdown.some(([, value]) => toNumber(value) !== null);
-  const discrepancies: any[] = analysis.discrepancies ?? [];
+  const hasBreakdown = legacy && breakdown.some(([, value]) => toNumber(value) !== null);
+  const discrepancies: any[] = legacy ? analysis?.discrepancies ?? [] : [];
   const overdue: any[] = analysis.overdueWork ?? [];
   const matching: string[] = analysis.matchingItems ?? [];
   const recommendations: string[] = analysis.recommendations ?? [];
   const budget = analysis.budgetAnalysis;
-  const overBudget =
-    budget && (toNumber(budget.claimedExpense) ?? 0) > (toNumber(budget.plannedBudget) ?? Infinity);
+  const cumulative = !legacy && budget != null && toNumber(budget.priorUtilized) !== null;
+  const overBudget = cumulative
+    ? (toNumber(budget.variance) ?? 0) > 0
+    : !!budget && (toNumber(budget.claimedExpense) ?? 0) > (toNumber(budget.plannedBudget) ?? Infinity);
   const expenses = report.expenseBreakdown ? Object.entries(report.expenseBreakdown) : [];
 
   return (
@@ -914,15 +1285,13 @@ function ReportDetails({ report }: { report: any }) {
         </dl>
       )}
 
-      {analysis.aiSummary && (
+      {legacy && analysis.aiSummary && (
         <section>
           <h4 className="font-semibold text-zinc-900">Summary</h4>
           <p className="mt-1 leading-relaxed text-zinc-600">{analysis.aiSummary}</p>
-          {report.analysisMethod && (
-            <p className="mt-1.5 text-xs text-zinc-500">
-              Analysed with {report.analysisMethod === 'pathway_python' ? 'Pathway' : 'the standard analyser'}
-            </p>
-          )}
+          <p className="mt-1.5 text-xs text-zinc-500">
+            Produced by the earlier analyser. Its findings were not individually verified against the documents.
+          </p>
         </section>
       )}
 
@@ -1012,21 +1381,35 @@ function ReportDetails({ report }: { report: any }) {
         <section>
           <h4 className="font-semibold text-zinc-900">Budget</h4>
           <dl className="mt-2 divide-y divide-zinc-100 rounded-xl border border-zinc-200 bg-white">
-            {[
-              ['Planned', lakhOrDash(budget.plannedBudget)],
-              ['Claimed', lakhOrDash(budget.claimedExpense)],
-              ['Variance', lakhOrDash(budget.variance)],
-              ['Variance %', percentOrDash(budget.variancePercentage, 1)],
-            ].map(([label, value]) => (
-              <div key={label} className="flex items-center justify-between px-4 py-2.5">
+            {(cumulative
+              ? [
+                  ['Sanctioned budget', lakhOrDash(budget.plannedBudget), false],
+                  ['Utilised before this report', lakhOrDash(budget.priorUtilized), false],
+                  ['Claimed in this report', lakhOrDash(budget.claimedExpense), false],
+                  ['Variance against budget', lakhOrDash(budget.variance), overBudget],
+                  ['Variance %', percentOrDash(budget.variancePercentage, 1), overBudget],
+                ]
+              : [
+                  ['Planned', lakhOrDash(budget.plannedBudget), false],
+                  ['Claimed', lakhOrDash(budget.claimedExpense), overBudget],
+                  ['Variance', lakhOrDash(budget.variance), overBudget],
+                  ['Variance %', percentOrDash(budget.variancePercentage, 1), overBudget],
+                ]
+            ).map(([label, value, alert]) => (
+              <div key={String(label)} className="flex items-center justify-between px-4 py-2.5">
                 <dt className="text-zinc-500">{label}</dt>
-                <dd className={`tabular-nums ${overBudget && label !== 'Planned' ? 'font-medium text-red-600' : 'text-zinc-900'}`}>
-                  {value}
-                </dd>
+                <dd className={`tabular-nums ${alert ? 'font-medium text-red-600' : 'text-zinc-900'}`}>{value}</dd>
               </div>
             ))}
           </dl>
-          {overBudget && <p className="mt-1.5 text-xs text-red-600">Claimed expense exceeds the planned budget.</p>}
+          {overBudget && (
+            <p className="mt-1.5 text-xs text-red-600">
+              {cumulative ? 'Spend including this claim exceeds the sanctioned budget.' : 'Claimed expense exceeds the planned budget.'}
+            </p>
+          )}
+          {cumulative && (
+            <p className="mt-1.5 text-xs text-zinc-500">Calculated from the scheme record and the amount found in the report.</p>
+          )}
         </section>
       )}
 
@@ -1047,7 +1430,8 @@ function ReportDetails({ report }: { report: any }) {
       {matching.length > 0 && (
         <section>
           <h4 className="font-semibold text-zinc-900">
-            Completed as planned <span className="font-normal text-zinc-500">({matching.length})</span>
+            {legacy ? 'Completed as planned' : 'Matching the plan (AI interpretation)'}{' '}
+            <span className="font-normal text-zinc-500">({matching.length})</span>
           </h4>
           <ul className="mt-2 space-y-1.5">
             {matching.map((item, idx) => (
@@ -1340,6 +1724,7 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
   const [isExtractingPDF, setIsExtractingPDF] = useState(false);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [extractNotice, setExtractNotice] = useState('');
+  const [planDocumentId, setPlanDocumentId] = useState<string | null>(null);
   const formId = useId();
 
   const handlePDFUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1364,12 +1749,14 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
 
       const response = await fetch(`${API_URL}/api/schemes/extract-from-pdf`, {
         method: 'POST',
+        headers: authHeaders(),
         body: formData,
       });
 
       const result = await response.json();
 
       if (result.success && result.data) {
+        setPlanDocumentId(result.planDocumentId ?? null);
         console.log('PDF data extracted:', result.data);
         
         // Auto-fill form with extracted data
@@ -1390,8 +1777,13 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
 
         const method = result.extractionMethod || 'standard';
         const confidence = result.confidence || 'Medium';
-        const methodDisplay = method.includes('pathway') ? 'Pathway' : method === 'llm' ? 'LLM extraction' : method;
-        setExtractNotice(`Filled from ${file.name} using ${methodDisplay} (confidence: ${confidence}). Check every field before saving.`);
+        const methodDisplay = method === 'llm' ? 'LLM extraction' : method;
+        const stored = result.planDocumentId
+          ? ' The PDF will be saved with the scheme and used as the plan when vendor reports are compared.'
+          : '';
+        setExtractNotice(
+          [`Filled from ${file.name} using ${methodDisplay} (confidence: ${confidence}). Check every field before saving.${stored}`, ...(result.warnings ?? [])].join(' '),
+        );
       } else {
         throw new Error(result.error || 'Failed to extract data from PDF');
       }
@@ -1415,8 +1807,9 @@ function AddSchemeModal({ onClose, onSubmit }: { onClose: () => void; onSubmit: 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders(),
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(planDocumentId ? { ...formData, planDocumentId } : formData),
       });
 
       if (!response.ok) {

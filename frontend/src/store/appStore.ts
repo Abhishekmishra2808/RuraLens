@@ -71,39 +71,90 @@ export interface SchemePhase {
   spent: number;
 }
 
+export interface FindingEvidence {
+  source?: 'plan-document' | 'scheme-record' | 'vendor-report';
+  quote: string | null;
+  page: number | null;
+  section: string | null;
+}
+
+export interface ModelSource {
+  provider: string;
+  modelId: string;
+}
+
+// A flagged item awaiting official review; not a determination of wrongdoing.
+export interface VendorReportFinding {
+  id?: string;
+  source?: 'deterministic' | 'ai' | 'legacy';
+  type?: string;
+  category?: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  title?: string;
+  description: string;
+  planEvidence?: FindingEvidence | null;
+  vendorEvidence?: FindingEvidence | null;
+  plannedValue?: string | null;
+  reportedValue?: string | null;
+  actualValue?: string | null;
+  variance?: number | null;
+  varianceUnit?: string | null;
+  variancePercentage?: number | null;
+  confidence?: number | null;
+  reviewStatus?: 'pending-review' | 'confirmed' | 'dismissed';
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  reviewNote?: string | null;
+  modelSource?: ModelSource | null;
+  generatedAt?: string | null;
+  supersededAt?: string | null;
+  recommendation?: string;
+}
+
 export interface VendorReport {
-  id: number;
-  vendorName: string;
+  id: string | number;
+  vendorName: string | null;
   submittedDate: string;
-  phase: number;
-  workCompleted: string;
-  expenseClaimed: number;
+  phase: number | null;
+  workCompleted: string | null;
+  expenseClaimed: number | null;
   verificationStatus: 'verified' | 'pending' | 'rejected' | 'under-review' | 'approved';
+  verificationDecision?: { by: string; at: string; note: string | null } | null;
   documents: string[];
   pdfFileName?: string;
+  documentFileId?: string | null;
+  analysisMethod?: string;
+  analysisStatus?: 'completed' | 'deterministic_only';
+  analyzedAt?: string;
+  planEvidenceSource?: 'plan-document' | 'scheme-record';
+  textExtraction?: { numPages: number; pagesAnalyzed: number; truncated: boolean } | null;
+  aiAnalysis?: {
+    status: 'succeeded' | 'failed' | 'not_configured';
+    error: { code: string; message: string; retryable: boolean } | null;
+    modelSource: ModelSource | null;
+    generatedAt: string | null;
+    discardedUnverified: number;
+    lastSuccess?: { summary: string | null; matchingItems: string[]; generatedAt: string; modelSource: ModelSource } | null;
+  };
   complianceAnalysis?: {
-    overallCompliance: number;
+    overallCompliance?: number | null;
     matchingItems?: string[];
-    discrepancies?: Array<{
-      category: string;
-      severity: 'low' | 'medium' | 'high' | 'critical';
-      description: string;
-      plannedWork?: string;
-      actualWork?: string;
-    }>;
+    discrepancies?: VendorReportFinding[];
     overdueWork?: Array<{
       task: string;
       plannedDate: string;
-      status: string;
+      currentStatus?: string;
+      status?: string;
       delayDays: number;
     }>;
     budgetAnalysis?: {
-      plannedBudget: number;
-      actualSpent: number;
-      variance: number;
-      variancePercentage: number;
+      plannedBudget: number | null;
+      claimedExpense: number | null;
+      priorUtilized?: number | null;
+      variance: number | null;
+      variancePercentage: number | null;
     };
-    aiSummary?: string;
+    aiSummary?: string | null;
     aiProcessed?: boolean;
   };
 }

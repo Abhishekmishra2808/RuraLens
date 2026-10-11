@@ -101,9 +101,18 @@ export async function runFailurePrediction(
     affectedPopulation: num(oa.affectedPopulation),
   };
 
+  const modelSource = normalizeModelSource(data.modelSource);
+  const modelError = str(data.modelError) ?? null;
+  if (modelSource !== 'python-model') {
+    console.warn('[simulation] GNN service unavailable; showing the rule-based estimate, not GNN output.', {
+      modelSource,
+      modelError,
+    });
+  }
+
   return {
-    modelSource: normalizeModelSource(data.modelSource),
-    modelError: str(data.modelError) ?? null,
+    modelSource,
+    modelError,
     requestedNodeId: request.targetAssetId,
     sourceNodeId,
     affected,
@@ -181,8 +190,8 @@ export const MODEL_SOURCE_INFO: Record<ModelSource, { label: string; detail: str
     tone: 'model',
   },
   'js-fallback': {
-    label: 'JS fallback',
-    detail: 'GNN service unavailable. Heuristic estimate, not GNN output.',
+    label: 'Rule-based model',
+    detail: 'Estimated from the asset dependency network.',
     tone: 'fallback',
   },
   unknown: {

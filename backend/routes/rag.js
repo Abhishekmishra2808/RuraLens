@@ -1,10 +1,13 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import pathwayClient, { PathwayClientError } from '../utils/pathwayClient.js';
 import { sanitizePII, normalizeCacheKey, containsPII } from '../utils/piiSanitizer.js';
 import ragCache from '../utils/ragCache.js';
 import Scheme from '../models/Scheme.js';
 import AnonymousReport from '../models/AnonymousReport.js';
+import { requireAuth } from '../middleware/auth.js';
+import { sendAIError } from '../services/ai/aiErrors.js';
+import { runCopilotTurn } from '../services/copilot/copilotService.js';
+import { defaultCopilotDeps } from '../services/copilot/copilotDeps.js';
 
 const router = express.Router();
 
@@ -84,28 +87,24 @@ const ragRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 10,
   message: { error: 'Too many RAG queries. Please try again in a minute.' },
-  keyGenerator: (req) => {
-    // Use userId if authenticated, otherwise just use user ID fallback
-    // Don't use IP to avoid IPv6 issues
-    return req.user?.userId || 'anonymous';
-  },
+  keyGenerator: (req) => req.user.userId,
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => !req.user?.userId // Skip rate limiting for non-authenticated requests
 });
 
 /**
  * POST /api/rag-query
- * RAG query endpoint with auth, caching, rate limiting, and citation enrichment
+ * Question answering over scheme records (MongoDB) through the Bedrock Copilot
+ * tools, with auth, caching, rate limiting, and citation enrichment.
  */
-router.post('/', ragRateLimiter, async (req, res) => {
+router.post('/', requireAuth, ragRateLimiter, async (req, res) => {
   const startTime = Date.now();
   let trace_id = `trace_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
   try {
     // Validate request body
     const { question, scheme_id, bbox, max_citations } = req.body;
-    const user_id = req.user?.userId || 'anonymous';
+    const user_id = req.user.userId;
 
     if (!question || typeof question !== 'string' || question.trim().length === 0) {
       return res.status(400).json({ 
@@ -128,14 +127,18 @@ router.post('/', ragRateLimiter, async (req, res) => {
 
     const maxCitations = Math.min(max_citations || 5, 10); // Cap at 10
 
-    // Check cache first (normalized key)
-    const cacheKey = normalizeCacheKey(question, scheme_id, bbox);
-    const cachedResponse = ragCache.get(cacheKey);
-    if (cachedResponse) {
-      return res.json(cachedResponse);
+    if (scheme_id != null && (typeof scheme_id !== 'string' || !/^[A-Za-z0-9_.:-]{1,120}$/.test(scheme_id))) {
+      return res.status(400).json({ error: 'Invalid scheme_id.' });
     }
 
-    // Sanitize PII from question before sending to Pathway
+    // Answers depend on role (vendor findings are restricted), so the role is part of the key.
+    const cacheKey = `${req.user.role}|${normalizeCacheKey(question, scheme_id, bbox)}`;
+    const cachedResponse = ragCache.get(cacheKey);
+    if (cachedResponse) {
+      return res.json({ ...cachedResponse, cached: true });
+    }
+
+    // Sanitize PII from question before sending to the model
     const sanitizedQuestion = sanitizePII(question);
     const hasPII = containsPII(question);
 
@@ -152,7 +155,9 @@ router.post('/', ragRateLimiter, async (req, res) => {
           answer: structured.answer,
           citations: await enrichCitations(structured.citations, scheme_id, bbox),
           trace_id,
-          cached: false
+          cached: false,
+          answerSource: 'database-ranking',
+          generatedAt: new Date().toISOString()
         };
 
         ragCache.set(cacheKey, structuredResponse);
@@ -164,42 +169,31 @@ router.post('/', ragRateLimiter, async (req, res) => {
     console.log(`🔍 RAG Query from ${user_id}: ${hasPII ? '[QUESTION_CONTAINS_PII]' : sanitizedQuestion.substring(0, 100)}`);
     console.log(`   Filters: scheme_id=${scheme_id || 'null'}, bbox=${bbox ? 'yes' : 'no'}`);
 
-    // Build Pathway request
-    const pathwayPayload = {
-      question: sanitizedQuestion,
-      filters: {
-        scheme_id: scheme_id || null,
-        bbox: bbox || null
-      },
-      max_citations: maxCitations,
-      return_snippets: true,
-      system_prompt: `Answer the user question in ≤250 words using ONLY the retrieved context. 
-Provide a concise answer followed by numbered citations in format: [N:doc_id] snippet. 
-Do NOT invent facts. If uncertain or context insufficient, respond "Insufficient data to answer this question."
-Be specific and cite sources.`
-    };
-
-    // Call Pathway MCP
-    let pathwayResponse;
+    let copilotResult;
     try {
-      pathwayResponse = await pathwayClient.callRag(pathwayPayload);
-      trace_id = pathwayResponse.trace_id || trace_id;
+      copilotResult = await runCopilotTurn({
+        user: req.user,
+        messages: [
+          {
+            role: 'user',
+            content: scheme_id ? `${sanitizedQuestion}\n\n(The question is about scheme id ${scheme_id}.)` : sanitizedQuestion
+          }
+        ],
+        deps: defaultCopilotDeps
+      });
+      trace_id = copilotResult.traceId || trace_id;
     } catch (error) {
-      if (error instanceof PathwayClientError) {
-        console.error(`❌ Pathway error [${trace_id}]:`, error.message);
-        return res.status(502).json({
-          error: 'RAG service temporarily unavailable',
-          message: 'Unable to process query. Please try again in a moment.',
-          trace_id
-        });
-      }
-      throw error;
+      return sendAIError(res, error, 'rag-query', { trace_id });
     }
 
-    // Extract citations from Pathway's retrieved documents
-    const citations = pathwayResponse.citations || [];
-    
-    console.log(`ℹ️  Pathway returned ${citations.length} citations [${trace_id}]`);
+    // Citations are the records the tools actually retrieved, never model-written ids.
+    const citations = copilotResult.sources.slice(0, maxCitations).map((source) => ({
+      doc_id: source.id,
+      type: source.type,
+      snippet: source.snippet || source.title || '',
+      score: null,
+      timestamp: source.timestamp ?? null
+    }));
 
     // Enrich citations with metadata and geo coordinates
     const enrichedCitations = await enrichCitations(
@@ -210,10 +204,13 @@ Be specific and cite sources.`
 
     // Build response
     const response = {
-      answer: pathwayResponse.answer,
+      answer: copilotResult.answer,
       citations: enrichedCitations,
       trace_id,
-      cached: false
+      cached: false,
+      answerSource: 'amazon-bedrock',
+      model: copilotResult.model,
+      generatedAt: copilotResult.generatedAt
     };
 
     // Cache the response
@@ -261,9 +258,9 @@ async function enrichCitations(citations, scheme_id, bbox) {
       const enrichedCitation = {
         doc_id: citation.doc_id,
         snippet: citation.snippet || '',
-        score: citation.score || 0,
-        type: 'unknown',
-        timestamp: null,
+        score: typeof citation.score === 'number' ? citation.score : null,
+        type: citation.type || 'unknown',
+        timestamp: citation.timestamp ?? null,
         geo: null
       };
 
@@ -294,7 +291,7 @@ async function enrichCitations(citations, scheme_id, bbox) {
       enriched.push({
         doc_id: citation.doc_id,
         snippet: citation.snippet || '',
-        score: citation.score || 0,
+        score: typeof citation.score === 'number' ? citation.score : null,
         type: 'unknown',
         timestamp: null,
         geo: null
@@ -310,16 +307,17 @@ async function enrichCitations(citations, scheme_id, bbox) {
  */
 async function enrichVendorReport(citation, scheme_id) {
   // Vendor reports are embedded in schemes
+  const reportId = citation.doc_id.replace('vendor-report-', '');
   const schemes = await Scheme.find({
-    'vendorReports.id': citation.doc_id
+    'vendorReports.id': reportId
   }).limit(1);
 
   if (schemes.length > 0) {
     const scheme = schemes[0];
-    const report = scheme.vendorReports.find(r => r.id === citation.doc_id);
+    const report = scheme.vendorReports.find(r => r.id === reportId);
     
     citation.type = 'vendor-report';
-    citation.timestamp = report?.uploadedAt || scheme.startDate;
+    citation.timestamp = citation.timestamp || report?.analyzedAt || report?.submittedDate || null;
     
     // Use scheme location as geo
     if (scheme.location) {
@@ -340,7 +338,7 @@ async function enrichScheme(citation) {
 
   if (scheme) {
     citation.type = 'government-scheme';
-    citation.timestamp = scheme.startDate;
+    citation.timestamp = citation.timestamp || scheme.startDate;
     
     if (scheme.location) {
       citation.geo = {

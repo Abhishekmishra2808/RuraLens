@@ -78,9 +78,6 @@ env/
 backend/uploads/
 sample-docs/
 
-# Pathway Cache
-/tmp/pathway-cache/
-
 # Capacitor
 .cap-backup/
 android/app/src/main/assets/public/

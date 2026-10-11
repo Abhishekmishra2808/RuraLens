@@ -9,29 +9,34 @@
     "dev": "node --watch server.js",
     "clear-db": "node clearDB.js",
     "cleanup-feedback": "node cleanupFeedback.js",
-    "export-pathway": "node scripts/export-to-pathway.js",
     "migrate-locations": "node scripts/migrate-location-fields.js",
-    "pathway-server": "cd python-gnn && python pathway_api_server.py"
+    "check:bedrock": "node scripts/check-bedrock.js",
+    "test": "node --test \"test/**/*.test.js\""
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1149.0",
     "@google/generative-ai": "^0.24.1",
     "@huggingface/inference": "^4.13.4",
+    "@modelcontextprotocol/client": "^2.3.1",
+    "@opentelemetry/api": "^1.9.1",
+    "@strands-agents/sdk": "^1.20.0",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "express-rate-limit": "^8.2.1",
-    "form-data": "^4.0.5",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.2",
     "multer": "^2.0.2",
     "node-cache": "^5.1.2",
     "node-cron": "^4.2.1",
     "ollama": "^0.5.0",
-    "pdf-parse-new": "^1.4.1"
+    "openai": "^6.49.0",
+    "pdf-parse-new": "^1.4.1",
+    "zod": "^4.6.5"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   }
 }

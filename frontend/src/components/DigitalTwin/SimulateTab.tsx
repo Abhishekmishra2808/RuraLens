@@ -30,12 +30,13 @@ function severityTone(severity?: string): 'red' | 'amber' | 'neutral' {
   return 'neutral';
 }
 
-export function EngineBadge({ source, error }: { source: ModelSource; error?: string | null }) {
+/** Shown only for GNN output; fallback details are logged to the console by runFailurePrediction. */
+export function EngineBadge({ source }: { source: ModelSource }) {
   const info = MODEL_SOURCE_INFO[source];
+  if (info.tone !== 'model') return null;
   return (
-    <Callout tone={info.tone === 'model' ? 'brand' : info.tone === 'fallback' ? 'amber' : 'neutral'} icon={<Info size={13} />}>
+    <Callout tone="brand" icon={<Info size={13} />}>
       <span className="font-medium">{info.label}.</span> {info.detail}
-      {error && <span className="mt-0.5 block opacity-80">{error}</span>}
     </Callout>
   );
 }
@@ -332,7 +333,7 @@ function Results({ run }: { run: SimulationRun }) {
 
   return (
     <>
-      <EngineBadge source={result.modelSource} error={result.modelError} />
+      <EngineBadge source={result.modelSource} />
 
       {result.sourceNodeId !== result.requestedNodeId && (
         <Callout tone="amber" icon={<AlertTriangle size={13} />}>

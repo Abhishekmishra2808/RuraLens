@@ -61,6 +61,11 @@ const getWsUrl = () => {
 export const API_URL = getApiUrl();
 export const WS_URL = getWsUrl();
 
+export const authHeaders = (): Record<string, string> => {
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 // Always log the API configuration for debugging
 console.log('API Configuration:');
 console.log('  Hostname:', typeof window !== 'undefined' ? window.location.hostname : 'SSR');
